@@ -13,6 +13,154 @@ node bin/hydraulify.mjs deliver examples/02-solenoid-cylinder.json out.svg \
   --html out.html --report out.validation.md --bom out.bom.md
 ```
 
+## Installation
+
+There is nothing to build and nothing to fetch. The schema validator is
+committed, the viewer template is vendored, and the runtime needs no packages.
+Installing means putting the directory where your agent looks for skills.
+
+### Claude Code
+
+Copy the tracked files into the skills directory. `git archive` is the right
+tool here -- it takes exactly what is committed, leaving `node_modules`, local
+scratch files and `.git` behind:
+
+```bash
+mkdir -p ~/.claude/skills/hydraulify && git archive HEAD | tar -x -C ~/.claude/skills/hydraulify
+```
+
+On Windows PowerShell, without `tar`:
+
+```powershell
+git archive --format=zip HEAD -o "$env:TEMP\hydraulify.zip"; Expand-Archive "$env:TEMP\hydraulify.zip" -DestinationPath "$env:USERPROFILE\.claude\skills\hydraulify" -Force
+```
+
+Use `.claude/skills/hydraulify` inside a project instead of `~/.claude/skills`
+to scope the skill to that project. Either way, start a new session afterwards:
+skills are discovered at startup, so an already-running one will not see it.
+
+### Codex
+
+Codex reads `AGENTS.md`, which is generated from the same instruction source as
+`SKILL.md` and ships in the same directory. Put the skill inside the repository
+you are working in:
+
+```bash
+mkdir -p tools/hydraulify && git archive HEAD | tar -x -C tools/hydraulify
+```
+
+This path is supported by construction rather than by observation -- see the
+limitations at the bottom.
+
+### As a plain CLI
+
+No agent required. Clone it anywhere and call the entry point:
+
+```bash
+node /path/to/hydraulify/bin/hydraulify.mjs examples
+```
+
+Or put it on your `PATH`:
+
+```bash
+npm link
+hydraulify doctor
+```
+
+### Verify
+
+```bash
+node bin/hydraulify.mjs doctor
+```
+
+Seven checks: the Node version, the committed validator and its freedom from
+runtime dependencies, the viewer template and that it is readable, the
+examples, and whether a local Chrome exists. Chrome is the only optional one --
+everything except `visual-check` works without it.
+
+## Usage
+
+### From an agent
+
+Describe the system. The skill triggers on hydraulic circuits, schematics,
+power units, topology checks and bills of materials:
+
+> Draw me a circuit for a single-acting clamp cylinder: fixed-displacement
+> pump, 3/2 solenoid valve, relief set at 160 bar, vented tank.
+
+The agent writes the model, validates it, repairs what the diagnostics name,
+and only then produces artifacts. If a choice that changes how the circuit
+behaves is missing -- valve configuration, centre condition, actuation, single-
+versus double-acting -- it asks before guessing.
+
+### From the command line
+
+Three steps: write a model against the schema, validate it, deliver it.
+
+```bash
+# 1. start from a sketch with no positions, or from an example
+node bin/hydraulify.mjs scaffold sketch.json model.json
+
+# 2. validate; this writes nothing at all
+node bin/hydraulify.mjs validate model.json
+
+# 3. write every artifact, with a SHA-256 receipt for each
+node bin/hydraulify.mjs deliver model.json out.svg \
+  --html out.html --report out.validation.md --bom out.bom.md
+```
+
+Step 2 is the loop. Findings name the component, the port and the fix; repair
+only what is named, then validate again. An error means nothing was drawn --
+the exit code is 1 and any previous artifact is left untouched.
+
+A model small enough to read, and complete enough to render:
+
+```json
+{
+  "schema_version": 1,
+  "diagram_type": "hydraulic_circuit",
+  "meta": { "title": "Clamp circuit", "units": "si" },
+  "components": [
+    { "id": "T1", "type": "reservoir", "pos": [60, 540] },
+    { "id": "P1", "type": "pump", "pos": [28, 410],
+      "config": { "pump_type": "fixed_displacement", "drive": "electric_motor" },
+      "params": { "flow_lpm": 20 } }
+  ],
+  "connections": [
+    { "id": "suction", "from": "T1.outlet", "to": "P1.inlet", "line": "suction" }
+  ],
+  "assumptions": []
+}
+```
+
+Two rules carry most of the weight. Connections are **port to port** --
+`P1.outlet` to `V1.P`, never "pump to valve" -- and a port takes exactly one
+line, so every branch is an explicit `junction` component.
+
+### Imperial output
+
+The model keeps whatever was authored. Conversion happens at render time only,
+rounded to the significant figures of the source and marked with a tilde:
+
+```bash
+node bin/hydraulify.mjs render model.json out-imperial.svg --units imperial
+```
+
+One unit system per artifact, so each file stays diffable. Ship both if a
+review needs both.
+
+### Inspecting and checking
+
+```bash
+node bin/hydraulify.mjs inspect model.json            # anchors, sides, routes
+node bin/hydraulify.mjs check out.svg                 # structure, no inline colour
+node bin/hydraulify.mjs visual-check out.html --png shot.png
+node bin/hydraulify.mjs demo tmp/                     # render all five examples
+```
+
+`inspect` is the artifact to diff when a layout changes: it reads as "C1.rod
+anchor moved 3px", where an SVG diff shows only changed path data.
+
 ## What it does
 
 ```
@@ -80,7 +228,16 @@ node scripts/symbol-sheet.mjs tmp/sheet.svg
 | `examples` / `demo` | list the worked examples, or render them all |
 | `doctor` | check the environment |
 
+`--help` prints the full usage with every flag. `validate`, `deliver` and
+`visual-check` take `--json` for machine-readable output; `bom` writes its JSON
+to a path with `--json-out`.
+
 ## Examples
+
+```bash
+node bin/hydraulify.mjs examples          # list them
+node bin/hydraulify.mjs demo tmp/         # render all five
+```
 
 | File | Shows |
 | --- | --- |
@@ -103,6 +260,10 @@ docs/          architecture record, decisions, shared instruction source
 test/          116 tests plus goldens
 ```
 
+Read `references/schema.md` to write a model, `references/symbols.md` for what
+each symbol expects, `references/validation.md` for what a diagnostic means,
+and `references/authoring.md` for placement and routing.
+
 ## Development
 
 ```bash
@@ -111,6 +272,11 @@ npm run generate:validators  # after changing the schema
 npm run generate:docs        # after changing docs/shared-instructions.md
 npm test                     # everything, including both drift checks
 ```
+
+`ajv` is a development dependency only. It compiles the schema into the
+committed `renderers/shared/generated-validators.mjs`, and the generator fails
+if any `require` survives into that file -- which is what keeps the installed
+skill free of `node_modules`.
 
 Goldens are regenerated deliberately, not reflexively:
 
