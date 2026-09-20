@@ -1,0 +1,537 @@
+{
+  "title": "Simple double-acting cylinder circuit",
+  "units": "si",
+  "viewBox": {
+    "x": -20,
+    "y": -6,
+    "width": 910,
+    "height": 714,
+    "authored": false
+  },
+  "components": [
+    {
+      "id": "C1",
+      "type": "cylinder",
+      "pos": [
+        700,
+        96
+      ],
+      "size": [
+        142,
+        44
+      ],
+      "config": {
+        "cylinder_type": "double_acting",
+        "rod": "single",
+        "spring_return": false,
+        "cushioned": false
+      },
+      "ports": {
+        "cap": {
+          "anchor": [
+            716,
+            140
+          ],
+          "side": "bottom",
+          "criticality": "required"
+        },
+        "rod": {
+          "anchor": [
+            796,
+            140
+          ],
+          "side": "bottom",
+          "criticality": "required"
+        }
+      }
+    },
+    {
+      "id": "J1",
+      "type": "junction",
+      "pos": [
+        236,
+        276
+      ],
+      "size": [
+        8,
+        8
+      ],
+      "config": {
+        "way": 3
+      },
+      "ports": {
+        "left": {
+          "anchor": [
+            240,
+            280
+          ],
+          "side": "left",
+          "criticality": "optional"
+        },
+        "right": {
+          "anchor": [
+            240,
+            280
+          ],
+          "side": "right",
+          "criticality": "optional"
+        },
+        "top": {
+          "anchor": [
+            240,
+            280
+          ],
+          "side": "top",
+          "criticality": "optional"
+        },
+        "bottom": {
+          "anchor": [
+            240,
+            280
+          ],
+          "side": "bottom",
+          "criticality": "optional"
+        }
+      }
+    },
+    {
+      "id": "J2",
+      "type": "junction",
+      "pos": [
+        236,
+        496
+      ],
+      "size": [
+        8,
+        8
+      ],
+      "config": {
+        "way": 3
+      },
+      "ports": {
+        "left": {
+          "anchor": [
+            240,
+            500
+          ],
+          "side": "left",
+          "criticality": "optional"
+        },
+        "right": {
+          "anchor": [
+            240,
+            500
+          ],
+          "side": "right",
+          "criticality": "optional"
+        },
+        "top": {
+          "anchor": [
+            240,
+            500
+          ],
+          "side": "top",
+          "criticality": "optional"
+        },
+        "bottom": {
+          "anchor": [
+            240,
+            500
+          ],
+          "side": "bottom",
+          "criticality": "optional"
+        }
+      }
+    },
+    {
+      "id": "P1",
+      "type": "pump",
+      "pos": [
+        28,
+        410
+      ],
+      "size": [
+        108,
+        56
+      ],
+      "config": {
+        "pump_type": "fixed_displacement",
+        "drive": "electric_motor",
+        "bidirectional": false,
+        "has_case_drain": false
+      },
+      "ports": {
+        "inlet": {
+          "anchor": [
+            108,
+            466
+          ],
+          "side": "bottom",
+          "criticality": "required"
+        },
+        "outlet": {
+          "anchor": [
+            108,
+            410
+          ],
+          "side": "top",
+          "criticality": "required"
+        }
+      }
+    },
+    {
+      "id": "RV1",
+      "type": "relief_valve",
+      "pos": [
+        214,
+        330
+      ],
+      "size": [
+        74,
+        72
+      ],
+      "config": {
+        "pilot_operated": false,
+        "remote_pilot": false
+      },
+      "ports": {
+        "inlet": {
+          "anchor": [
+            240,
+            330
+          ],
+          "side": "top",
+          "criticality": "required"
+        },
+        "outlet": {
+          "anchor": [
+            240,
+            402
+          ],
+          "side": "bottom",
+          "criticality": "required"
+        }
+      }
+    },
+    {
+      "id": "T1",
+      "type": "reservoir",
+      "pos": [
+        60,
+        540
+      ],
+      "size": [
+        76,
+        48
+      ],
+      "config": {
+        "vented": true
+      },
+      "ports": {
+        "outlet": {
+          "anchor": [
+            82,
+            540
+          ],
+          "side": "top",
+          "criticality": "optional"
+        },
+        "return": {
+          "anchor": [
+            114,
+            540
+          ],
+          "side": "top",
+          "criticality": "optional"
+        }
+      }
+    },
+    {
+      "id": "V1",
+      "type": "directional_control_valve",
+      "pos": [
+        430,
+        200
+      ],
+      "size": [
+        184,
+        40
+      ],
+      "config": {
+        "configuration": "4/3",
+        "center_condition": "closed",
+        "normal_position": "closed",
+        "actuation": {
+          "left": "lever",
+          "right": "none",
+          "spring": "centred"
+        }
+      },
+      "ports": {
+        "P": {
+          "anchor": [
+            526,
+            240
+          ],
+          "side": "bottom",
+          "criticality": "required"
+        },
+        "T": {
+          "anchor": [
+            542,
+            240
+          ],
+          "side": "bottom",
+          "criticality": "required"
+        },
+        "A": {
+          "anchor": [
+            526,
+            200
+          ],
+          "side": "top",
+          "criticality": "expected"
+        },
+        "B": {
+          "anchor": [
+            542,
+            200
+          ],
+          "side": "top",
+          "criticality": "expected"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "delivery",
+      "from": "P1.outlet",
+      "to": "J1.left",
+      "line": "pressure",
+      "route": "auto",
+      "sides": [
+        "top",
+        "left"
+      ],
+      "points": [
+        [
+          108,
+          410
+        ],
+        [
+          108,
+          280
+        ],
+        [
+          240,
+          280
+        ]
+      ]
+    },
+    {
+      "id": "extend",
+      "from": "V1.A",
+      "to": "C1.cap",
+      "line": "working",
+      "route": "auto",
+      "sides": [
+        "top",
+        "bottom"
+      ],
+      "points": [
+        [
+          526,
+          200
+        ],
+        [
+          526,
+          160
+        ],
+        [
+          716,
+          160
+        ],
+        [
+          716,
+          140
+        ]
+      ]
+    },
+    {
+      "id": "pressure-rail",
+      "from": "J1.right",
+      "to": "V1.P",
+      "line": "pressure",
+      "route": "auto",
+      "sides": [
+        "right",
+        "bottom"
+      ],
+      "points": [
+        [
+          240,
+          280
+        ],
+        [
+          526,
+          280
+        ],
+        [
+          526,
+          240
+        ]
+      ]
+    },
+    {
+      "id": "relief-discharge",
+      "from": "RV1.outlet",
+      "to": "J2.top",
+      "line": "return",
+      "route": "auto",
+      "sides": [
+        "bottom",
+        "top"
+      ],
+      "points": [
+        [
+          240,
+          402
+        ],
+        [
+          240,
+          500
+        ]
+      ]
+    },
+    {
+      "id": "relief-tap",
+      "from": "J1.bottom",
+      "to": "RV1.inlet",
+      "line": "pressure",
+      "route": "auto",
+      "sides": [
+        "bottom",
+        "top"
+      ],
+      "points": [
+        [
+          240,
+          280
+        ],
+        [
+          240,
+          330
+        ]
+      ]
+    },
+    {
+      "id": "retract",
+      "from": "V1.B",
+      "to": "C1.rod",
+      "line": "working",
+      "route": "auto",
+      "sides": [
+        "top",
+        "bottom"
+      ],
+      "points": [
+        [
+          542,
+          200
+        ],
+        [
+          542,
+          170
+        ],
+        [
+          796,
+          170
+        ],
+        [
+          796,
+          140
+        ]
+      ]
+    },
+    {
+      "id": "suction",
+      "from": "T1.outlet",
+      "to": "P1.inlet",
+      "line": "suction",
+      "route": "auto",
+      "sides": [
+        "top",
+        "bottom"
+      ],
+      "points": [
+        [
+          82,
+          540
+        ],
+        [
+          82,
+          486
+        ],
+        [
+          108,
+          486
+        ],
+        [
+          108,
+          466
+        ]
+      ]
+    },
+    {
+      "id": "tank-return",
+      "from": "J2.left",
+      "to": "T1.return",
+      "line": "return",
+      "route": "auto",
+      "sides": [
+        "left",
+        "top"
+      ],
+      "points": [
+        [
+          240,
+          500
+        ],
+        [
+          114,
+          500
+        ],
+        [
+          114,
+          540
+        ]
+      ]
+    },
+    {
+      "id": "valve-return",
+      "from": "V1.T",
+      "to": "J2.right",
+      "line": "return",
+      "route": "auto",
+      "sides": [
+        "bottom",
+        "right"
+      ],
+      "points": [
+        [
+          542,
+          240
+        ],
+        [
+          542,
+          500
+        ],
+        [
+          240,
+          500
+        ]
+      ]
+    }
+  ]
+}

@@ -103,11 +103,11 @@ export function draw({ config }) {
     : '';
 
   const variable = config.pump_type === 'variable_displacement'
-    ? line(centreX - RADIUS - 6, centreY + RADIUS + 6, centreX + RADIUS + 6, centreY - RADIUS - 6, { cls: 'sym' })
+    ? line(centreX - RADIUS - 4, centreY + RADIUS + 4, centreX + RADIUS + 4, centreY - RADIUS - 4, { cls: 'sym' })
       + polygon(
-        [[centreX + RADIUS + 6, centreY - RADIUS - 6],
-          [centreX + RADIUS - 2, centreY - RADIUS - 3],
-          [centreX + RADIUS + 3, centreY - RADIUS + 2]],
+        [[centreX + RADIUS + 4, centreY - RADIUS - 4],
+          [centreX + RADIUS - 3, centreY - RADIUS - 2],
+          [centreX + RADIUS + 2, centreY - RADIUS + 3]],
         { cls: 'sym', fill: 'currentColor' },
       )
     : '';

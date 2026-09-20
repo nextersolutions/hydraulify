@@ -52,6 +52,31 @@ export function flowArrow(x1, y1, x2, y2, { cls = 'sym', size = 4 } = {}) {
   return line(x1, y1, x2, y2, { cls }) + arrowhead(midX + ox, midY + oy, direction, { size, cls: `${cls} arrow-head` });
 }
 
+/**
+ * A multi-segment internal flow path with a direction arrow.
+ *
+ * Used for the spool conditions whose path turns a corner -- a 3/2 venting to
+ * tank, a tandem centre joining P to T. Without the arrow a reader can see that
+ * two ports are joined but not which way oil moves, which is half the
+ * information the envelope exists to carry.
+ */
+export function flowPath(points, { cls = 'sym', size = 4 } = {}) {
+  const body = polyline(points, { cls });
+  const last = points.at(-1);
+  const previous = points.at(-2);
+  if (!last || !previous) return body;
+  const dx = last[0] - previous[0];
+  const dy = last[1] - previous[1];
+  const direction = Math.abs(dx) >= Math.abs(dy)
+    ? (dx >= 0 ? 'right' : 'left')
+    : (dy >= 0 ? 'down' : 'up');
+  // Place the head short of the endpoint so it does not sit on the envelope edge.
+  const inset = 6;
+  const headX = Math.abs(dx) >= Math.abs(dy) ? last[0] - Math.sign(dx) * inset : last[0];
+  const headY = Math.abs(dx) >= Math.abs(dy) ? last[1] : last[1] - Math.sign(dy) * inset;
+  return body + arrowhead(headX, headY, direction, { size, cls: `${cls} arrow-head` });
+}
+
 /** A blocked port inside a valve envelope: a stub ending in a perpendicular bar. */
 export function blockedStub(x, y, side, { length = 9, bar = 7, cls = 'sym' } = {}) {
   const vectors = { top: [0, 1], bottom: [0, -1], left: [1, 0], right: [-1, 0] };

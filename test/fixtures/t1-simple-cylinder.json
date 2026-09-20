@@ -6,26 +6,26 @@
     "units": "si"
   },
   "components": [
-    { "id": "T1", "type": "reservoir", "pos": [80, 540], "params": { "volume_l": 100 } },
+    { "id": "T1", "type": "reservoir", "pos": [60, 540], "params": { "volume_l": 100 } },
     {
       "id": "P1",
       "type": "pump",
-      "pos": [64, 420],
+      "pos": [28, 410],
       "config": { "pump_type": "fixed_displacement", "drive": "electric_motor" },
       "params": { "flow_lpm": 20 }
     },
-    { "id": "J1", "type": "junction", "pos": [140, 296], "config": { "way": 3 } },
+    { "id": "J1", "type": "junction", "pos": [236, 276], "config": { "way": 3 } },
     {
       "id": "RV1",
       "type": "relief_valve",
-      "pos": [232, 264],
+      "pos": [214, 330],
       "params": { "setting_bar": 180 }
     },
-    { "id": "J2", "type": "junction", "pos": [254, 476], "config": { "way": 3 } },
+    { "id": "J2", "type": "junction", "pos": [236, 496], "config": { "way": 3 } },
     {
       "id": "V1",
       "type": "directional_control_valve",
-      "pos": [372, 232],
+      "pos": [430, 200],
       "config": {
         "configuration": "4/3",
         "center_condition": "closed",
@@ -35,16 +35,16 @@
     {
       "id": "C1",
       "type": "cylinder",
-      "pos": [640, 120],
+      "pos": [700, 96],
       "config": { "cylinder_type": "double_acting" },
       "params": { "bore_mm": 63, "rod_mm": 36, "stroke_mm": 400 }
     }
   ],
   "connections": [
     { "id": "suction", "from": "T1.outlet", "to": "P1.inlet", "line": "suction" },
-    { "id": "delivery", "from": "P1.outlet", "to": "J1.bottom", "line": "pressure" },
-    { "id": "relief-tap", "from": "J1.right", "to": "RV1.inlet", "line": "pressure" },
-    { "id": "pressure-rail", "from": "J1.top", "to": "V1.P", "line": "pressure" },
+    { "id": "delivery", "from": "P1.outlet", "to": "J1.left", "line": "pressure" },
+    { "id": "relief-tap", "from": "J1.bottom", "to": "RV1.inlet", "line": "pressure" },
+    { "id": "pressure-rail", "from": "J1.right", "to": "V1.P", "line": "pressure" },
     { "id": "relief-discharge", "from": "RV1.outlet", "to": "J2.top", "line": "return" },
     { "id": "valve-return", "from": "V1.T", "to": "J2.right", "line": "return" },
     { "id": "tank-return", "from": "J2.left", "to": "T1.return", "line": "return" },

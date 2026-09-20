@@ -17,7 +17,7 @@
 //     (P->A, B->T) and the rightmost is CROSSED (P->B, A->T)
 
 import { line, polyline, rect } from '../shared/svg.mjs';
-import { flowArrow, blockedStub, actuationGlyph, actuationSpring, ACTUATION_WIDTH } from './glyphs.mjs';
+import { flowArrow, flowPath, blockedStub, actuationGlyph, actuationSpring, ACTUATION_WIDTH } from './glyphs.mjs';
 import { port, labelBelow, CRITICALITY } from './contract.mjs';
 
 const ENVELOPE = 40;
@@ -142,7 +142,7 @@ function centreOpen() {
 function centreTandem() {
   // P connected to T; both working ports blocked.
   const mid = ENVELOPE / 2 + 6;
-  return polyline([[PORT_X.P, ENVELOPE], [PORT_X.P, mid], [PORT_X.T, mid], [PORT_X.T, ENVELOPE]], { cls: 'sym' })
+  return flowPath([[PORT_X.P, ENVELOPE], [PORT_X.P, mid], [PORT_X.T, mid], [PORT_X.T, ENVELOPE]])
     + blockedStub(PORT_X.A, 0, 'top')
     + blockedStub(PORT_X.B, 0, 'top');
 }
@@ -151,7 +151,7 @@ function centreFloat() {
   // A, B and T interconnected; P blocked.
   const mid = ENVELOPE / 2 - 4;
   return polyline([[PORT_X.A, 0], [PORT_X.A, mid], [PORT_X.B, mid], [PORT_X.B, 0]], { cls: 'sym' })
-    + line(PORT_X.B, mid, PORT_X.T, ENVELOPE, { cls: 'sym' })
+    + flowPath([[PORT_X.B, mid], [PORT_X.T, ENVELOPE]])
     + blockedStub(PORT_X.P, ENVELOPE, 'bottom');
 }
 
@@ -165,14 +165,14 @@ const CENTRES = {
 function threeWayFlowing() {
   // P -> A, tank blocked.
   const mid = ENVELOPE / 2;
-  return polyline([[PORT_X.P, ENVELOPE], [PORT_X.P, mid], [CENTRE_PORT_X, mid], [CENTRE_PORT_X, 0]], { cls: 'sym' })
+  return flowPath([[PORT_X.P, ENVELOPE], [PORT_X.P, mid], [CENTRE_PORT_X, mid], [CENTRE_PORT_X, 0]])
     + blockedStub(PORT_X.T, ENVELOPE, 'bottom');
 }
 
 function threeWayVenting() {
   // A -> T, pressure blocked.
   const mid = ENVELOPE / 2;
-  return polyline([[CENTRE_PORT_X, 0], [CENTRE_PORT_X, mid], [PORT_X.T, mid], [PORT_X.T, ENVELOPE]], { cls: 'sym' })
+  return flowPath([[CENTRE_PORT_X, 0], [CENTRE_PORT_X, mid], [PORT_X.T, mid], [PORT_X.T, ENVELOPE]])
     + blockedStub(PORT_X.P, ENVELOPE, 'bottom');
 }
 
