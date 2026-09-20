@@ -1,0 +1,7 @@
+# Determinism: every text artifact in this repository is LF, on every platform.
+# Golden SVG comparison is byte-exact, so an autocrlf checkout must not rewrite
+# line endings underneath the test suite.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.woff2 binary
