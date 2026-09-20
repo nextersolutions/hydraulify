@@ -16,7 +16,7 @@
     "check:validators": "node scripts/generate-validators.mjs --check",
     "generate:docs": "node scripts/generate-shared-instructions.mjs",
     "check:docs": "node scripts/generate-shared-instructions.mjs --check",
-    "test": "node --test test/"
+    "test": "npm run check:validators && npm run check:docs && node --test test/"
   },
   "devDependencies": {
     "ajv": "^8.17.1"
