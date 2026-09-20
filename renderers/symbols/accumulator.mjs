@@ -6,7 +6,7 @@
 
 import { line, rect, path, polyline } from '../shared/svg.mjs';
 import { spring } from './glyphs.mjs';
-import { port, labelBelow, CRITICALITY } from './contract.mjs';
+import { port, labelRight, CRITICALITY } from './contract.mjs';
 
 const WIDTH = 46;
 const HEIGHT = 68;
@@ -26,7 +26,7 @@ export function geometry() {
     ports: {
       inlet: port('inlet', CENTRE_X, HEIGHT, 'bottom', { criticality: CRITICALITY.REQUIRED, label: 'A' }),
     },
-    labelAnchor: labelBelow(WIDTH, HEIGHT, 12),
+    labelAnchor: labelRight(WIDTH, HEIGHT),
   };
 }
 

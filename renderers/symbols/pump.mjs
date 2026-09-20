@@ -9,7 +9,7 @@
 // circuit that the description did not name.
 
 import { line, circle, polygon, text } from '../shared/svg.mjs';
-import { port, labelBelow, CRITICALITY } from './contract.mjs';
+import { port, labelRight, CRITICALITY } from './contract.mjs';
 
 const BODY = 56;
 const RADIUS = 22;
@@ -54,7 +54,7 @@ export function geometry(config) {
     });
   }
 
-  return { width, height: BODY, ports, labelAnchor: labelBelow(width, BODY, 16) };
+  return { width, height: BODY, ports, labelAnchor: labelRight(width, BODY) };
 }
 
 function driveGlyph(config) {

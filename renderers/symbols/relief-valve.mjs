@@ -17,12 +17,16 @@
 
 import { line, polyline, rect } from '../shared/svg.mjs';
 import { spring, flowArrow, adjustmentArrow } from './glyphs.mjs';
-import { port, labelBelow, CRITICALITY } from './contract.mjs';
+import { port, labelRight, CRITICALITY } from './contract.mjs';
 
-const WIDTH = 74;
+// The envelope is inset from the left edge far enough for the internal pilot
+// line to run beside it as its own leg. At a tighter inset the pilot reads as a
+// stray dashed box against the envelope wall rather than as a control line.
+const WIDTH = 92;
 const HEIGHT = 72;
-const ENVELOPE = { x: 8, y: 18, size: 36 };
-const PORT_X = 26;
+const ENVELOPE = { x: 26, y: 18, size: 36 };
+const PORT_X = 44;
+const PILOT_X = 12;
 
 export const type = 'relief_valve';
 
@@ -41,7 +45,7 @@ export function geometry(config) {
     // a finding.
     ports.pilot = port('pilot', WIDTH, 12, 'right', { criticality: CRITICALITY.OPTIONAL, label: 'X' });
   }
-  return { width: WIDTH, height: HEIGHT, ports, labelAnchor: labelBelow(WIDTH, HEIGHT, 16) };
+  return { width: WIDTH, height: HEIGHT, ports, labelAnchor: labelRight(WIDTH, HEIGHT) };
 }
 
 export function draw({ config }) {
@@ -63,7 +67,7 @@ export function draw({ config }) {
   // Internal pilot: senses inlet pressure and acts on the envelope against the
   // spring. Long-dashed, because it is a control line and not a working line.
   const internalPilot = polyline(
-    [[PORT_X, 8], [4, 8], [4, y + size / 2], [x, y + size / 2]],
+    [[PORT_X, 9], [PILOT_X, 9], [PILOT_X, y + size / 2], [x, y + size / 2]],
     { cls: 'pilot-line' },
   );
 

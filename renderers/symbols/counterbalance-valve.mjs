@@ -16,7 +16,7 @@
 
 import { line, rect, polyline } from '../shared/svg.mjs';
 import { spring, flowArrow, adjustmentArrow, ballSeat } from './glyphs.mjs';
-import { port, labelBelow, CRITICALITY } from './contract.mjs';
+import { port, labelRight, CRITICALITY } from './contract.mjs';
 
 const WIDTH = 96;
 const HEIGHT = 84;
@@ -41,7 +41,7 @@ export function geometry(config) {
     // perform its load-holding function as drawn, so this one is required.
     ports.pilot = port('pilot', 0, HEIGHT / 2, 'left', { criticality: CRITICALITY.REQUIRED, label: 'X' });
   }
-  return { width: WIDTH, height: HEIGHT, ports, labelAnchor: labelBelow(WIDTH, HEIGHT, 14) };
+  return { width: WIDTH, height: HEIGHT, ports, labelAnchor: labelRight(WIDTH, HEIGHT) };
 }
 
 export function draw({ config }) {

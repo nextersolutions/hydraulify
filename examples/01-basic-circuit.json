@@ -2,25 +2,20 @@
   "schema_version": 1,
   "diagram_type": "hydraulic_circuit",
   "meta": {
-    "title": "Simple double-acting cylinder circuit",
+    "title": "Basic hydraulic circuit",
+    "subtitle": "Reservoir, fixed-displacement pump, relief valve, 4/3 valve, double-acting cylinder",
     "units": "si"
   },
   "components": [
-    { "id": "T1", "type": "reservoir", "pos": [60, 540], "params": { "volume_l": 100 } },
+    { "id": "T1", "type": "reservoir" , "pos": [60, 540] },
     {
       "id": "P1",
       "type": "pump",
       "pos": [28, 410],
-      "config": { "pump_type": "fixed_displacement", "drive": "electric_motor" },
-      "params": { "flow_lpm": 20 }
+      "config": { "pump_type": "fixed_displacement", "drive": "electric_motor" }
     },
     { "id": "J1", "type": "junction", "pos": [236, 276], "config": { "way": 3 } },
-    {
-      "id": "RV1",
-      "type": "relief_valve",
-      "pos": [196, 330],
-      "params": { "setting_bar": 180 }
-    },
+    { "id": "RV1", "type": "relief_valve", "pos": [196, 330] },
     { "id": "J2", "type": "junction", "pos": [236, 496], "config": { "way": 3 } },
     {
       "id": "V1",
@@ -32,13 +27,7 @@
         "actuation": { "left": "lever", "right": "none", "spring": "centred" }
       }
     },
-    {
-      "id": "C1",
-      "type": "cylinder",
-      "pos": [700, 96],
-      "config": { "cylinder_type": "double_acting" },
-      "params": { "bore_mm": 63, "rod_mm": 36, "stroke_mm": 400 }
-    }
+    { "id": "C1", "type": "cylinder", "pos": [700, 96], "config": { "cylinder_type": "double_acting" } }
   ],
   "connections": [
     { "id": "suction", "from": "T1.outlet", "to": "P1.inlet", "line": "suction" },
@@ -55,7 +44,12 @@
     {
       "subject": "V1",
       "statement": "Drawn as a lever-operated, spring-centred 4/3 valve with a closed centre.",
-      "rationale": "The description named a directional valve controlling a double-acting cylinder but did not state the configuration, centre condition or actuation."
+      "rationale": "The description named a 4/3 valve but not its centre condition or actuation. A closed centre holds the actuator when the lever is released."
+    },
+    {
+      "subject": "circuit",
+      "statement": "No engineering parameters are shown because none were given.",
+      "rationale": "Pump delivery, relief setting and cylinder dimensions were not stated, and are listed as unspecified rather than assumed."
     }
   ]
 }

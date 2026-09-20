@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "diagram_type": "hydraulic_circuit",
+  "meta": {
+    "title": "Hydraulic motor with flow control",
+    "subtitle": "Speed control by pressure-compensated flow control, with gauge and relief protection",
+    "units": "si"
+  },
+  "components": [
+    {
+      "id": "T1",
+      "type": "reservoir",
+      "pos": [
+        60,
+        560
+      ]
+    },
+    {
+      "id": "P1",
+      "type": "pump",
+      "pos": [
+        28,
+        430
+      ],
+      "config": {
+        "pump_type": "fixed_displacement",
+        "drive": "electric_motor"
+      }
+    },
+    {
+      "id": "J1",
+      "type": "junction",
+      "pos": [
+        104,
+        296
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "RV1",
+      "type": "relief_valve",
+      "pos": [
+        180,
+        340
+      ]
+    },
+    {
+      "id": "J2",
+      "type": "junction",
+      "pos": [
+        104,
+        196
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "PG1",
+      "type": "pressure_gauge",
+      "pos": [
+        86,
+        98
+      ]
+    },
+    {
+      "id": "FC1",
+      "type": "flow_control_valve",
+      "pos": [
+        300,
+        167
+      ],
+      "config": {
+        "flow_control_type": "pressure_compensated"
+      }
+    },
+    {
+      "id": "M1",
+      "type": "motor",
+      "pos": [
+        560,
+        240
+      ],
+      "config": {
+        "motor_type": "fixed_displacement"
+      }
+    },
+    {
+      "id": "J4",
+      "type": "junction",
+      "pos": [
+        220,
+        516
+      ],
+      "config": {
+        "way": 3
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "suction",
+      "from": "T1.outlet",
+      "to": "P1.inlet",
+      "line": "suction"
+    },
+    {
+      "id": "delivery",
+      "from": "P1.outlet",
+      "to": "J1.bottom",
+      "line": "pressure"
+    },
+    {
+      "id": "relief-tap",
+      "from": "J1.right",
+      "to": "RV1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "riser",
+      "from": "J1.top",
+      "to": "J2.bottom",
+      "line": "pressure"
+    },
+    {
+      "id": "gauge-tap",
+      "from": "J2.top",
+      "to": "PG1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "to-flow-control",
+      "from": "J2.right",
+      "to": "FC1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "motor-feed",
+      "from": "FC1.outlet",
+      "to": "M1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "motor-return",
+      "from": "M1.outlet",
+      "to": "J4.right",
+      "line": "return"
+    },
+    {
+      "id": "relief-discharge",
+      "from": "RV1.outlet",
+      "to": "J4.top",
+      "line": "return"
+    },
+    {
+      "id": "tank-return",
+      "from": "J4.left",
+      "to": "T1.return",
+      "line": "return"
+    }
+  ],
+  "assumptions": [
+    {
+      "subject": "FC1",
+      "statement": "Drawn as a pressure-compensated flow control valve.",
+      "rationale": "A proportional valve was asked for. hydraulify does not draw proportional control, and a plain throttle would misstate the circuit, so the closest supported component that holds motor speed under load is used."
+    },
+    {
+      "subject": "circuit",
+      "statement": "Motor displacement, pump delivery and relief setting are not shown because none were stated.",
+      "rationale": "Speed and torque follow from those values; inventing them would make the drawing look specified when it is not."
+    }
+  ]
+}

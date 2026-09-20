@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "diagram_type": "hydraulic_circuit",
+  "meta": {
+    "title": "Cylinder with load holding",
+    "subtitle": "Counterbalance valve holds the load when the directional valve centres",
+    "units": "si"
+  },
+  "components": [
+    {
+      "id": "T1",
+      "type": "reservoir",
+      "pos": [
+        60,
+        640
+      ],
+      "params": {
+        "volume_l": 60
+      }
+    },
+    {
+      "id": "P1",
+      "type": "pump",
+      "pos": [
+        28,
+        510
+      ],
+      "config": {
+        "pump_type": "fixed_displacement",
+        "drive": "electric_motor"
+      },
+      "params": {
+        "flow_lpm": 25
+      }
+    },
+    {
+      "id": "J1",
+      "type": "junction",
+      "pos": [
+        236,
+        436
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "RV1",
+      "type": "relief_valve",
+      "pos": [
+        196,
+        490
+      ],
+      "params": {
+        "setting_bar": 210
+      }
+    },
+    {
+      "id": "J2",
+      "type": "junction",
+      "pos": [
+        236,
+        616
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "V1",
+      "type": "directional_control_valve",
+      "pos": [
+        430,
+        320
+      ],
+      "config": {
+        "configuration": "4/3",
+        "center_condition": "closed",
+        "actuation": {
+          "left": "lever",
+          "right": "none",
+          "spring": "centred"
+        }
+      }
+    },
+    {
+      "id": "CB1",
+      "type": "counterbalance_valve",
+      "pos": [
+        560,
+        170
+      ],
+      "config": {
+        "pilot_type": "external"
+      },
+      "params": {
+        "setting_bar": 250,
+        "pilot_ratio": 3
+      }
+    },
+    {
+      "id": "J3",
+      "type": "junction",
+      "pos": [
+        656,
+        296
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "C1",
+      "type": "cylinder",
+      "pos": [
+        700,
+        60
+      ],
+      "config": {
+        "cylinder_type": "double_acting"
+      },
+      "params": {
+        "bore_mm": 80,
+        "rod_mm": 45,
+        "stroke_mm": 600
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "suction",
+      "from": "T1.outlet",
+      "to": "P1.inlet",
+      "line": "suction"
+    },
+    {
+      "id": "delivery",
+      "from": "P1.outlet",
+      "to": "J1.left",
+      "line": "pressure"
+    },
+    {
+      "id": "relief-tap",
+      "from": "J1.bottom",
+      "to": "RV1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "pressure-rail",
+      "from": "J1.right",
+      "to": "V1.P",
+      "line": "pressure"
+    },
+    {
+      "id": "relief-discharge",
+      "from": "RV1.outlet",
+      "to": "J2.top",
+      "line": "return"
+    },
+    {
+      "id": "valve-return",
+      "from": "V1.T",
+      "to": "J2.right",
+      "line": "return"
+    },
+    {
+      "id": "tank-return",
+      "from": "J2.left",
+      "to": "T1.return",
+      "line": "return"
+    },
+    {
+      "id": "lift-feed",
+      "from": "V1.A",
+      "to": "CB1.inlet",
+      "line": "working"
+    },
+    {
+      "id": "lift-line",
+      "from": "CB1.outlet",
+      "to": "C1.cap",
+      "line": "working"
+    },
+    {
+      "id": "lower-feed",
+      "from": "V1.B",
+      "to": "J3.left",
+      "line": "working"
+    },
+    {
+      "id": "rod-line",
+      "from": "J3.right",
+      "to": "C1.rod",
+      "line": "working"
+    },
+    {
+      "id": "cb-pilot",
+      "from": "J3.top",
+      "to": "CB1.pilot",
+      "line": "pilot"
+    }
+  ],
+  "assumptions": [
+    {
+      "subject": "CB1",
+      "statement": "Load holding uses an externally piloted counterbalance valve in the cap line, piloted from the rod line.",
+      "rationale": "The requirement was functional: hold position when the valve centres. A counterbalance valve holds an overrunning load and releases on pressure in the opposite line."
+    },
+    {
+      "subject": "V1",
+      "statement": "Drawn with a closed centre so both actuator lines are blocked at rest.",
+      "rationale": "A float or open centre would connect the actuator to tank and the load would not be held."
+    }
+  ]
+}

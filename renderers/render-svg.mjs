@@ -136,7 +136,14 @@ const PORT_LABEL_ANCHOR = { left: 'end', right: 'start', top: 'middle', bottom: 
 function renderComponent(entry, model) {
   const { component, config, geometry, ports, symbol } = entry;
   const [x, y] = component.pos;
-  const children = [symbol.draw({ config, geometry, component })];
+
+  // A mirrored symbol is flipped about its own vertical centre line. The port
+  // table was mirrored to match in resolveComponent, so the two stay together.
+  // Captions are drawn outside this flip: mirrored text is unreadable.
+  const artwork = geometry.mirrored
+    ? `<g transform="translate(${n(geometry.width)} 0) scale(-1 1)">${symbol.draw({ config, geometry, component })}</g>`
+    : symbol.draw({ config, geometry, component });
+  const children = [artwork];
 
   if (geometry.portLabels) {
     for (const port of Object.values(ports)) {

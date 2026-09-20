@@ -238,9 +238,27 @@ function computeViewBox(model, frames, routed, resolved) {
   for (const [id, frame] of frames) {
     include(frame.x, frame.y);
     include(frame.x + frame.width, frame.y + frame.height);
-    // Component labels sit below the frame and must not be clipped.
-    if (resolved.get(id)?.geometry.labelAnchor) {
-      include(frame.x, frame.y + frame.height + LABEL_BAND);
+
+    // A caption must not be clipped, and captions no longer always sit below:
+    // symbols with ports on both faces put theirs to the right, and the
+    // cylinder puts its above. Include the block each anchor actually occupies
+    // rather than assuming a direction.
+    const anchor = resolved.get(id)?.geometry.labelAnchor;
+    if (anchor) {
+      const originX = frame.x + anchor.x;
+      const originY = frame.y + anchor.y;
+      // A tag plus up to two caption rows, and a generous width estimate: the
+      // cost of over-reserving is white space, the cost of under-reserving is
+      // clipped text.
+      const captionWidth = 130;
+      const captionHeight = LABEL_BAND;
+      if (anchor.anchor === 'start') include(originX + captionWidth, originY + captionHeight);
+      else if (anchor.anchor === 'end') include(originX - captionWidth, originY + captionHeight);
+      else {
+        include(originX - captionWidth / 2, originY);
+        include(originX + captionWidth / 2, originY + captionHeight);
+      }
+      include(originX, originY - 14);
     }
   }
   for (const route of routed) {

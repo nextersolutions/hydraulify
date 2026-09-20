@@ -59,11 +59,50 @@ export function getSymbol(type) {
  * Resolve a component against its symbol: merged config, geometry, port table,
  * and the list of config keys that came from defaults rather than the author.
  */
+const MIRRORED_SIDE = { left: 'right', right: 'left', top: 'top', bottom: 'bottom' };
+
+/**
+ * Mirror a port table horizontally.
+ *
+ * Needed by any in-line component that has to pass flow right-to-left -- a
+ * return filter sitting between the circuit and a reservoir drawn on the left,
+ * for instance. Without it the drawing would show oil entering through the
+ * outlet, which states the wrong thing about the component.
+ */
+function mirrorPorts(ports, width) {
+  const mirrored = {};
+  for (const [name, definition] of Object.entries(ports)) {
+    mirrored[name] = {
+      ...definition,
+      x: width - definition.x,
+      side: MIRRORED_SIDE[definition.side],
+    };
+  }
+  return mirrored;
+}
+
 export function resolveComponent(component) {
   const symbol = getSymbol(component.type);
   const config = withDefaults(symbol.defaults, component.config);
-  const geometry = symbol.geometry(config);
+  const baseGeometry = symbol.geometry(config);
   const defaulted = defaultedKeys(symbol.defaults, component.config);
+  const mirrored = component.mirror === true;
+
+  const geometry = mirrored
+    ? {
+      ...baseGeometry,
+      ports: mirrorPorts(baseGeometry.ports, baseGeometry.width),
+      labelAnchor: baseGeometry.labelAnchor
+        ? {
+          ...baseGeometry.labelAnchor,
+          x: baseGeometry.width - baseGeometry.labelAnchor.x,
+          anchor: baseGeometry.labelAnchor.anchor === 'start'
+            ? 'end'
+            : (baseGeometry.labelAnchor.anchor === 'end' ? 'start' : 'middle'),
+        }
+        : baseGeometry.labelAnchor,
+    }
+    : baseGeometry;
 
   // Authored per-port overrides (plugged, label) are merged onto the symbol's
   // port table so downstream code reads one object.
@@ -77,7 +116,7 @@ export function resolveComponent(component) {
     };
   }
 
-  return { symbol, config, geometry: { ...geometry, ports }, ports, defaulted };
+  return { symbol, config, geometry: { ...geometry, ports, mirrored }, ports, defaulted };
 }
 
 /**

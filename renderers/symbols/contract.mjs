@@ -70,6 +70,18 @@ export function labelBelow(width, height, gap = 14) {
 }
 
 /** Standard label anchor: centred above the frame. */
-export function labelAbove(width, gap = 8) {
+export function labelAbove(width, gap = 10) {
   return { x: width / 2, y: -gap, anchor: 'middle' };
+}
+
+/**
+ * Label to the right of the frame.
+ *
+ * Used by symbols whose ports are on the top AND bottom faces -- a pump, a
+ * relief valve, a gauge. For those, a caption above or below sits in the path
+ * of a line, and while captions carry a halo so they stay legible, a label that
+ * never meets a line is better than one that survives meeting it.
+ */
+export function labelRight(width, height, gap = 12) {
+  return { x: width + gap, y: height / 2, anchor: 'start' };
 }

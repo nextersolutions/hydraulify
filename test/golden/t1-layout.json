@@ -3,9 +3,9 @@
   "units": "si",
   "viewBox": {
     "x": -20,
-    "y": -6,
+    "y": -46,
     "width": 910,
-    "height": 714,
+    "height": 770,
     "authored": false
   },
   "components": [
@@ -183,11 +183,11 @@
       "id": "RV1",
       "type": "relief_valve",
       "pos": [
-        214,
+        196,
         330
       ],
       "size": [
-        74,
+        92,
         72
       ],
       "config": {

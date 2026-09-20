@@ -13,7 +13,7 @@
 
 import { line, rect, polyline } from '../shared/svg.mjs';
 import { spring } from './glyphs.mjs';
-import { port, labelBelow, CRITICALITY } from './contract.mjs';
+import { port, labelAbove, CRITICALITY } from './contract.mjs';
 
 const BARREL_WIDTH = 112;
 const BARREL_HEIGHT = 44;
@@ -61,7 +61,9 @@ export function geometry(config) {
     });
   }
 
-  return { width, height: BARREL_HEIGHT, ports, labelAnchor: labelBelow(width, BARREL_HEIGHT, 16) };
+  // Ports are on the underside, so the space below the barrel belongs to the
+  // working lines; the caption goes above.
+  return { width, height: BARREL_HEIGHT, ports, labelAnchor: labelAbove(width, 26) };
 }
 
 export function draw({ config }) {

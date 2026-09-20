@@ -4,7 +4,7 @@
 // stem. A gauge is a measuring point, not a flow path: it has exactly one port.
 
 import { line, circle } from '../shared/svg.mjs';
-import { port, labelBelow, CRITICALITY } from './contract.mjs';
+import { port, labelRight, CRITICALITY } from './contract.mjs';
 
 const WIDTH = 44;
 const HEIGHT = 52;
@@ -25,7 +25,7 @@ export function geometry() {
     ports: {
       inlet: port('inlet', CENTRE_X, HEIGHT, 'bottom', { criticality: CRITICALITY.REQUIRED, label: 'M' }),
     },
-    labelAnchor: labelBelow(WIDTH, HEIGHT, 12),
+    labelAnchor: labelRight(WIDTH, HEIGHT),
   };
 }
 

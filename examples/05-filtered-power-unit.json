@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "diagram_type": "hydraulic_circuit",
+  "meta": {
+    "title": "Filtered power unit with accumulator",
+    "subtitle": "Suction and return filtration, accumulator isolated by a check valve, gauge on the pressure line",
+    "units": "si"
+  },
+  "components": [
+    {
+      "id": "T1",
+      "type": "reservoir",
+      "pos": [
+        60,
+        600
+      ],
+      "params": {
+        "volume_l": 160
+      }
+    },
+    {
+      "id": "F1",
+      "type": "filter",
+      "pos": [
+        150,
+        556
+      ],
+      "config": {
+        "position": "suction"
+      },
+      "params": {
+        "rating_micron": 125
+      }
+    },
+    {
+      "id": "P1",
+      "type": "pump",
+      "pos": [
+        280,
+        470
+      ],
+      "config": {
+        "pump_type": "fixed_displacement",
+        "drive": "electric_motor"
+      },
+      "params": {
+        "flow_lpm": 30,
+        "max_pressure_bar": 250
+      }
+    },
+    {
+      "id": "J1",
+      "type": "junction",
+      "pos": [
+        356,
+        376
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "RV1",
+      "type": "relief_valve",
+      "pos": [
+        470,
+        420
+      ],
+      "params": {
+        "setting_bar": 200
+      }
+    },
+    {
+      "id": "CV1",
+      "type": "check_valve",
+      "pos": [
+        420,
+        300
+      ],
+      "config": {
+        "spring_loaded": true
+      },
+      "params": {
+        "cracking_pressure_bar": 0.5
+      }
+    },
+    {
+      "id": "J2",
+      "type": "junction",
+      "pos": [
+        556,
+        314
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "ACC1",
+      "type": "accumulator",
+      "pos": [
+        537,
+        180
+      ],
+      "config": {
+        "accumulator_type": "bladder"
+      },
+      "params": {
+        "volume_l": 2.5,
+        "precharge_bar": 90
+      }
+    },
+    {
+      "id": "J3",
+      "type": "junction",
+      "pos": [
+        676,
+        314
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "PG1",
+      "type": "pressure_gauge",
+      "pos": [
+        658,
+        214
+      ],
+      "params": {
+        "range_bar": 250
+      }
+    },
+    {
+      "id": "V1",
+      "type": "directional_control_valve",
+      "pos": [
+        780,
+        400
+      ],
+      "config": {
+        "configuration": "4/2",
+        "actuation": {
+          "left": "solenoid",
+          "right": "none",
+          "spring": "right_return"
+        }
+      }
+    },
+    {
+      "id": "C1",
+      "type": "cylinder",
+      "pos": [
+        980,
+        200
+      ],
+      "config": {
+        "cylinder_type": "double_acting"
+      },
+      "params": {
+        "bore_mm": 50,
+        "rod_mm": 28,
+        "stroke_mm": 250
+      }
+    },
+    {
+      "id": "F2",
+      "type": "filter",
+      "pos": [
+        620,
+        596
+      ],
+      "mirror": true,
+      "config": {
+        "position": "return",
+        "with_bypass": true
+      },
+      "params": {
+        "rating_micron": 10
+      }
+    },
+    {
+      "id": "J4",
+      "type": "junction",
+      "pos": [
+        510,
+        616
+      ],
+      "config": {
+        "way": 3
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "tank-to-filter",
+      "from": "T1.outlet",
+      "to": "F1.inlet",
+      "line": "suction"
+    },
+    {
+      "id": "suction",
+      "from": "F1.outlet",
+      "to": "P1.inlet",
+      "line": "suction"
+    },
+    {
+      "id": "delivery",
+      "from": "P1.outlet",
+      "to": "J1.bottom",
+      "line": "pressure"
+    },
+    {
+      "id": "relief-tap",
+      "from": "J1.right",
+      "to": "RV1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "to-check",
+      "from": "J1.top",
+      "to": "CV1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "check-out",
+      "from": "CV1.outlet",
+      "to": "J2.left",
+      "line": "pressure"
+    },
+    {
+      "id": "accumulator-tap",
+      "from": "J2.top",
+      "to": "ACC1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "rail",
+      "from": "J2.right",
+      "to": "J3.left",
+      "line": "pressure"
+    },
+    {
+      "id": "gauge-tap",
+      "from": "J3.top",
+      "to": "PG1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "to-valve",
+      "from": "J3.right",
+      "to": "V1.P",
+      "line": "pressure"
+    },
+    {
+      "id": "extend",
+      "from": "V1.A",
+      "to": "C1.cap",
+      "line": "working"
+    },
+    {
+      "id": "retract",
+      "from": "V1.B",
+      "to": "C1.rod",
+      "line": "working"
+    },
+    {
+      "id": "valve-return",
+      "from": "V1.T",
+      "to": "F2.inlet",
+      "line": "return"
+    },
+    {
+      "id": "filter-return",
+      "from": "F2.outlet",
+      "to": "J4.right",
+      "line": "return"
+    },
+    {
+      "id": "relief-discharge",
+      "from": "RV1.outlet",
+      "to": "J4.top",
+      "line": "return"
+    },
+    {
+      "id": "tank-return",
+      "from": "J4.left",
+      "to": "T1.return",
+      "line": "return"
+    }
+  ],
+  "assumptions": [
+    {
+      "subject": "CV1",
+      "statement": "The accumulator is isolated from the pump by a check valve, so stored energy cannot drive the pump backwards.",
+      "rationale": "The description asked for an accumulator on the pressure line but did not say how it is isolated."
+    },
+    {
+      "subject": "V1",
+      "statement": "Drawn as a 4/2 valve with a spring return, so the cylinder has a defined rest position.",
+      "rationale": "The description named a directional valve without stating positions or actuation."
+    }
+  ]
+}

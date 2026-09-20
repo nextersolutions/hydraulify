@@ -8,7 +8,7 @@
 // A and B rather than inlet and outlet, because neither is fixed.
 
 import { line, circle, polygon } from '../shared/svg.mjs';
-import { port, labelBelow, CRITICALITY } from './contract.mjs';
+import { port, labelRight, CRITICALITY } from './contract.mjs';
 
 const BODY = 56;
 const RADIUS = 22;
@@ -41,7 +41,7 @@ export function geometry(config) {
     });
   }
 
-  return { width: BODY, height: BODY, ports, labelAnchor: labelBelow(BODY, BODY, 16) };
+  return { width: BODY, height: BODY, ports, labelAnchor: labelRight(BODY, BODY) };
 }
 
 export function draw({ config }) {

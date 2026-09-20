@@ -3,7 +3,7 @@
 "use strict";
 export const validate = validate20;
 export default validate20;
-const schema31 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/hydraulify/schemas/hydraulic-circuit.schema.json","title":"Hydraulify Circuit Model","description":"Port-aware hydraulic circuit model. The model is the source of truth; the schematic is a representation of it.","type":"object","additionalProperties":false,"required":["schema_version","diagram_type","meta","components","connections"],"properties":{"schema_version":{"const":1},"diagram_type":{"const":"hydraulic_circuit"},"meta":{"$ref":"#/$defs/meta"},"components":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/component"}},"connections":{"type":"array","items":{"$ref":"#/$defs/connection"}},"assumptions":{"type":"array","items":{"$ref":"#/$defs/assumption"}},"notes":{"type":"array","items":{"type":"string","minLength":1,"maxLength":300}}},"$defs":{"id":{"type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*$","maxLength":32},"portRef":{"description":"Component and port, written exactly as the brief notates it: P1.outlet","type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*\\.[A-Za-z][A-Za-z0-9_]*$","maxLength":70},"point":{"type":"array","prefixItems":[{"type":"number"},{"type":"number"}],"items":false,"minItems":2,"maxItems":2},"side":{"enum":["left","right","top","bottom"]},"orientation":{"enum":[0,90,180,270]},"meta":{"type":"object","additionalProperties":false,"required":["title"],"properties":{"title":{"type":"string","minLength":1,"maxLength":120},"subtitle":{"type":"string","maxLength":200},"output":{"type":"string","minLength":1},"units":{"description":"Unit system used when rendering. Model values are always stored as authored.","enum":["si","imperial"],"default":"si"},"viewBox":{"type":"array","prefixItems":[{"type":"number","minimum":200},{"type":"number","minimum":200}],"items":false,"minItems":2,"maxItems":2},"drawing_number":{"type":"string","maxLength":60},"revision":{"type":"string","maxLength":20}}},"componentType":{"enum":["reservoir","pump","motor","cylinder","directional_control_valve","relief_valve","check_valve","pilot_operated_check_valve","counterbalance_valve","flow_control_valve","filter","pressure_gauge","accumulator","junction"]},"component":{"type":"object","additionalProperties":false,"required":["id","type","pos"],"properties":{"id":{"$ref":"#/$defs/id"},"type":{"$ref":"#/$defs/componentType"},"label":{"type":"string","maxLength":80},"pos":{"$ref":"#/$defs/point"},"orientation":{"$ref":"#/$defs/orientation"},"mirror":{"type":"boolean"},"config":{"type":"object"},"params":{"$ref":"#/$defs/params"},"ports":{"description":"Per-port authoring overrides. A plugged port is never reported as unconnected.","type":"object","additionalProperties":{"type":"object","additionalProperties":false,"properties":{"plugged":{"type":"boolean"},"label":{"type":"string","maxLength":24}}}},"note":{"type":"string","maxLength":200}},"allOf":[{"$ref":"#/$defs/configByType/reservoir"},{"$ref":"#/$defs/configByType/pump"},{"$ref":"#/$defs/configByType/motor"},{"$ref":"#/$defs/configByType/cylinder"},{"$ref":"#/$defs/configByType/directional_control_valve"},{"$ref":"#/$defs/configByType/relief_valve"},{"$ref":"#/$defs/configByType/check_valve"},{"$ref":"#/$defs/configByType/pilot_operated_check_valve"},{"$ref":"#/$defs/configByType/counterbalance_valve"},{"$ref":"#/$defs/configByType/flow_control_valve"},{"$ref":"#/$defs/configByType/filter"},{"$ref":"#/$defs/configByType/pressure_gauge"},{"$ref":"#/$defs/configByType/accumulator"},{"$ref":"#/$defs/configByType/junction"}]},"configByType":{"reservoir":{"if":{"properties":{"type":{"const":"reservoir"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"vented":{"type":"boolean"},"same_reservoir_as":{"$ref":"#/$defs/id"}}}}}},"pump":{"if":{"properties":{"type":{"const":"pump"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pump_type":{"enum":["fixed_displacement","variable_displacement"]},"drive":{"enum":["electric_motor","combustion_engine","manual","none"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}},"motor":{"if":{"properties":{"type":{"const":"motor"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"motor_type":{"enum":["fixed_displacement","variable_displacement"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}},"cylinder":{"if":{"properties":{"type":{"const":"cylinder"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"cylinder_type":{"enum":["single_acting","double_acting"]},"rod":{"enum":["single","double"]},"spring_return":{"type":"boolean"},"cushioned":{"type":"boolean"}}}}}},"directional_control_valve":{"if":{"properties":{"type":{"const":"directional_control_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"configuration":{"enum":["2/2","3/2","4/2","4/3"]},"center_condition":{"enum":["closed","open","tandem","float"]},"normal_position":{"enum":["closed","open"]},"actuation":{"type":"object","additionalProperties":false,"properties":{"left":{"$ref":"#/$defs/actuationGlyph"},"right":{"$ref":"#/$defs/actuationGlyph"},"spring":{"enum":["centred","left_return","right_return","none"]}}}}}}}},"relief_valve":{"if":{"properties":{"type":{"const":"relief_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_operated":{"type":"boolean"},"remote_pilot":{"type":"boolean"}}}}}},"check_valve":{"if":{"properties":{"type":{"const":"check_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"spring_loaded":{"type":"boolean"}}}}}},"pilot_operated_check_valve":{"if":{"properties":{"type":{"const":"pilot_operated_check_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_action":{"enum":["pilot_to_open","pilot_to_close"]},"drained":{"type":"boolean"}}}}}},"counterbalance_valve":{"if":{"properties":{"type":{"const":"counterbalance_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_type":{"enum":["internal","external","internal_external"]},"vented":{"type":"boolean"}}}}}},"flow_control_valve":{"if":{"properties":{"type":{"const":"flow_control_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"flow_control_type":{"enum":["fixed_throttle","variable_throttle","one_way","pressure_compensated"]},"free_flow_direction":{"enum":["inlet_to_outlet","outlet_to_inlet"]}}}}}},"filter":{"if":{"properties":{"type":{"const":"filter"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"position":{"enum":["suction","return","pressure"]},"with_bypass":{"type":"boolean"},"with_indicator":{"type":"boolean"}}}}}},"pressure_gauge":{"if":{"properties":{"type":{"const":"pressure_gauge"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"with_isolator":{"type":"boolean"}}}}}},"accumulator":{"if":{"properties":{"type":{"const":"accumulator"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"accumulator_type":{"enum":["bladder","piston","diaphragm","spring","weight"]}}}}}},"junction":{"if":{"properties":{"type":{"const":"junction"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"way":{"enum":[3,4]}}},"params":{"maxProperties":0}}}}},"actuationGlyph":{"enum":["solenoid","lever","push_button","pedal","mechanical","pilot","pneumatic_pilot","solenoid_pilot","none"]},"params":{"description":"Engineering parameters, stored exactly as authored. A null value means unknown and is never replaced by a guess. Each quantity has an SI and an imperial field name; a component may use one or the other, never both for the same quantity.","type":"object","additionalProperties":false,"properties":{"setting_bar":{"$ref":"#/$defs/quantity"},"setting_psi":{"$ref":"#/$defs/quantity"},"cracking_pressure_bar":{"$ref":"#/$defs/quantity"},"cracking_pressure_psi":{"$ref":"#/$defs/quantity"},"max_pressure_bar":{"$ref":"#/$defs/quantity"},"max_pressure_psi":{"$ref":"#/$defs/quantity"},"precharge_bar":{"$ref":"#/$defs/quantity"},"precharge_psi":{"$ref":"#/$defs/quantity"},"range_bar":{"$ref":"#/$defs/quantity"},"range_psi":{"$ref":"#/$defs/quantity"},"flow_lpm":{"$ref":"#/$defs/quantity"},"flow_gpm":{"$ref":"#/$defs/quantity"},"displacement_cm3_rev":{"$ref":"#/$defs/quantity"},"displacement_in3_rev":{"$ref":"#/$defs/quantity"},"volume_l":{"$ref":"#/$defs/quantity"},"volume_gal":{"$ref":"#/$defs/quantity"},"bore_mm":{"$ref":"#/$defs/quantity"},"bore_in":{"$ref":"#/$defs/quantity"},"rod_mm":{"$ref":"#/$defs/quantity"},"rod_in":{"$ref":"#/$defs/quantity"},"stroke_mm":{"$ref":"#/$defs/quantity"},"stroke_in":{"$ref":"#/$defs/quantity"},"rating_micron":{"$ref":"#/$defs/quantity"},"speed_rpm":{"$ref":"#/$defs/quantity"},"pilot_ratio":{"$ref":"#/$defs/quantity"}},"allOf":[{"not":{"required":["setting_bar","setting_psi"]}},{"not":{"required":["cracking_pressure_bar","cracking_pressure_psi"]}},{"not":{"required":["max_pressure_bar","max_pressure_psi"]}},{"not":{"required":["precharge_bar","precharge_psi"]}},{"not":{"required":["range_bar","range_psi"]}},{"not":{"required":["flow_lpm","flow_gpm"]}},{"not":{"required":["displacement_cm3_rev","displacement_in3_rev"]}},{"not":{"required":["volume_l","volume_gal"]}},{"not":{"required":["bore_mm","bore_in"]}},{"not":{"required":["rod_mm","rod_in"]}},{"not":{"required":["stroke_mm","stroke_in"]}}]},"quantity":{"description":"A number as the author stated it, or null meaning explicitly unknown.","type":["number","null"],"exclusiveMinimum":0},"lineType":{"description":"Hydraulic function of the line. ISO 1219 renders working lines (suction, pressure, working, return) continuous, pilot lines long-dashed and drain lines short-dashed.","enum":["suction","pressure","working","return","drain","pilot"]},"connection":{"type":"object","additionalProperties":false,"required":["from","to","line"],"properties":{"id":{"$ref":"#/$defs/id"},"from":{"$ref":"#/$defs/portRef"},"to":{"$ref":"#/$defs/portRef"},"line":{"$ref":"#/$defs/lineType"},"label":{"type":"string","maxLength":60},"fromSide":{"$ref":"#/$defs/side"},"toSide":{"$ref":"#/$defs/side"},"via":{"description":"Explicit orthogonal waypoints. Only add one after a routing diagnostic asks for it.","type":"array","minItems":1,"maxItems":8,"items":{"$ref":"#/$defs/point"}},"arrow":{"description":"auto draws a flow arrow only where the direction cannot reverse. Never set forward on a line a directional valve can reverse.","enum":["auto","forward","none"]}}},"assumption":{"description":"An engineering choice hydraulify made because the description did not state it. Never hidden.","type":"object","additionalProperties":false,"required":["subject","statement"],"properties":{"id":{"$ref":"#/$defs/id"},"subject":{"description":"Component id, port reference, or a short scope such as the whole circuit.","type":"string","minLength":1,"maxLength":70},"statement":{"type":"string","minLength":1,"maxLength":240},"rationale":{"type":"string","maxLength":240}}}}};
+const schema31 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/hydraulify/schemas/hydraulic-circuit.schema.json","title":"Hydraulify Circuit Model","description":"Port-aware hydraulic circuit model. The model is the source of truth; the schematic is a representation of it.","type":"object","additionalProperties":false,"required":["schema_version","diagram_type","meta","components","connections"],"properties":{"schema_version":{"const":1},"diagram_type":{"const":"hydraulic_circuit"},"meta":{"$ref":"#/$defs/meta"},"components":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/component"}},"connections":{"type":"array","items":{"$ref":"#/$defs/connection"}},"assumptions":{"type":"array","items":{"$ref":"#/$defs/assumption"}},"notes":{"type":"array","items":{"type":"string","minLength":1,"maxLength":300}}},"$defs":{"id":{"type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*$","maxLength":32},"portRef":{"description":"Component and port, written exactly as the brief notates it: P1.outlet","type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*\\.[A-Za-z][A-Za-z0-9_]*$","maxLength":70},"point":{"type":"array","prefixItems":[{"type":"number"},{"type":"number"}],"items":false,"minItems":2,"maxItems":2},"side":{"enum":["left","right","top","bottom"]},"meta":{"type":"object","additionalProperties":false,"required":["title"],"properties":{"title":{"type":"string","minLength":1,"maxLength":120},"subtitle":{"type":"string","maxLength":200},"output":{"type":"string","minLength":1},"units":{"description":"Unit system used when rendering. Model values are always stored as authored.","enum":["si","imperial"],"default":"si"},"viewBox":{"type":"array","prefixItems":[{"type":"number","minimum":200},{"type":"number","minimum":200}],"items":false,"minItems":2,"maxItems":2},"drawing_number":{"type":"string","maxLength":60},"revision":{"type":"string","maxLength":20}}},"componentType":{"enum":["reservoir","pump","motor","cylinder","directional_control_valve","relief_valve","check_valve","pilot_operated_check_valve","counterbalance_valve","flow_control_valve","filter","pressure_gauge","accumulator","junction"]},"component":{"type":"object","additionalProperties":false,"required":["id","type","pos"],"properties":{"id":{"$ref":"#/$defs/id"},"type":{"$ref":"#/$defs/componentType"},"label":{"type":"string","maxLength":80},"pos":{"$ref":"#/$defs/point"},"mirror":{"description":"Flip the symbol horizontally, so an in-line component can pass flow right to left. Rotation is deliberately not offered: see references/symbols.md.","type":"boolean"},"config":{"type":"object"},"params":{"$ref":"#/$defs/params"},"ports":{"description":"Per-port authoring overrides. A plugged port is never reported as unconnected.","type":"object","additionalProperties":{"type":"object","additionalProperties":false,"properties":{"plugged":{"type":"boolean"},"label":{"type":"string","maxLength":24}}}},"note":{"type":"string","maxLength":200}},"allOf":[{"$ref":"#/$defs/configByType/reservoir"},{"$ref":"#/$defs/configByType/pump"},{"$ref":"#/$defs/configByType/motor"},{"$ref":"#/$defs/configByType/cylinder"},{"$ref":"#/$defs/configByType/directional_control_valve"},{"$ref":"#/$defs/configByType/relief_valve"},{"$ref":"#/$defs/configByType/check_valve"},{"$ref":"#/$defs/configByType/pilot_operated_check_valve"},{"$ref":"#/$defs/configByType/counterbalance_valve"},{"$ref":"#/$defs/configByType/flow_control_valve"},{"$ref":"#/$defs/configByType/filter"},{"$ref":"#/$defs/configByType/pressure_gauge"},{"$ref":"#/$defs/configByType/accumulator"},{"$ref":"#/$defs/configByType/junction"}]},"configByType":{"reservoir":{"if":{"properties":{"type":{"const":"reservoir"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"vented":{"type":"boolean"},"same_reservoir_as":{"$ref":"#/$defs/id"}}}}}},"pump":{"if":{"properties":{"type":{"const":"pump"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pump_type":{"enum":["fixed_displacement","variable_displacement"]},"drive":{"enum":["electric_motor","combustion_engine","manual","none"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}},"motor":{"if":{"properties":{"type":{"const":"motor"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"motor_type":{"enum":["fixed_displacement","variable_displacement"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}},"cylinder":{"if":{"properties":{"type":{"const":"cylinder"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"cylinder_type":{"enum":["single_acting","double_acting"]},"rod":{"enum":["single","double"]},"spring_return":{"type":"boolean"},"cushioned":{"type":"boolean"}}}}}},"directional_control_valve":{"if":{"properties":{"type":{"const":"directional_control_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"configuration":{"enum":["2/2","3/2","4/2","4/3"]},"center_condition":{"enum":["closed","open","tandem","float"]},"normal_position":{"enum":["closed","open"]},"actuation":{"type":"object","additionalProperties":false,"properties":{"left":{"$ref":"#/$defs/actuationGlyph"},"right":{"$ref":"#/$defs/actuationGlyph"},"spring":{"enum":["centred","left_return","right_return","none"]}}}}}}}},"relief_valve":{"if":{"properties":{"type":{"const":"relief_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_operated":{"type":"boolean"},"remote_pilot":{"type":"boolean"}}}}}},"check_valve":{"if":{"properties":{"type":{"const":"check_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"spring_loaded":{"type":"boolean"}}}}}},"pilot_operated_check_valve":{"if":{"properties":{"type":{"const":"pilot_operated_check_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_action":{"enum":["pilot_to_open","pilot_to_close"]},"drained":{"type":"boolean"}}}}}},"counterbalance_valve":{"if":{"properties":{"type":{"const":"counterbalance_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_type":{"enum":["internal","external","internal_external"]},"vented":{"type":"boolean"}}}}}},"flow_control_valve":{"if":{"properties":{"type":{"const":"flow_control_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"flow_control_type":{"enum":["fixed_throttle","variable_throttle","one_way","pressure_compensated"]},"free_flow_direction":{"enum":["inlet_to_outlet","outlet_to_inlet"]}}}}}},"filter":{"if":{"properties":{"type":{"const":"filter"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"position":{"enum":["suction","return","pressure"]},"with_bypass":{"type":"boolean"},"with_indicator":{"type":"boolean"}}}}}},"pressure_gauge":{"if":{"properties":{"type":{"const":"pressure_gauge"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"with_isolator":{"type":"boolean"}}}}}},"accumulator":{"if":{"properties":{"type":{"const":"accumulator"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"accumulator_type":{"enum":["bladder","piston","diaphragm","spring","weight"]}}}}}},"junction":{"if":{"properties":{"type":{"const":"junction"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"way":{"enum":[3,4]}}},"params":{"maxProperties":0}}}}},"actuationGlyph":{"enum":["solenoid","lever","push_button","pedal","mechanical","pilot","pneumatic_pilot","solenoid_pilot","none"]},"params":{"description":"Engineering parameters, stored exactly as authored. A null value means unknown and is never replaced by a guess. Each quantity has an SI and an imperial field name; a component may use one or the other, never both for the same quantity.","type":"object","additionalProperties":false,"properties":{"setting_bar":{"$ref":"#/$defs/quantity"},"setting_psi":{"$ref":"#/$defs/quantity"},"cracking_pressure_bar":{"$ref":"#/$defs/quantity"},"cracking_pressure_psi":{"$ref":"#/$defs/quantity"},"max_pressure_bar":{"$ref":"#/$defs/quantity"},"max_pressure_psi":{"$ref":"#/$defs/quantity"},"precharge_bar":{"$ref":"#/$defs/quantity"},"precharge_psi":{"$ref":"#/$defs/quantity"},"range_bar":{"$ref":"#/$defs/quantity"},"range_psi":{"$ref":"#/$defs/quantity"},"flow_lpm":{"$ref":"#/$defs/quantity"},"flow_gpm":{"$ref":"#/$defs/quantity"},"displacement_cm3_rev":{"$ref":"#/$defs/quantity"},"displacement_in3_rev":{"$ref":"#/$defs/quantity"},"volume_l":{"$ref":"#/$defs/quantity"},"volume_gal":{"$ref":"#/$defs/quantity"},"bore_mm":{"$ref":"#/$defs/quantity"},"bore_in":{"$ref":"#/$defs/quantity"},"rod_mm":{"$ref":"#/$defs/quantity"},"rod_in":{"$ref":"#/$defs/quantity"},"stroke_mm":{"$ref":"#/$defs/quantity"},"stroke_in":{"$ref":"#/$defs/quantity"},"rating_micron":{"$ref":"#/$defs/quantity"},"speed_rpm":{"$ref":"#/$defs/quantity"},"pilot_ratio":{"$ref":"#/$defs/quantity"}},"allOf":[{"not":{"required":["setting_bar","setting_psi"]}},{"not":{"required":["cracking_pressure_bar","cracking_pressure_psi"]}},{"not":{"required":["max_pressure_bar","max_pressure_psi"]}},{"not":{"required":["precharge_bar","precharge_psi"]}},{"not":{"required":["range_bar","range_psi"]}},{"not":{"required":["flow_lpm","flow_gpm"]}},{"not":{"required":["displacement_cm3_rev","displacement_in3_rev"]}},{"not":{"required":["volume_l","volume_gal"]}},{"not":{"required":["bore_mm","bore_in"]}},{"not":{"required":["rod_mm","rod_in"]}},{"not":{"required":["stroke_mm","stroke_in"]}}]},"quantity":{"description":"A number as the author stated it, or null meaning explicitly unknown.","type":["number","null"],"exclusiveMinimum":0},"lineType":{"description":"Hydraulic function of the line. ISO 1219 renders working lines (suction, pressure, working, return) continuous, pilot lines long-dashed and drain lines short-dashed.","enum":["suction","pressure","working","return","drain","pilot"]},"connection":{"type":"object","additionalProperties":false,"required":["from","to","line"],"properties":{"id":{"$ref":"#/$defs/id"},"from":{"$ref":"#/$defs/portRef"},"to":{"$ref":"#/$defs/portRef"},"line":{"$ref":"#/$defs/lineType"},"label":{"type":"string","maxLength":60},"fromSide":{"$ref":"#/$defs/side"},"toSide":{"$ref":"#/$defs/side"},"via":{"description":"Explicit orthogonal waypoints. Only add one after a routing diagnostic asks for it.","type":"array","minItems":1,"maxItems":8,"items":{"$ref":"#/$defs/point"}},"arrow":{"description":"auto draws a flow arrow only where the direction cannot reverse. Never set forward on a line a directional valve can reverse.","enum":["auto","forward","none"]}}},"assumption":{"description":"An engineering choice hydraulify made because the description did not state it. Never hidden.","type":"object","additionalProperties":false,"required":["subject","statement"],"properties":{"id":{"$ref":"#/$defs/id"},"subject":{"description":"Component id, port reference, or a short scope such as the whole circuit.","type":"string","minLength":1,"maxLength":70},"statement":{"type":"string","minLength":1,"maxLength":240},"rationale":{"type":"string","maxLength":240}}}}};
 const schema32 = {"type":"object","additionalProperties":false,"required":["title"],"properties":{"title":{"type":"string","minLength":1,"maxLength":120},"subtitle":{"type":"string","maxLength":200},"output":{"type":"string","minLength":1},"units":{"description":"Unit system used when rendering. Model values are always stored as authored.","enum":["si","imperial"],"default":"si"},"viewBox":{"type":"array","prefixItems":[{"type":"number","minimum":200},{"type":"number","minimum":200}],"items":false,"minItems":2,"maxItems":2},"drawing_number":{"type":"string","maxLength":60},"revision":{"type":"string","maxLength":20}}};
 const func1 = function ucs2length(str) {
   const len = str.length;
@@ -17,7 +17,7 @@ const func1 = function ucs2length(str) {
   }
   return length;
 };
-const schema33 = {"type":"object","additionalProperties":false,"required":["id","type","pos"],"properties":{"id":{"$ref":"#/$defs/id"},"type":{"$ref":"#/$defs/componentType"},"label":{"type":"string","maxLength":80},"pos":{"$ref":"#/$defs/point"},"orientation":{"$ref":"#/$defs/orientation"},"mirror":{"type":"boolean"},"config":{"type":"object"},"params":{"$ref":"#/$defs/params"},"ports":{"description":"Per-port authoring overrides. A plugged port is never reported as unconnected.","type":"object","additionalProperties":{"type":"object","additionalProperties":false,"properties":{"plugged":{"type":"boolean"},"label":{"type":"string","maxLength":24}}}},"note":{"type":"string","maxLength":200}},"allOf":[{"$ref":"#/$defs/configByType/reservoir"},{"$ref":"#/$defs/configByType/pump"},{"$ref":"#/$defs/configByType/motor"},{"$ref":"#/$defs/configByType/cylinder"},{"$ref":"#/$defs/configByType/directional_control_valve"},{"$ref":"#/$defs/configByType/relief_valve"},{"$ref":"#/$defs/configByType/check_valve"},{"$ref":"#/$defs/configByType/pilot_operated_check_valve"},{"$ref":"#/$defs/configByType/counterbalance_valve"},{"$ref":"#/$defs/configByType/flow_control_valve"},{"$ref":"#/$defs/configByType/filter"},{"$ref":"#/$defs/configByType/pressure_gauge"},{"$ref":"#/$defs/configByType/accumulator"},{"$ref":"#/$defs/configByType/junction"}]};
+const schema33 = {"type":"object","additionalProperties":false,"required":["id","type","pos"],"properties":{"id":{"$ref":"#/$defs/id"},"type":{"$ref":"#/$defs/componentType"},"label":{"type":"string","maxLength":80},"pos":{"$ref":"#/$defs/point"},"mirror":{"description":"Flip the symbol horizontally, so an in-line component can pass flow right to left. Rotation is deliberately not offered: see references/symbols.md.","type":"boolean"},"config":{"type":"object"},"params":{"$ref":"#/$defs/params"},"ports":{"description":"Per-port authoring overrides. A plugged port is never reported as unconnected.","type":"object","additionalProperties":{"type":"object","additionalProperties":false,"properties":{"plugged":{"type":"boolean"},"label":{"type":"string","maxLength":24}}}},"note":{"type":"string","maxLength":200}},"allOf":[{"$ref":"#/$defs/configByType/reservoir"},{"$ref":"#/$defs/configByType/pump"},{"$ref":"#/$defs/configByType/motor"},{"$ref":"#/$defs/configByType/cylinder"},{"$ref":"#/$defs/configByType/directional_control_valve"},{"$ref":"#/$defs/configByType/relief_valve"},{"$ref":"#/$defs/configByType/check_valve"},{"$ref":"#/$defs/configByType/pilot_operated_check_valve"},{"$ref":"#/$defs/configByType/counterbalance_valve"},{"$ref":"#/$defs/configByType/flow_control_valve"},{"$ref":"#/$defs/configByType/filter"},{"$ref":"#/$defs/configByType/pressure_gauge"},{"$ref":"#/$defs/configByType/accumulator"},{"$ref":"#/$defs/configByType/junction"}]};
 const schema36 = {"if":{"properties":{"type":{"const":"pump"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pump_type":{"enum":["fixed_displacement","variable_displacement"]},"drive":{"enum":["electric_motor","combustion_engine","manual","none"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}};
 const schema37 = {"if":{"properties":{"type":{"const":"motor"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"motor_type":{"enum":["fixed_displacement","variable_displacement"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}};
 const schema38 = {"if":{"properties":{"type":{"const":"cylinder"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"cylinder_type":{"enum":["single_acting","double_acting"]},"rod":{"enum":["single","double"]},"spring_return":{"type":"boolean"},"cushioned":{"type":"boolean"}}}}}};
@@ -33,7 +33,6 @@ const schema50 = {"if":{"properties":{"type":{"const":"junction"}},"required":["
 const schema35 = {"type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*$","maxLength":32};
 const schema52 = {"enum":["reservoir","pump","motor","cylinder","directional_control_valve","relief_valve","check_valve","pilot_operated_check_valve","counterbalance_valve","flow_control_valve","filter","pressure_gauge","accumulator","junction"]};
 const schema53 = {"type":"array","prefixItems":[{"type":"number"},{"type":"number"}],"items":false,"minItems":2,"maxItems":2};
-const schema54 = {"enum":[0,90,180,270]};
 const schema34 = {"if":{"properties":{"type":{"const":"reservoir"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"vented":{"type":"boolean"},"same_reservoir_as":{"$ref":"#/$defs/id"}}}}}};
 const pattern4 = new RegExp("^[A-Za-z][A-Za-z0-9_-]*$", "u");
 
@@ -402,8 +401,8 @@ return errors === 0;
 }
 validate24.evaluated = {"dynamicProps":true,"dynamicItems":false};
 
-const schema55 = {"description":"Engineering parameters, stored exactly as authored. A null value means unknown and is never replaced by a guess. Each quantity has an SI and an imperial field name; a component may use one or the other, never both for the same quantity.","type":"object","additionalProperties":false,"properties":{"setting_bar":{"$ref":"#/$defs/quantity"},"setting_psi":{"$ref":"#/$defs/quantity"},"cracking_pressure_bar":{"$ref":"#/$defs/quantity"},"cracking_pressure_psi":{"$ref":"#/$defs/quantity"},"max_pressure_bar":{"$ref":"#/$defs/quantity"},"max_pressure_psi":{"$ref":"#/$defs/quantity"},"precharge_bar":{"$ref":"#/$defs/quantity"},"precharge_psi":{"$ref":"#/$defs/quantity"},"range_bar":{"$ref":"#/$defs/quantity"},"range_psi":{"$ref":"#/$defs/quantity"},"flow_lpm":{"$ref":"#/$defs/quantity"},"flow_gpm":{"$ref":"#/$defs/quantity"},"displacement_cm3_rev":{"$ref":"#/$defs/quantity"},"displacement_in3_rev":{"$ref":"#/$defs/quantity"},"volume_l":{"$ref":"#/$defs/quantity"},"volume_gal":{"$ref":"#/$defs/quantity"},"bore_mm":{"$ref":"#/$defs/quantity"},"bore_in":{"$ref":"#/$defs/quantity"},"rod_mm":{"$ref":"#/$defs/quantity"},"rod_in":{"$ref":"#/$defs/quantity"},"stroke_mm":{"$ref":"#/$defs/quantity"},"stroke_in":{"$ref":"#/$defs/quantity"},"rating_micron":{"$ref":"#/$defs/quantity"},"speed_rpm":{"$ref":"#/$defs/quantity"},"pilot_ratio":{"$ref":"#/$defs/quantity"}},"allOf":[{"not":{"required":["setting_bar","setting_psi"]}},{"not":{"required":["cracking_pressure_bar","cracking_pressure_psi"]}},{"not":{"required":["max_pressure_bar","max_pressure_psi"]}},{"not":{"required":["precharge_bar","precharge_psi"]}},{"not":{"required":["range_bar","range_psi"]}},{"not":{"required":["flow_lpm","flow_gpm"]}},{"not":{"required":["displacement_cm3_rev","displacement_in3_rev"]}},{"not":{"required":["volume_l","volume_gal"]}},{"not":{"required":["bore_mm","bore_in"]}},{"not":{"required":["rod_mm","rod_in"]}},{"not":{"required":["stroke_mm","stroke_in"]}}]};
-const schema56 = {"description":"A number as the author stated it, or null meaning explicitly unknown.","type":["number","null"],"exclusiveMinimum":0};
+const schema54 = {"description":"Engineering parameters, stored exactly as authored. A null value means unknown and is never replaced by a guess. Each quantity has an SI and an imperial field name; a component may use one or the other, never both for the same quantity.","type":"object","additionalProperties":false,"properties":{"setting_bar":{"$ref":"#/$defs/quantity"},"setting_psi":{"$ref":"#/$defs/quantity"},"cracking_pressure_bar":{"$ref":"#/$defs/quantity"},"cracking_pressure_psi":{"$ref":"#/$defs/quantity"},"max_pressure_bar":{"$ref":"#/$defs/quantity"},"max_pressure_psi":{"$ref":"#/$defs/quantity"},"precharge_bar":{"$ref":"#/$defs/quantity"},"precharge_psi":{"$ref":"#/$defs/quantity"},"range_bar":{"$ref":"#/$defs/quantity"},"range_psi":{"$ref":"#/$defs/quantity"},"flow_lpm":{"$ref":"#/$defs/quantity"},"flow_gpm":{"$ref":"#/$defs/quantity"},"displacement_cm3_rev":{"$ref":"#/$defs/quantity"},"displacement_in3_rev":{"$ref":"#/$defs/quantity"},"volume_l":{"$ref":"#/$defs/quantity"},"volume_gal":{"$ref":"#/$defs/quantity"},"bore_mm":{"$ref":"#/$defs/quantity"},"bore_in":{"$ref":"#/$defs/quantity"},"rod_mm":{"$ref":"#/$defs/quantity"},"rod_in":{"$ref":"#/$defs/quantity"},"stroke_mm":{"$ref":"#/$defs/quantity"},"stroke_in":{"$ref":"#/$defs/quantity"},"rating_micron":{"$ref":"#/$defs/quantity"},"speed_rpm":{"$ref":"#/$defs/quantity"},"pilot_ratio":{"$ref":"#/$defs/quantity"}},"allOf":[{"not":{"required":["setting_bar","setting_psi"]}},{"not":{"required":["cracking_pressure_bar","cracking_pressure_psi"]}},{"not":{"required":["max_pressure_bar","max_pressure_psi"]}},{"not":{"required":["precharge_bar","precharge_psi"]}},{"not":{"required":["range_bar","range_psi"]}},{"not":{"required":["flow_lpm","flow_gpm"]}},{"not":{"required":["displacement_cm3_rev","displacement_in3_rev"]}},{"not":{"required":["volume_l","volume_gal"]}},{"not":{"required":["bore_mm","bore_in"]}},{"not":{"required":["rod_mm","rod_in"]}},{"not":{"required":["stroke_mm","stroke_in"]}}]};
+const schema55 = {"description":"A number as the author stated it, or null meaning explicitly unknown.","type":["number","null"],"exclusiveMinimum":0};
 const func8 = Object.prototype.hasOwnProperty;
 
 function validate26(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
@@ -825,7 +824,7 @@ vErrors = null;
 }
 if(data && typeof data == "object" && !Array.isArray(data)){
 for(const key0 in data){
-if(!(func8.call(schema55.properties, key0))){
+if(!(func8.call(schema54.properties, key0))){
 const err22 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err22];
@@ -839,7 +838,7 @@ errors++;
 if(data.setting_bar !== undefined){
 let data0 = data.setting_bar;
 if((!(typeof data0 == "number")) && (data0 !== null)){
-const err23 = {instancePath:instancePath+"/setting_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err23 = {instancePath:instancePath+"/setting_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err23];
 }
@@ -864,7 +863,7 @@ errors++;
 if(data.setting_psi !== undefined){
 let data1 = data.setting_psi;
 if((!(typeof data1 == "number")) && (data1 !== null)){
-const err25 = {instancePath:instancePath+"/setting_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err25 = {instancePath:instancePath+"/setting_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err25];
 }
@@ -889,7 +888,7 @@ errors++;
 if(data.cracking_pressure_bar !== undefined){
 let data2 = data.cracking_pressure_bar;
 if((!(typeof data2 == "number")) && (data2 !== null)){
-const err27 = {instancePath:instancePath+"/cracking_pressure_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err27 = {instancePath:instancePath+"/cracking_pressure_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -914,7 +913,7 @@ errors++;
 if(data.cracking_pressure_psi !== undefined){
 let data3 = data.cracking_pressure_psi;
 if((!(typeof data3 == "number")) && (data3 !== null)){
-const err29 = {instancePath:instancePath+"/cracking_pressure_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err29 = {instancePath:instancePath+"/cracking_pressure_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err29];
 }
@@ -939,7 +938,7 @@ errors++;
 if(data.max_pressure_bar !== undefined){
 let data4 = data.max_pressure_bar;
 if((!(typeof data4 == "number")) && (data4 !== null)){
-const err31 = {instancePath:instancePath+"/max_pressure_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err31 = {instancePath:instancePath+"/max_pressure_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -964,7 +963,7 @@ errors++;
 if(data.max_pressure_psi !== undefined){
 let data5 = data.max_pressure_psi;
 if((!(typeof data5 == "number")) && (data5 !== null)){
-const err33 = {instancePath:instancePath+"/max_pressure_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err33 = {instancePath:instancePath+"/max_pressure_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err33];
 }
@@ -989,7 +988,7 @@ errors++;
 if(data.precharge_bar !== undefined){
 let data6 = data.precharge_bar;
 if((!(typeof data6 == "number")) && (data6 !== null)){
-const err35 = {instancePath:instancePath+"/precharge_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err35 = {instancePath:instancePath+"/precharge_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err35];
 }
@@ -1014,7 +1013,7 @@ errors++;
 if(data.precharge_psi !== undefined){
 let data7 = data.precharge_psi;
 if((!(typeof data7 == "number")) && (data7 !== null)){
-const err37 = {instancePath:instancePath+"/precharge_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err37 = {instancePath:instancePath+"/precharge_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err37];
 }
@@ -1039,7 +1038,7 @@ errors++;
 if(data.range_bar !== undefined){
 let data8 = data.range_bar;
 if((!(typeof data8 == "number")) && (data8 !== null)){
-const err39 = {instancePath:instancePath+"/range_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err39 = {instancePath:instancePath+"/range_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err39];
 }
@@ -1064,7 +1063,7 @@ errors++;
 if(data.range_psi !== undefined){
 let data9 = data.range_psi;
 if((!(typeof data9 == "number")) && (data9 !== null)){
-const err41 = {instancePath:instancePath+"/range_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err41 = {instancePath:instancePath+"/range_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err41];
 }
@@ -1089,7 +1088,7 @@ errors++;
 if(data.flow_lpm !== undefined){
 let data10 = data.flow_lpm;
 if((!(typeof data10 == "number")) && (data10 !== null)){
-const err43 = {instancePath:instancePath+"/flow_lpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err43 = {instancePath:instancePath+"/flow_lpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err43];
 }
@@ -1114,7 +1113,7 @@ errors++;
 if(data.flow_gpm !== undefined){
 let data11 = data.flow_gpm;
 if((!(typeof data11 == "number")) && (data11 !== null)){
-const err45 = {instancePath:instancePath+"/flow_gpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err45 = {instancePath:instancePath+"/flow_gpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err45];
 }
@@ -1139,7 +1138,7 @@ errors++;
 if(data.displacement_cm3_rev !== undefined){
 let data12 = data.displacement_cm3_rev;
 if((!(typeof data12 == "number")) && (data12 !== null)){
-const err47 = {instancePath:instancePath+"/displacement_cm3_rev",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err47 = {instancePath:instancePath+"/displacement_cm3_rev",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err47];
 }
@@ -1164,7 +1163,7 @@ errors++;
 if(data.displacement_in3_rev !== undefined){
 let data13 = data.displacement_in3_rev;
 if((!(typeof data13 == "number")) && (data13 !== null)){
-const err49 = {instancePath:instancePath+"/displacement_in3_rev",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err49 = {instancePath:instancePath+"/displacement_in3_rev",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err49];
 }
@@ -1189,7 +1188,7 @@ errors++;
 if(data.volume_l !== undefined){
 let data14 = data.volume_l;
 if((!(typeof data14 == "number")) && (data14 !== null)){
-const err51 = {instancePath:instancePath+"/volume_l",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err51 = {instancePath:instancePath+"/volume_l",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err51];
 }
@@ -1214,7 +1213,7 @@ errors++;
 if(data.volume_gal !== undefined){
 let data15 = data.volume_gal;
 if((!(typeof data15 == "number")) && (data15 !== null)){
-const err53 = {instancePath:instancePath+"/volume_gal",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err53 = {instancePath:instancePath+"/volume_gal",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err53];
 }
@@ -1239,7 +1238,7 @@ errors++;
 if(data.bore_mm !== undefined){
 let data16 = data.bore_mm;
 if((!(typeof data16 == "number")) && (data16 !== null)){
-const err55 = {instancePath:instancePath+"/bore_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err55 = {instancePath:instancePath+"/bore_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err55];
 }
@@ -1264,7 +1263,7 @@ errors++;
 if(data.bore_in !== undefined){
 let data17 = data.bore_in;
 if((!(typeof data17 == "number")) && (data17 !== null)){
-const err57 = {instancePath:instancePath+"/bore_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err57 = {instancePath:instancePath+"/bore_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err57];
 }
@@ -1289,7 +1288,7 @@ errors++;
 if(data.rod_mm !== undefined){
 let data18 = data.rod_mm;
 if((!(typeof data18 == "number")) && (data18 !== null)){
-const err59 = {instancePath:instancePath+"/rod_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err59 = {instancePath:instancePath+"/rod_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err59];
 }
@@ -1314,7 +1313,7 @@ errors++;
 if(data.rod_in !== undefined){
 let data19 = data.rod_in;
 if((!(typeof data19 == "number")) && (data19 !== null)){
-const err61 = {instancePath:instancePath+"/rod_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err61 = {instancePath:instancePath+"/rod_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err61];
 }
@@ -1339,7 +1338,7 @@ errors++;
 if(data.stroke_mm !== undefined){
 let data20 = data.stroke_mm;
 if((!(typeof data20 == "number")) && (data20 !== null)){
-const err63 = {instancePath:instancePath+"/stroke_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err63 = {instancePath:instancePath+"/stroke_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err63];
 }
@@ -1364,7 +1363,7 @@ errors++;
 if(data.stroke_in !== undefined){
 let data21 = data.stroke_in;
 if((!(typeof data21 == "number")) && (data21 !== null)){
-const err65 = {instancePath:instancePath+"/stroke_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err65 = {instancePath:instancePath+"/stroke_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err65];
 }
@@ -1389,7 +1388,7 @@ errors++;
 if(data.rating_micron !== undefined){
 let data22 = data.rating_micron;
 if((!(typeof data22 == "number")) && (data22 !== null)){
-const err67 = {instancePath:instancePath+"/rating_micron",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err67 = {instancePath:instancePath+"/rating_micron",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err67];
 }
@@ -1414,7 +1413,7 @@ errors++;
 if(data.speed_rpm !== undefined){
 let data23 = data.speed_rpm;
 if((!(typeof data23 == "number")) && (data23 !== null)){
-const err69 = {instancePath:instancePath+"/speed_rpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err69 = {instancePath:instancePath+"/speed_rpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err69];
 }
@@ -1439,7 +1438,7 @@ errors++;
 if(data.pilot_ratio !== undefined){
 let data24 = data.pilot_ratio;
 if((!(typeof data24 == "number")) && (data24 !== null)){
-const err71 = {instancePath:instancePath+"/pilot_ratio",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err71 = {instancePath:instancePath+"/pilot_ratio",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema55.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err71];
 }
@@ -3214,10 +3213,9 @@ vErrors.push(err102);
 errors++;
 }
 }
-if(data.orientation !== undefined){
-let data57 = data.orientation;
-if(!((((data57 === 0) || (data57 === 90)) || (data57 === 180)) || (data57 === 270))){
-const err103 = {instancePath:instancePath+"/orientation",schemaPath:"#/$defs/orientation/enum",keyword:"enum",params:{allowedValues: schema54.enum},message:"must be equal to one of the allowed values"};
+if(data.mirror !== undefined){
+if(typeof data.mirror !== "boolean"){
+const err103 = {instancePath:instancePath+"/mirror",schemaPath:"#/properties/mirror/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
 if(vErrors === null){
 vErrors = [err103];
 }
@@ -3227,27 +3225,15 @@ vErrors.push(err103);
 errors++;
 }
 }
-if(data.mirror !== undefined){
-if(typeof data.mirror !== "boolean"){
-const err104 = {instancePath:instancePath+"/mirror",schemaPath:"#/properties/mirror/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(data.config !== undefined){
+let data58 = data.config;
+if(!(data58 && typeof data58 == "object" && !Array.isArray(data58))){
+const err104 = {instancePath:instancePath+"/config",schemaPath:"#/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err104];
 }
 else {
 vErrors.push(err104);
-}
-errors++;
-}
-}
-if(data.config !== undefined){
-let data59 = data.config;
-if(!(data59 && typeof data59 == "object" && !Array.isArray(data59))){
-const err105 = {instancePath:instancePath+"/config",schemaPath:"#/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
-if(vErrors === null){
-vErrors = [err105];
-}
-else {
-vErrors.push(err105);
 }
 errors++;
 }
@@ -3259,14 +3245,26 @@ errors = vErrors.length;
 }
 }
 if(data.ports !== undefined){
-let data61 = data.ports;
+let data60 = data.ports;
+if(data60 && typeof data60 == "object" && !Array.isArray(data60)){
+for(const key13 in data60){
+let data61 = data60[key13];
 if(data61 && typeof data61 == "object" && !Array.isArray(data61)){
-for(const key13 in data61){
-let data62 = data61[key13];
-if(data62 && typeof data62 == "object" && !Array.isArray(data62)){
-for(const key14 in data62){
+for(const key14 in data61){
 if(!((key14 === "plugged") || (key14 === "label"))){
-const err106 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/ports/additionalProperties/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key14},message:"must NOT have additional properties"};
+const err105 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/ports/additionalProperties/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key14},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err105];
+}
+else {
+vErrors.push(err105);
+}
+errors++;
+}
+}
+if(data61.plugged !== undefined){
+if(typeof data61.plugged !== "boolean"){
+const err106 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1")+"/plugged",schemaPath:"#/properties/ports/additionalProperties/properties/plugged/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
 if(vErrors === null){
 vErrors = [err106];
 }
@@ -3276,9 +3274,11 @@ vErrors.push(err106);
 errors++;
 }
 }
-if(data62.plugged !== undefined){
-if(typeof data62.plugged !== "boolean"){
-const err107 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1")+"/plugged",schemaPath:"#/properties/ports/additionalProperties/properties/plugged/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(data61.label !== undefined){
+let data63 = data61.label;
+if(typeof data63 === "string"){
+if(func1(data63) > 24){
+const err107 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1")+"/label",schemaPath:"#/properties/ports/additionalProperties/properties/label/maxLength",keyword:"maxLength",params:{limit: 24},message:"must NOT have more than 24 characters"};
 if(vErrors === null){
 vErrors = [err107];
 }
@@ -3288,11 +3288,8 @@ vErrors.push(err107);
 errors++;
 }
 }
-if(data62.label !== undefined){
-let data64 = data62.label;
-if(typeof data64 === "string"){
-if(func1(data64) > 24){
-const err108 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1")+"/label",schemaPath:"#/properties/ports/additionalProperties/properties/label/maxLength",keyword:"maxLength",params:{limit: 24},message:"must NOT have more than 24 characters"};
+else {
+const err108 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1")+"/label",schemaPath:"#/properties/ports/additionalProperties/properties/label/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err108];
 }
@@ -3302,8 +3299,9 @@ vErrors.push(err108);
 errors++;
 }
 }
+}
 else {
-const err109 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1")+"/label",schemaPath:"#/properties/ports/additionalProperties/properties/label/type",keyword:"type",params:{type: "string"},message:"must be string"};
+const err109 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/ports/additionalProperties/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err109];
 }
@@ -3315,7 +3313,7 @@ errors++;
 }
 }
 else {
-const err110 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/ports/additionalProperties/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err110 = {instancePath:instancePath+"/ports",schemaPath:"#/properties/ports/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err110];
 }
@@ -3325,9 +3323,11 @@ vErrors.push(err110);
 errors++;
 }
 }
-}
-else {
-const err111 = {instancePath:instancePath+"/ports",schemaPath:"#/properties/ports/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data.note !== undefined){
+let data64 = data.note;
+if(typeof data64 === "string"){
+if(func1(data64) > 200){
+const err111 = {instancePath:instancePath+"/note",schemaPath:"#/properties/note/maxLength",keyword:"maxLength",params:{limit: 200},message:"must NOT have more than 200 characters"};
 if(vErrors === null){
 vErrors = [err111];
 }
@@ -3337,11 +3337,8 @@ vErrors.push(err111);
 errors++;
 }
 }
-if(data.note !== undefined){
-let data65 = data.note;
-if(typeof data65 === "string"){
-if(func1(data65) > 200){
-const err112 = {instancePath:instancePath+"/note",schemaPath:"#/properties/note/maxLength",keyword:"maxLength",params:{limit: 200},message:"must NOT have more than 200 characters"};
+else {
+const err112 = {instancePath:instancePath+"/note",schemaPath:"#/properties/note/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err112];
 }
@@ -3351,8 +3348,9 @@ vErrors.push(err112);
 errors++;
 }
 }
+}
 else {
-const err113 = {instancePath:instancePath+"/note",schemaPath:"#/properties/note/type",keyword:"type",params:{type: "string"},message:"must be string"};
+const err113 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err113];
 }
@@ -3361,27 +3359,15 @@ vErrors.push(err113);
 }
 errors++;
 }
-}
-}
-else {
-const err114 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
-if(vErrors === null){
-vErrors = [err114];
-}
-else {
-vErrors.push(err114);
-}
-errors++;
-}
 validate21.errors = vErrors;
 return errors === 0;
 }
 validate21.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-const schema81 = {"type":"object","additionalProperties":false,"required":["from","to","line"],"properties":{"id":{"$ref":"#/$defs/id"},"from":{"$ref":"#/$defs/portRef"},"to":{"$ref":"#/$defs/portRef"},"line":{"$ref":"#/$defs/lineType"},"label":{"type":"string","maxLength":60},"fromSide":{"$ref":"#/$defs/side"},"toSide":{"$ref":"#/$defs/side"},"via":{"description":"Explicit orthogonal waypoints. Only add one after a routing diagnostic asks for it.","type":"array","minItems":1,"maxItems":8,"items":{"$ref":"#/$defs/point"}},"arrow":{"description":"auto draws a flow arrow only where the direction cannot reverse. Never set forward on a line a directional valve can reverse.","enum":["auto","forward","none"]}}};
-const schema83 = {"description":"Component and port, written exactly as the brief notates it: P1.outlet","type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*\\.[A-Za-z][A-Za-z0-9_]*$","maxLength":70};
-const schema85 = {"description":"Hydraulic function of the line. ISO 1219 renders working lines (suction, pressure, working, return) continuous, pilot lines long-dashed and drain lines short-dashed.","enum":["suction","pressure","working","return","drain","pilot"]};
-const schema86 = {"enum":["left","right","top","bottom"]};
+const schema80 = {"type":"object","additionalProperties":false,"required":["from","to","line"],"properties":{"id":{"$ref":"#/$defs/id"},"from":{"$ref":"#/$defs/portRef"},"to":{"$ref":"#/$defs/portRef"},"line":{"$ref":"#/$defs/lineType"},"label":{"type":"string","maxLength":60},"fromSide":{"$ref":"#/$defs/side"},"toSide":{"$ref":"#/$defs/side"},"via":{"description":"Explicit orthogonal waypoints. Only add one after a routing diagnostic asks for it.","type":"array","minItems":1,"maxItems":8,"items":{"$ref":"#/$defs/point"}},"arrow":{"description":"auto draws a flow arrow only where the direction cannot reverse. Never set forward on a line a directional valve can reverse.","enum":["auto","forward","none"]}}};
+const schema82 = {"description":"Component and port, written exactly as the brief notates it: P1.outlet","type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*\\.[A-Za-z][A-Za-z0-9_]*$","maxLength":70};
+const schema84 = {"description":"Hydraulic function of the line. ISO 1219 renders working lines (suction, pressure, working, return) continuous, pilot lines long-dashed and drain lines short-dashed.","enum":["suction","pressure","working","return","drain","pilot"]};
+const schema85 = {"enum":["left","right","top","bottom"]};
 const pattern7 = new RegExp("^[A-Za-z][A-Za-z0-9_-]*\\.[A-Za-z][A-Za-z0-9_]*$", "u");
 
 function validate29(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
@@ -3426,7 +3412,7 @@ vErrors.push(err2);
 errors++;
 }
 for(const key0 in data){
-if(!(func8.call(schema81.properties, key0))){
+if(!(func8.call(schema80.properties, key0))){
 const err3 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err3];
@@ -3545,7 +3531,7 @@ errors++;
 if(data.line !== undefined){
 let data3 = data.line;
 if(!((((((data3 === "suction") || (data3 === "pressure")) || (data3 === "working")) || (data3 === "return")) || (data3 === "drain")) || (data3 === "pilot"))){
-const err13 = {instancePath:instancePath+"/line",schemaPath:"#/$defs/lineType/enum",keyword:"enum",params:{allowedValues: schema85.enum},message:"must be equal to one of the allowed values"};
+const err13 = {instancePath:instancePath+"/line",schemaPath:"#/$defs/lineType/enum",keyword:"enum",params:{allowedValues: schema84.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err13];
 }
@@ -3583,7 +3569,7 @@ errors++;
 if(data.fromSide !== undefined){
 let data5 = data.fromSide;
 if(!((((data5 === "left") || (data5 === "right")) || (data5 === "top")) || (data5 === "bottom"))){
-const err16 = {instancePath:instancePath+"/fromSide",schemaPath:"#/$defs/side/enum",keyword:"enum",params:{allowedValues: schema86.enum},message:"must be equal to one of the allowed values"};
+const err16 = {instancePath:instancePath+"/fromSide",schemaPath:"#/$defs/side/enum",keyword:"enum",params:{allowedValues: schema85.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err16];
 }
@@ -3596,7 +3582,7 @@ errors++;
 if(data.toSide !== undefined){
 let data6 = data.toSide;
 if(!((((data6 === "left") || (data6 === "right")) || (data6 === "top")) || (data6 === "bottom"))){
-const err17 = {instancePath:instancePath+"/toSide",schemaPath:"#/$defs/side/enum",keyword:"enum",params:{allowedValues: schema86.enum},message:"must be equal to one of the allowed values"};
+const err17 = {instancePath:instancePath+"/toSide",schemaPath:"#/$defs/side/enum",keyword:"enum",params:{allowedValues: schema85.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err17];
 }
@@ -3716,7 +3702,7 @@ errors++;
 if(data.arrow !== undefined){
 let data11 = data.arrow;
 if(!(((data11 === "auto") || (data11 === "forward")) || (data11 === "none"))){
-const err27 = {instancePath:instancePath+"/arrow",schemaPath:"#/properties/arrow/enum",keyword:"enum",params:{allowedValues: schema81.properties.arrow.enum},message:"must be equal to one of the allowed values"};
+const err27 = {instancePath:instancePath+"/arrow",schemaPath:"#/properties/arrow/enum",keyword:"enum",params:{allowedValues: schema80.properties.arrow.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -3742,7 +3728,7 @@ return errors === 0;
 }
 validate29.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-const schema89 = {"description":"An engineering choice hydraulify made because the description did not state it. Never hidden.","type":"object","additionalProperties":false,"required":["subject","statement"],"properties":{"id":{"$ref":"#/$defs/id"},"subject":{"description":"Component id, port reference, or a short scope such as the whole circuit.","type":"string","minLength":1,"maxLength":70},"statement":{"type":"string","minLength":1,"maxLength":240},"rationale":{"type":"string","maxLength":240}}};
+const schema88 = {"description":"An engineering choice hydraulify made because the description did not state it. Never hidden.","type":"object","additionalProperties":false,"required":["subject","statement"],"properties":{"id":{"$ref":"#/$defs/id"},"subject":{"description":"Component id, port reference, or a short scope such as the whole circuit.","type":"string","minLength":1,"maxLength":70},"statement":{"type":"string","minLength":1,"maxLength":240},"rationale":{"type":"string","maxLength":240}}};
 
 function validate31(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;

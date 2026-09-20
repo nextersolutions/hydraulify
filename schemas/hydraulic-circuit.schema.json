@@ -49,7 +49,6 @@
       "maxItems": 2
     },
     "side": { "enum": ["left", "right", "top", "bottom"] },
-    "orientation": { "enum": [0, 90, 180, 270] },
 
     "meta": {
       "type": "object",
@@ -107,8 +106,10 @@
         "type": { "$ref": "#/$defs/componentType" },
         "label": { "type": "string", "maxLength": 80 },
         "pos": { "$ref": "#/$defs/point" },
-        "orientation": { "$ref": "#/$defs/orientation" },
-        "mirror": { "type": "boolean" },
+        "mirror": {
+          "description": "Flip the symbol horizontally, so an in-line component can pass flow right to left. Rotation is deliberately not offered: see references/symbols.md.",
+          "type": "boolean"
+        },
         "config": { "type": "object" },
         "params": { "$ref": "#/$defs/params" },
         "ports": {
