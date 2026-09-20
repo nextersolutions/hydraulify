@@ -1,0 +1,24 @@
+{
+  "name": "hydraulify",
+  "version": "0.1.0-dev.1",
+  "private": true,
+  "type": "module",
+  "description": "ISO 1219-style hydraulic circuit schematics from a validated, port-aware JSON model.",
+  "license": "MIT",
+  "bin": {
+    "hydraulify": "./bin/hydraulify.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "generate:validators": "node scripts/generate-validators.mjs",
+    "check:validators": "node scripts/generate-validators.mjs --check",
+    "generate:docs": "node scripts/generate-shared-instructions.mjs",
+    "check:docs": "node scripts/generate-shared-instructions.mjs --check",
+    "test": "node --test test/"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1"
+  }
+}
