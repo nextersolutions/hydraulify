@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "diagram_type": "hydraulic_circuit",
+  "meta": {
+    "title": "Simple double-acting cylinder circuit",
+    "units": "si"
+  },
+  "components": [
+    { "id": "T1", "type": "reservoir", "pos": [80, 540], "params": { "volume_l": 100 } },
+    {
+      "id": "P1",
+      "type": "pump",
+      "pos": [64, 420],
+      "config": { "pump_type": "fixed_displacement", "drive": "electric_motor" },
+      "params": { "flow_lpm": 20 }
+    },
+    { "id": "J1", "type": "junction", "pos": [140, 296], "config": { "way": 3 } },
+    {
+      "id": "RV1",
+      "type": "relief_valve",
+      "pos": [232, 264],
+      "params": { "setting_bar": 180 }
+    },
+    { "id": "J2", "type": "junction", "pos": [254, 476], "config": { "way": 3 } },
+    {
+      "id": "V1",
+      "type": "directional_control_valve",
+      "pos": [372, 232],
+      "config": {
+        "configuration": "4/3",
+        "center_condition": "closed",
+        "actuation": { "left": "lever", "right": "none", "spring": "centred" }
+      }
+    },
+    {
+      "id": "C1",
+      "type": "cylinder",
+      "pos": [640, 120],
+      "config": { "cylinder_type": "double_acting" },
+      "params": { "bore_mm": 63, "rod_mm": 36, "stroke_mm": 400 }
+    }
+  ],
+  "connections": [
+    { "id": "suction", "from": "T1.outlet", "to": "P1.inlet", "line": "suction" },
+    { "id": "delivery", "from": "P1.outlet", "to": "J1.bottom", "line": "pressure" },
+    { "id": "relief-tap", "from": "J1.right", "to": "RV1.inlet", "line": "pressure" },
+    { "id": "pressure-rail", "from": "J1.top", "to": "V1.P", "line": "pressure" },
+    { "id": "relief-discharge", "from": "RV1.outlet", "to": "J2.top", "line": "return" },
+    { "id": "valve-return", "from": "V1.T", "to": "J2.right", "line": "return" },
+    { "id": "tank-return", "from": "J2.left", "to": "T1.return", "line": "return" },
+    { "id": "extend", "from": "V1.A", "to": "C1.cap", "line": "working" },
+    { "id": "retract", "from": "V1.B", "to": "C1.rod", "line": "working" }
+  ],
+  "assumptions": [
+    {
+      "subject": "V1",
+      "statement": "Drawn as a lever-operated, spring-centred 4/3 valve with a closed centre.",
+      "rationale": "The description named a directional valve controlling a double-acting cylinder but did not state the configuration, centre condition or actuation."
+    }
+  ]
+}

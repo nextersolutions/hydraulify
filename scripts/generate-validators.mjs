@@ -39,6 +39,25 @@ async function loadAjv() {
   }
 }
 
+// ajv's standalone output reaches back into the installed package for one string
+// helper. Left alone that would make the "zero runtime dependencies" claim false:
+// the skill would work here and fail on a bare copy. Inline it and then assert no
+// require survives, so the claim is enforced rather than assumed.
+// This technique is taken from archify's scripts/generate-validators.mjs (MIT).
+const AJV_UCS2_IMPORT = 'require("ajv/dist/runtime/ucs2length").default';
+const INLINE_UCS2_LENGTH = `function ucs2length(str) {
+  const len = str.length;
+  let length = 0;
+  let pos = 0;
+  while (pos < len) {
+    length += 1;
+    const value = str.charCodeAt(pos++);
+    if (value >= 0xd800 && value <= 0xdbff && pos < len
+      && (str.charCodeAt(pos) & 0xfc00) === 0xdc00) pos += 1;
+  }
+  return length;
+}`;
+
 function buildSource(Ajv2020, standaloneCode) {
   const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
   const ajv = new Ajv2020({
@@ -47,7 +66,20 @@ function buildSource(Ajv2020, standaloneCode) {
     strict: false,
   });
   const validate = ajv.compile(schema);
-  return `${HEADER}${standaloneCode(ajv, validate)}`;
+  let code = standaloneCode(ajv, validate);
+
+  if (code.includes(AJV_UCS2_IMPORT)) {
+    code = code.replaceAll(AJV_UCS2_IMPORT, INLINE_UCS2_LENGTH);
+  }
+  if (code.includes('require(')) {
+    const sample = code.match(/require\([^)]*\)/)?.[0];
+    throw new Error(
+      `ajv standalone output contains an unexpected runtime dependency: ${sample}. `
+      + 'Inline it in scripts/generate-validators.mjs before committing, or the skill '
+      + 'will fail on any copy without node_modules.',
+    );
+  }
+  return `${HEADER}${code}`;
 }
 
 function normalize(text) {

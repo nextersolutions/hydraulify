@@ -6,6 +6,11 @@
 // the internal pilot line overcomes the spring. Drawing the arrow in line with
 // the ports would state the opposite.
 //
+// Flow runs top to bottom: inlet at the top, outlet at the bottom. ISO symbols
+// carry no fixed orientation, and this one matches how relief valves are almost
+// always placed -- tapped off a pressure line that runs above, discharging down
+// to a reservoir that sits at the bottom of the drawing.
+//
 // A pilot-operated (two-stage) relief valve is drawn as the same element inside a
 // dash-dot enclosure, which is the standard way to show a complete unit assembled
 // from more than one stage.
@@ -28,8 +33,8 @@ export const defaults = {
 
 export function geometry(config) {
   const ports = {
-    inlet: port('inlet', PORT_X, HEIGHT, 'bottom', { criticality: CRITICALITY.REQUIRED, label: 'P' }),
-    outlet: port('outlet', PORT_X, 0, 'top', { criticality: CRITICALITY.REQUIRED, label: 'T' }),
+    inlet: port('inlet', PORT_X, 0, 'top', { criticality: CRITICALITY.REQUIRED, label: 'P' }),
+    outlet: port('outlet', PORT_X, HEIGHT, 'bottom', { criticality: CRITICALITY.REQUIRED, label: 'T' }),
   };
   if (config.remote_pilot) {
     // A remote pilot port is routinely plugged, so leaving it unconnected is not
@@ -43,12 +48,13 @@ export function draw({ config }) {
   const { x, y, size } = ENVELOPE;
   const envelope = rect(x, y, size, size, { cls: 'sym' });
 
-  // Offset from the port line: blocked at rest.
+  // Offset from the port line: blocked at rest. Arrow points the way oil goes
+  // once the valve cracks, which is inlet (top) to outlet (bottom).
   const arrowX = x + 12;
-  const arrow = flowArrow(arrowX, y + size - 4, arrowX, y + 4);
+  const arrow = flowArrow(arrowX, y + 4, arrowX, y + size - 4);
 
-  const inletStub = line(PORT_X, HEIGHT, PORT_X, y + size, { cls: 'sym' });
-  const outletStub = line(PORT_X, 0, PORT_X, y, { cls: 'sym' });
+  const inletStub = line(PORT_X, 0, PORT_X, y, { cls: 'sym' });
+  const outletStub = line(PORT_X, y + size, PORT_X, HEIGHT, { cls: 'sym' });
 
   const springGlyph = spring(x + size, y + size / 2, x + size + 20, y + size / 2, { coils: 3, amplitude: 5 });
   // Diagonal through the spring: adjustable setting.
@@ -57,12 +63,13 @@ export function draw({ config }) {
   // Internal pilot: senses inlet pressure and acts on the envelope against the
   // spring. Long-dashed, because it is a control line and not a working line.
   const internalPilot = polyline(
-    [[PORT_X, HEIGHT - 8], [4, HEIGHT - 8], [4, y + size / 2], [x, y + size / 2]],
+    [[PORT_X, 8], [4, 8], [4, y + size / 2], [x, y + size / 2]],
     { cls: 'pilot-line' },
   );
 
+  // A remote pilot acts on the spring chamber, so it joins at the spring end.
   const remotePilot = config.remote_pilot
-    ? polyline([[x + size / 2, y], [x + size / 2, 12], [WIDTH, 12]], { cls: 'pilot-line' })
+    ? polyline([[x + size + 20, y + size / 2], [x + size + 24, y + size / 2], [x + size + 24, 12], [WIDTH, 12]], { cls: 'pilot-line' })
     : '';
 
   const enclosure = config.pilot_operated
