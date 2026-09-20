@@ -1,0 +1,73 @@
+# hydraulify — design decisions
+
+Settled before implementation. Each entry records the choice and the cost accepted
+with it. Where a decision departs from `hydraulify_skill_creation_prompt.md`, the
+departure is stated explicitly.
+
+## Architecture
+
+| # | Decision | Cost accepted |
+|---|---|---|
+| A1 | Vendor archify's `geometry.mjs` + architecture routing helpers, and its viewer template | A permanent fork; upstream archify fixes are a manual merge |
+| A2 | Layers strictly separated: LLM -> model -> validation -> layout -> render | More plumbing than a direct renderer |
+| A3 | **Author writes `pos` per component**; no layout solver | *Departs from brief §29/§36.* Quality varies per model; editing a circuit means re-placing |
+| A4 | Renderer auto-routes orthogonally from port anchors; `via` waypoints override | The agent must learn when to reach for `via` |
+| A5 | Junctions are explicit zero-size components; every connection is strictly port-to-port | Verbose models: a three-way branch costs one component and three connections |
+| A6 | `pos` is schema-required; missing it is a hard error | Hand-authoring a fixture always carries coordinates |
+| A7 | `scaffold` accepts an unpositioned model and emits crude hydraulic bands, documented as provisional | First render of a non-trivial circuit looks rough |
+
+## Output
+
+| # | Decision | Cost accepted |
+|---|---|---|
+| O1 | Both `.svg` (primary) and `.html` (vendored viewer) | Two artifacts to test |
+| O2 | Explicit output path per artifact, archify-style guards; no bundle directory | *Departs from brief §20.* Producing the full set is several invocations |
+| O3 | Viewer wired for theme, pan/zoom, finder, focus, export; preset/motion/brand/evidence controls stripped | The template fork diverges immediately |
+| O4 | Strict ISO 1219 line types: solid working, long-dash pilot, short-dash drain. Monochrome, theme-aware | Pressure and return are not distinguishable at a glance |
+| O5 | Flow arrows only on unambiguous single-direction lines | Per-line direction analysis in the renderer |
+| O6 | `bom.md` + `bom.json`; aggregation identity is type + full authored parameter set | Two artifacts to keep consistent |
+
+## Domain
+
+| # | Decision | Cost accepted |
+|---|---|---|
+| D1 | 13 symbols: core 11 + pilot-operated check + counterbalance | Scope creep by exactly two, to make brief §33 example 4 answerable |
+| D2 | Directional valves drawn in full: real per-position flow paths, all four centres, actuation glyphs both ends | The largest symbol work item; no test can catch a reversed arrow |
+| D3 | Per-port criticality (`required` / `optional` / `plugged`) declared in the symbol | A wrong criticality call produces confidently wrong validation |
+| D4 | Hard errors block: non-zero exit, `validation.md` written, no drawing produced | Debugging a complex circuit is text-only |
+| D5 | Units stored **as authored** (`_bar` / `_psi` suffixed fields), never converted in the model | Every consumer needs a normalise-on-read helper |
+| D6 | `--units si\|imperial` converts at render, rounded to source significant figures, marked as converted | Significant-figure inference needs an explicit documented rule |
+| D7 | `null` means unknown; unspecified parameters listed in `validation.md`; drawing prints nothing | Report carries information the drawing does not |
+| D8 | Never add a component the user did not name; only configuration is defaulted | Schematics can look naive; missing filtration is a report note, not a part |
+
+## Behaviour and packaging
+
+| # | Decision | Cost accepted |
+|---|---|---|
+| B1 | Ask first for behaviour-changing choices with no safe default: valve configuration, centre condition, actuation, single vs double-acting | *Departs from brief §26.* Typically 1-3 questions before the first drawing |
+| B2 | Non-interactive runs fall back to marked assumptions, recorded in `assumptions[]`, `validation.md` and on the drawing | Two behavioural modes to document and test |
+| B3 | Host-adaptive asking: `AskUserQuestion` in SKILL.md, prose format in AGENTS.md | The two instruction paths differ by design, so no equality check can guard them |
+| B4 | 12 verbs: `scaffold validate render bom deliver preview inspect check visual-check doctor demo examples` | No circuit diff (`compare` deferred) |
+| B5 | ajv precompiled at build time; zero runtime dependencies; `--check` drift guard | A large generated artifact in git |
+| B6 | Tests layered: unit, normalised layout-report goldens, 2-3 full SVG goldens | Three layers and a layout-report format to keep stable |
+| B7 | Lean SKILL.md + gated `references/` + human README; shared core block generated into SKILL.md and AGENTS.md with a byte-identity test | A generator and its check |
+| B8 | All five examples committed with model + SVG + HTML | ~4 MB of duplicated inlined viewer in git |
+
+## Residuals decided without consultation
+
+- MIT license, archify-style skill metadata.
+- No update checker and no release manifest: hydraulify has no release channel.
+- English only. The vendored viewer keeps whatever locale support it already has.
+- `deliver` receipt hashes model, SVG and HTML.
+- Layout-report format, canvas grid units and viewer card contents are implementation detail.
+- Brief §22 safety language: surfaced only where a concern is actually relevant, never as a
+  standing disclaimer on every drawing.
+
+## Claims that will not be made
+
+- **Codex.** There is no Codex installation here. Portability is by construction
+  (plain Node, no host APIs, AGENTS.md provided). It will not be reported as verified.
+- **Symbol correctness.** Tests prove ports, topology, routing and byte-stability.
+  Whether a spool arrow points the right way is a perceptual review by a human.
+- **Engineering safety.** Output is described as topologically consistent with the
+  information provided, never as safe or certified.
