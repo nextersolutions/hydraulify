@@ -5,3 +5,13 @@
 *.png binary
 *.jpg binary
 *.woff2 binary
+
+# Language statistics: the vendored viewer template is 774KB of someone else's
+# HTML and the precompiled validator is ajv's output, so without these the
+# repository reports itself as 99% HTML and describes nothing about the code
+# actually written here. The example drawings are build output too.
+assets/viewer-template.html linguist-vendored
+renderers/shared/viewer-i18n.mjs linguist-vendored
+renderers/shared/generated-validators.mjs linguist-generated
+docs/examples/*.svg linguist-generated
+test/golden/** linguist-generated
