@@ -15,8 +15,10 @@
     "generate:validators": "node scripts/generate-validators.mjs",
     "check:validators": "node scripts/generate-validators.mjs --check",
     "generate:docs": "node scripts/generate-shared-instructions.mjs",
+    "generate:examples": "node scripts/generate-example-svgs.mjs",
+    "check:examples": "node scripts/generate-example-svgs.mjs --check",
     "check:docs": "node scripts/generate-shared-instructions.mjs --check",
-    "test": "npm run check:validators && npm run check:docs && node --test test/"
+    "test": "npm run check:validators && npm run check:docs && npm run check:examples && node --test test/"
   },
   "devDependencies": {
     "ajv": "^8.17.1"

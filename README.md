@@ -13,17 +13,37 @@ node bin/hydraulify.mjs deliver examples/02-solenoid-cylinder.json out.svg \
   --html out.html --report out.validation.md --bom out.bom.md
 ```
 
+That second command draws this:
+
+<p align="center">
+  <img src="docs/examples/02-solenoid-cylinder.svg" width="820"
+       alt="A solenoid-operated cylinder circuit: reservoir, fixed-displacement pump, relief valve set at 180 bar, double-solenoid 4/3 valve with a closed centre, and a double-acting cylinder.">
+</p>
+
 ## Installation
 
 There is nothing to build and nothing to fetch. The schema validator is
 committed, the viewer template is vendored, and the runtime needs no packages.
-Installing means putting the directory where your agent looks for skills.
+Installing means getting the directory onto your disk and putting it where your
+agent looks for skills.
+
+### Get it
+
+```bash
+git clone https://github.com/nextersolutions/hydraulify.git
+cd hydraulify
+node bin/hydraulify.mjs doctor
+```
+
+That clone is already a working installation -- every command in this README
+runs from that directory, with no `npm install` first. The rest of this section
+is about letting an agent find it.
 
 ### Claude Code
 
-Copy the tracked files into the skills directory. `git archive` is the right
-tool here -- it takes exactly what is committed, leaving `node_modules`, local
-scratch files and `.git` behind:
+From inside the clone, copy the tracked files into the skills directory.
+`git archive` is the right tool here -- it takes exactly what is committed,
+leaving `node_modules`, local scratch files and `.git` behind:
 
 ```bash
 mkdir -p ~/.claude/skills/hydraulify && git archive HEAD | tar -x -C ~/.claude/skills/hydraulify
@@ -43,10 +63,13 @@ skills are discovered at startup, so an already-running one will not see it.
 
 Codex reads `AGENTS.md`, which is generated from the same instruction source as
 `SKILL.md` and ships in the same directory. Put the skill inside the repository
-you are working in:
+you are working in -- as a clone, or as a submodule if you want the version
+pinned:
 
 ```bash
-mkdir -p tools/hydraulify && git archive HEAD | tar -x -C tools/hydraulify
+git clone https://github.com/nextersolutions/hydraulify.git tools/hydraulify
+# or, pinned:
+git submodule add https://github.com/nextersolutions/hydraulify.git tools/hydraulify
 ```
 
 This path is supported by construction rather than by observation -- see the
@@ -54,7 +77,7 @@ limitations at the bottom.
 
 ### As a plain CLI
 
-No agent required. Clone it anywhere and call the entry point:
+No agent required. Call the entry point by path from anywhere:
 
 ```bash
 node /path/to/hydraulify/bin/hydraulify.mjs examples
@@ -234,18 +257,77 @@ to a path with `--json-out`.
 
 ## Examples
 
+Five worked circuits, each one a model in `examples/` and a drawing generated
+from it. The drawings below are produced by `npm run generate:examples` and
+`npm test` fails if they no longer match what the renderer emits, so what you
+see here is what you get.
+
 ```bash
 node bin/hydraulify.mjs examples          # list them
-node bin/hydraulify.mjs demo tmp/         # render all five
+node bin/hydraulify.mjs demo tmp/         # render all five, with reports and BOMs
 ```
 
-| File | Shows |
-| --- | --- |
-| `01-basic-circuit` | the minimum circuit, with no parameters stated at all |
-| `02-solenoid-cylinder` | the same circuit fully specified, double solenoid |
-| `03-motor-flow-control` | motor speed control, gauge, and a recorded substitution |
-| `04-load-holding` | counterbalance valve with an external pilot |
-| `05-filtered-power-unit` | suction and return filtration, accumulator, mirrored symbol |
+<details open>
+<summary><b>01-basic-circuit</b> -- The minimum circuit</summary>
+
+Reservoir, pump, relief valve, 4/3 valve, cylinder -- and not one parameter stated. Nothing is invented to fill the gap: the drawing carries no numbers and the report lists every value a reviewer would want.
+
+<p align="center">
+  <img src="docs/examples/01-basic-circuit.svg" width="820" alt="A minimal circuit with no engineering parameters stated on any component.">
+</p>
+
+</details>
+
+<details>
+<summary><b>02-solenoid-cylinder</b> -- The same circuit, fully specified</summary>
+
+Every parameter supplied, and a double-solenoid 4/3 valve with a closed centre. Compare it with the one above to see exactly what stating the numbers buys you.
+
+<p align="center">
+  <img src="docs/examples/02-solenoid-cylinder.svg" width="820" alt="The same circuit with pump flow, relief setting and cylinder dimensions labelled, and a double-solenoid valve.">
+</p>
+
+</details>
+
+<details>
+<summary><b>03-motor-flow-control</b> -- Motor speed control</summary>
+
+A pressure-compensated flow control meters the motor, with a gauge on the pressure rail. The description asked for a proportional valve; that symbol does not exist here, so the substitution is recorded as an assumption and printed on the drawing rather than quietly made.
+
+<p align="center">
+  <img src="docs/examples/03-motor-flow-control.svg" width="820" alt="A hydraulic motor fed through a flow control valve, with a pressure gauge on the rail, and assumptions printed below the circuit.">
+</p>
+
+</details>
+
+<details>
+<summary><b>04-load-holding</b> -- Load holding</summary>
+
+A counterbalance valve holds the load when the directional valve centres. Its pilot is taken from the rod line and drawn as a long-dashed line, because a pilot drawn as a working line tells the reader the circuit does something it does not do.
+
+<p align="center">
+  <img src="docs/examples/04-load-holding.svg" width="820" alt="A cylinder with a counterbalance valve in the cap line, externally piloted from the rod line by a dashed pilot line.">
+</p>
+
+</details>
+
+<details>
+<summary><b>05-filtered-power-unit</b> -- A filtered power unit</summary>
+
+Suction and return filtration, an accumulator on the pressure rail, and a mirrored return filter so its flow reads right to left without a rotated symbol.
+
+<p align="center">
+  <img src="docs/examples/05-filtered-power-unit.svg" width="820" alt="A power unit with a suction filter, a return filter drawn mirrored, an accumulator and a pressure gauge on the rail.">
+</p>
+
+</details>
+
+Each is rendered from its model with nothing hand-drawn:
+
+```bash
+node bin/hydraulify.mjs deliver examples/04-load-holding.json tmp/load-holding.svg \
+  --report tmp/load-holding.validation.md
+```
 
 ## Layout
 
@@ -256,7 +338,8 @@ validate/      topology and hydraulic rules, validation report, BOM
 scaffold/      provisional band placement
 examples/      five worked circuits
 references/    deep-dive docs, gated so an agent loads them only when needed
-docs/          architecture record, decisions, shared instruction source
+docs/          architecture record, decisions, shared instruction source,
+               and the example drawings this README shows
 test/          116 tests plus goldens
 ```
 
@@ -270,13 +353,19 @@ and `references/authoring.md` for placement and routing.
 npm install                  # ajv, for regenerating the validator only
 npm run generate:validators  # after changing the schema
 npm run generate:docs        # after changing docs/shared-instructions.md
-npm test                     # everything, including both drift checks
+npm run generate:examples    # after any change that moves a line on a drawing
+npm test                     # everything, including all three drift checks
 ```
 
 `ajv` is a development dependency only. It compiles the schema into the
 committed `renderers/shared/generated-validators.mjs`, and the generator fails
 if any `require` survives into that file -- which is what keeps the installed
 skill free of `node_modules`.
+
+The README's drawings are generated artifacts, checked the same way the
+validator and the shared instruction block are: `npm test` re-renders each
+example and fails if `docs/examples/` no longer matches, so the pictures cannot
+quietly stop being true.
 
 Goldens are regenerated deliberately, not reflexively:
 
