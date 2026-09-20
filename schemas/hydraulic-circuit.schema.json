@@ -1,0 +1,489 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hydraulify/schemas/hydraulic-circuit.schema.json",
+  "title": "Hydraulify Circuit Model",
+  "description": "Port-aware hydraulic circuit model. The model is the source of truth; the schematic is a representation of it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "diagram_type", "meta", "components", "connections"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "diagram_type": { "const": "hydraulic_circuit" },
+    "meta": { "$ref": "#/$defs/meta" },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/component" }
+    },
+    "connections": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/connection" }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/assumption" }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 }
+    }
+  },
+
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]*$",
+      "maxLength": 32
+    },
+    "portRef": {
+      "description": "Component and port, written exactly as the brief notates it: P1.outlet",
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]*\\.[A-Za-z][A-Za-z0-9_]*$",
+      "maxLength": 70
+    },
+    "point": {
+      "type": "array",
+      "prefixItems": [{ "type": "number" }, { "type": "number" }],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "side": { "enum": ["left", "right", "top", "bottom"] },
+    "orientation": { "enum": [0, 90, 180, 270] },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "subtitle": { "type": "string", "maxLength": 200 },
+        "output": { "type": "string", "minLength": 1 },
+        "units": {
+          "description": "Unit system used when rendering. Model values are always stored as authored.",
+          "enum": ["si", "imperial"],
+          "default": "si"
+        },
+        "viewBox": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "number", "minimum": 200 },
+            { "type": "number", "minimum": 200 }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "drawing_number": { "type": "string", "maxLength": 60 },
+        "revision": { "type": "string", "maxLength": 20 }
+      }
+    },
+
+    "componentType": {
+      "enum": [
+        "reservoir",
+        "pump",
+        "motor",
+        "cylinder",
+        "directional_control_valve",
+        "relief_valve",
+        "check_valve",
+        "pilot_operated_check_valve",
+        "counterbalance_valve",
+        "flow_control_valve",
+        "filter",
+        "pressure_gauge",
+        "accumulator",
+        "junction"
+      ]
+    },
+
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "pos"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "$ref": "#/$defs/componentType" },
+        "label": { "type": "string", "maxLength": 80 },
+        "pos": { "$ref": "#/$defs/point" },
+        "orientation": { "$ref": "#/$defs/orientation" },
+        "mirror": { "type": "boolean" },
+        "config": { "type": "object" },
+        "params": { "$ref": "#/$defs/params" },
+        "ports": {
+          "description": "Per-port authoring overrides. A plugged port is never reported as unconnected.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "plugged": { "type": "boolean" },
+              "label": { "type": "string", "maxLength": 24 }
+            }
+          }
+        },
+        "note": { "type": "string", "maxLength": 200 }
+      },
+      "allOf": [
+        { "$ref": "#/$defs/configByType/reservoir" },
+        { "$ref": "#/$defs/configByType/pump" },
+        { "$ref": "#/$defs/configByType/motor" },
+        { "$ref": "#/$defs/configByType/cylinder" },
+        { "$ref": "#/$defs/configByType/directional_control_valve" },
+        { "$ref": "#/$defs/configByType/relief_valve" },
+        { "$ref": "#/$defs/configByType/check_valve" },
+        { "$ref": "#/$defs/configByType/pilot_operated_check_valve" },
+        { "$ref": "#/$defs/configByType/counterbalance_valve" },
+        { "$ref": "#/$defs/configByType/flow_control_valve" },
+        { "$ref": "#/$defs/configByType/filter" },
+        { "$ref": "#/$defs/configByType/pressure_gauge" },
+        { "$ref": "#/$defs/configByType/accumulator" },
+        { "$ref": "#/$defs/configByType/junction" }
+      ]
+    },
+
+    "configByType": {
+      "reservoir": {
+        "if": { "properties": { "type": { "const": "reservoir" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "vented": { "type": "boolean" },
+                "same_reservoir_as": { "$ref": "#/$defs/id" }
+              }
+            }
+          }
+        }
+      },
+      "pump": {
+        "if": { "properties": { "type": { "const": "pump" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "pump_type": { "enum": ["fixed_displacement", "variable_displacement"] },
+                "drive": { "enum": ["electric_motor", "combustion_engine", "manual", "none"] },
+                "bidirectional": { "type": "boolean" },
+                "has_case_drain": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "motor": {
+        "if": { "properties": { "type": { "const": "motor" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "motor_type": { "enum": ["fixed_displacement", "variable_displacement"] },
+                "bidirectional": { "type": "boolean" },
+                "has_case_drain": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "cylinder": {
+        "if": { "properties": { "type": { "const": "cylinder" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "cylinder_type": { "enum": ["single_acting", "double_acting"] },
+                "rod": { "enum": ["single", "double"] },
+                "spring_return": { "type": "boolean" },
+                "cushioned": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "directional_control_valve": {
+        "if": { "properties": { "type": { "const": "directional_control_valve" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "configuration": { "enum": ["2/2", "3/2", "4/2", "4/3"] },
+                "center_condition": { "enum": ["closed", "open", "tandem", "float"] },
+                "normal_position": { "enum": ["closed", "open"] },
+                "actuation": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "left": { "$ref": "#/$defs/actuationGlyph" },
+                    "right": { "$ref": "#/$defs/actuationGlyph" },
+                    "spring": { "enum": ["centred", "left_return", "right_return", "none"] }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "relief_valve": {
+        "if": { "properties": { "type": { "const": "relief_valve" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "pilot_operated": { "type": "boolean" },
+                "remote_pilot": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "check_valve": {
+        "if": { "properties": { "type": { "const": "check_valve" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "spring_loaded": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "pilot_operated_check_valve": {
+        "if": { "properties": { "type": { "const": "pilot_operated_check_valve" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "pilot_action": { "enum": ["pilot_to_open", "pilot_to_close"] },
+                "drained": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "counterbalance_valve": {
+        "if": { "properties": { "type": { "const": "counterbalance_valve" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "pilot_type": { "enum": ["internal", "external", "internal_external"] },
+                "vented": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "flow_control_valve": {
+        "if": { "properties": { "type": { "const": "flow_control_valve" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "flow_control_type": {
+                  "enum": ["fixed_throttle", "variable_throttle", "one_way", "pressure_compensated"]
+                },
+                "free_flow_direction": { "enum": ["inlet_to_outlet", "outlet_to_inlet"] }
+              }
+            }
+          }
+        }
+      },
+      "filter": {
+        "if": { "properties": { "type": { "const": "filter" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "position": { "enum": ["suction", "return", "pressure"] },
+                "with_bypass": { "type": "boolean" },
+                "with_indicator": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "pressure_gauge": {
+        "if": { "properties": { "type": { "const": "pressure_gauge" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "with_isolator": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "accumulator": {
+        "if": { "properties": { "type": { "const": "accumulator" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "accumulator_type": { "enum": ["bladder", "piston", "diaphragm", "spring", "weight"] }
+              }
+            }
+          }
+        }
+      },
+      "junction": {
+        "if": { "properties": { "type": { "const": "junction" } }, "required": ["type"] },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "way": { "enum": [3, 4] }
+              }
+            },
+            "params": { "maxProperties": 0 }
+          }
+        }
+      }
+    },
+
+    "actuationGlyph": {
+      "enum": [
+        "solenoid",
+        "lever",
+        "push_button",
+        "pedal",
+        "mechanical",
+        "pilot",
+        "pneumatic_pilot",
+        "solenoid_pilot",
+        "none"
+      ]
+    },
+
+    "params": {
+      "description": "Engineering parameters, stored exactly as authored. A null value means unknown and is never replaced by a guess. Each quantity has an SI and an imperial field name; a component may use one or the other, never both for the same quantity.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "setting_bar": { "$ref": "#/$defs/quantity" },
+        "setting_psi": { "$ref": "#/$defs/quantity" },
+        "cracking_pressure_bar": { "$ref": "#/$defs/quantity" },
+        "cracking_pressure_psi": { "$ref": "#/$defs/quantity" },
+        "max_pressure_bar": { "$ref": "#/$defs/quantity" },
+        "max_pressure_psi": { "$ref": "#/$defs/quantity" },
+        "precharge_bar": { "$ref": "#/$defs/quantity" },
+        "precharge_psi": { "$ref": "#/$defs/quantity" },
+        "range_bar": { "$ref": "#/$defs/quantity" },
+        "range_psi": { "$ref": "#/$defs/quantity" },
+        "flow_lpm": { "$ref": "#/$defs/quantity" },
+        "flow_gpm": { "$ref": "#/$defs/quantity" },
+        "displacement_cm3_rev": { "$ref": "#/$defs/quantity" },
+        "displacement_in3_rev": { "$ref": "#/$defs/quantity" },
+        "volume_l": { "$ref": "#/$defs/quantity" },
+        "volume_gal": { "$ref": "#/$defs/quantity" },
+        "bore_mm": { "$ref": "#/$defs/quantity" },
+        "bore_in": { "$ref": "#/$defs/quantity" },
+        "rod_mm": { "$ref": "#/$defs/quantity" },
+        "rod_in": { "$ref": "#/$defs/quantity" },
+        "stroke_mm": { "$ref": "#/$defs/quantity" },
+        "stroke_in": { "$ref": "#/$defs/quantity" },
+        "rating_micron": { "$ref": "#/$defs/quantity" },
+        "speed_rpm": { "$ref": "#/$defs/quantity" },
+        "pilot_ratio": { "$ref": "#/$defs/quantity" }
+      },
+      "allOf": [
+        { "not": { "required": ["setting_bar", "setting_psi"] } },
+        { "not": { "required": ["cracking_pressure_bar", "cracking_pressure_psi"] } },
+        { "not": { "required": ["max_pressure_bar", "max_pressure_psi"] } },
+        { "not": { "required": ["precharge_bar", "precharge_psi"] } },
+        { "not": { "required": ["range_bar", "range_psi"] } },
+        { "not": { "required": ["flow_lpm", "flow_gpm"] } },
+        { "not": { "required": ["displacement_cm3_rev", "displacement_in3_rev"] } },
+        { "not": { "required": ["volume_l", "volume_gal"] } },
+        { "not": { "required": ["bore_mm", "bore_in"] } },
+        { "not": { "required": ["rod_mm", "rod_in"] } },
+        { "not": { "required": ["stroke_mm", "stroke_in"] } }
+      ]
+    },
+
+    "quantity": {
+      "description": "A number as the author stated it, or null meaning explicitly unknown.",
+      "type": ["number", "null"],
+      "exclusiveMinimum": 0
+    },
+
+    "lineType": {
+      "description": "Hydraulic function of the line. ISO 1219 renders working lines (suction, pressure, working, return) continuous, pilot lines long-dashed and drain lines short-dashed.",
+      "enum": ["suction", "pressure", "working", "return", "drain", "pilot"]
+    },
+
+    "connection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "line"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "from": { "$ref": "#/$defs/portRef" },
+        "to": { "$ref": "#/$defs/portRef" },
+        "line": { "$ref": "#/$defs/lineType" },
+        "label": { "type": "string", "maxLength": 60 },
+        "fromSide": { "$ref": "#/$defs/side" },
+        "toSide": { "$ref": "#/$defs/side" },
+        "via": {
+          "description": "Explicit orthogonal waypoints. Only add one after a routing diagnostic asks for it.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/point" }
+        },
+        "arrow": {
+          "description": "auto draws a flow arrow only where the direction cannot reverse. Never set forward on a line a directional valve can reverse.",
+          "enum": ["auto", "forward", "none"]
+        }
+      }
+    },
+
+    "assumption": {
+      "description": "An engineering choice hydraulify made because the description did not state it. Never hidden.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject", "statement"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "subject": {
+          "description": "Component id, port reference, or a short scope such as the whole circuit.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 70
+        },
+        "statement": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "rationale": { "type": "string", "maxLength": 240 }
+      }
+    }
+  }
+}
