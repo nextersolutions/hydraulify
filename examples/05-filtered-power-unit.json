@@ -114,7 +114,7 @@
       "id": "J3",
       "type": "junction",
       "pos": [
-        676,
+        758,
         314
       ],
       "config": {
@@ -125,7 +125,7 @@
       "id": "PG1",
       "type": "pressure_gauge",
       "pos": [
-        658,
+        740,
         214
       ],
       "params": {
