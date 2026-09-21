@@ -6,6 +6,7 @@
   .hy-root { --ink: #101418; --paper: #ffffff; --faint: #6b7480; }
   .hy-root { background: var(--paper); color: var(--ink); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
   .sym, .line, .pilot-line, .drain-line, .enclosure { fill: none; stroke: var(--ink); }
+  .sym[fill="currentColor"] { fill: currentColor; }
   .sym { stroke-width: 1.4; stroke-linecap: square; stroke-linejoin: miter; }
   .line { stroke-width: 1.6; }
   .pilot-line { stroke-width: 1; stroke-dasharray: 7 4; }

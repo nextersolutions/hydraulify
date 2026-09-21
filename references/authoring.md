@@ -127,7 +127,12 @@ node bin/hydraulify.mjs visual-check out.html --png shot.png
 
 `check` is structural. `visual-check` loads the artifact in local Chrome and
 reports that the viewer initialised and the schematic survived into the rendered
-DOM; with `--png` it also captures a screenshot. Neither is a review of whether
+DOM, and it measures what was actually painted: every element meant to be solid
+must render filled, and nothing may end up with neither fill nor stroke. That
+second check exists because the source can say one thing while the stylesheet
+paints another -- solid triangles once rendered hollow, and arrowheads not at
+all, with every source-level test passing. With `--png` it also captures a
+screenshot. Neither is a review of whether
 the drawing is correct. Keep the three claims apart when you report:
 deterministic checks, browser evidence, and perceptual review by a human.
 

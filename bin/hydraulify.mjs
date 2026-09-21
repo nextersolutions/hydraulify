@@ -14,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -368,12 +369,21 @@ function cmdVisualCheck(argv) {
     process.exit(2);
   }
 
-  const fileUrl = `file:///${path.resolve(file).replace(/\\/g, '/')}`;
+  // Chrome loads a probed copy: the artifact with a small script that measures
+  // what the browser actually paints. The source can say fill="currentColor"
+  // while a stylesheet rule quietly overrides it, and only computed style shows
+  // that -- which is how every arrowhead once went invisible with all tests green.
+  const probeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hydraulify-probe-'));
+  const probeFile = path.join(probeDir, 'probe.html');
+  fs.writeFileSync(probeFile, withPaintProbe(fs.readFileSync(file, 'utf8'), file), 'utf8');
+
+  const fileUrl = `file:///${probeFile.replace(/\\/g, '/')}`;
   const args = ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--virtual-time-budget=5000'];
   if (flags.png) args.push(`--screenshot=${path.resolve(flags.png)}`, '--window-size=1500,1000');
   args.push('--dump-dom', fileUrl);
 
   const result = spawnSync(chrome, args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  fs.rmSync(probeDir, { recursive: true, force: true });
   if (result.error) fail(`Chrome could not be started: ${result.error.message}`);
 
   const dom = result.stdout ?? '';
@@ -384,11 +394,24 @@ function cmdVisualCheck(argv) {
   if (!/class="[^"]*component-/.test(dom)) findings.push('no component groups survived rendering');
   if (/\{\{i18n:/.test(dom)) findings.push('viewer text placeholders were not replaced');
 
+  const paint = readPaintProbe(dom);
+  if (!paint) {
+    findings.push('the paint probe did not run, so what the browser painted was not measured');
+  } else {
+    if (paint.hollow) {
+      findings.push(`${paint.hollow} of ${paint.solid} elements meant to be solid render unfilled (${paint.examples.join('; ')})`);
+    }
+    if (paint.invisible) {
+      findings.push(`${paint.invisible} elements have neither fill nor stroke, so they are invisible`);
+    }
+  }
+
   const receipt = {
     artifact: path.resolve(file),
     chrome,
     domBytes: Buffer.byteLength(dom),
     screenshot: flags.png ? path.resolve(flags.png) : null,
+    paint,
     findings,
     claim: 'The viewer loaded and the schematic is present after scripts ran. '
       + 'This is not a review of whether the drawing is correct.',
@@ -398,10 +421,38 @@ function cmdVisualCheck(argv) {
   else {
     process.stdout.write(`${file}: loaded in Chrome, ${receipt.domBytes} bytes of DOM\n`);
     if (receipt.screenshot) process.stdout.write(`screenshot: ${receipt.screenshot}\n`);
+    if (paint) process.stdout.write(`painted: ${paint.solid - paint.hollow}/${paint.solid} solid elements filled, ${paint.invisible} invisible\n`);
     for (const finding of findings) process.stdout.write(`  - ${finding}\n`);
     process.stdout.write(`${receipt.claim}\n`);
   }
   process.exit(findings.length ? 1 : 0);
+}
+
+// The browser half of visual-check lives in assets/paint-probe.js: it is page
+// code, and this file is Node code that must stay free of browser APIs.
+function paintProbe() {
+  return `<script>${fs.readFileSync(path.join(skillRoot, 'assets', 'paint-probe.js'), 'utf8')}</script>`;
+}
+
+function withPaintProbe(source, file) {
+  // A bare SVG is wrapped in a page so it can carry the script; the viewer
+  // already is one, and takes the probe just before it closes.
+  if (/\.svg$/i.test(file)) {
+    const svg = source.replace(/^<\?xml[^>]*>\s*/, '');
+    return `<!doctype html><html><head><meta charset="utf-8"></head><body>${svg}${paintProbe()}</body></html>`;
+  }
+  const probe = paintProbe();
+  return source.includes('</body>') ? source.replace('</body>', `${probe}</body>`) : `${source}${probe}`;
+}
+
+function readPaintProbe(dom) {
+  const match = dom.match(/<pre id="hydraulify-paint-probe"[^>]*>([^<]*)<\/pre>/);
+  if (!match) return null;
+  try {
+    return JSON.parse(match[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+  } catch {
+    return null;
+  }
 }
 
 function exampleFiles() {
@@ -463,6 +514,7 @@ function cmdDoctor() {
   }
 
   checks.push([fs.existsSync(path.join(skillRoot, 'assets', 'viewer-template.html')), 'viewer template present']);
+  checks.push([fs.existsSync(path.join(skillRoot, 'assets', 'paint-probe.js')), 'visual-check paint probe present']);
   try {
     loadViewerTemplate();
     checks.push([true, 'viewer template readable']);

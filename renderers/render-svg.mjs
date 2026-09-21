@@ -20,10 +20,18 @@ const FONT = "'Helvetica Neue', Helvetica, Arial, sans-serif";
 
 // Semantic classes only. Colour lives here once, so the same markup renders
 // black-on-white standalone and inverts under the viewer's dark theme.
+//
+// Solid is opted into per element with fill="currentColor", and the rule that
+// honours it is load-bearing: a CSS rule always beats an SVG fill attribute, so
+// without it the `fill: none` on .sym hollows every solid element. Pump
+// triangles then read as pneumatic, junction dots as rings, and arrowheads --
+// which have no stroke either -- vanish. That shipped once with every test green,
+// because tests read the source; `visual-check` now measures what is painted.
 export const STYLESHEET = `
   .hy-root { --ink: #101418; --paper: #ffffff; --faint: #6b7480; }
   .hy-root { background: var(--paper); color: var(--ink); font-family: ${FONT}; }
   .sym, .line, .pilot-line, .drain-line, .enclosure { fill: none; stroke: var(--ink); }
+  .sym[fill="currentColor"] { fill: currentColor; }
   .sym { stroke-width: 1.4; stroke-linecap: square; stroke-linejoin: miter; }
   .line { stroke-width: 1.6; }
   .pilot-line { stroke-width: 1; stroke-dasharray: 7 4; }

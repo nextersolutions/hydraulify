@@ -96,9 +96,9 @@ hydraulify doctor
 node bin/hydraulify.mjs doctor
 ```
 
-Seven checks: the Node version, the committed validator and its freedom from
+Eight checks: the Node version, the committed validator and its freedom from
 runtime dependencies, the viewer template and that it is readable, the
-examples, and whether a local Chrome exists. Chrome is the only optional one --
+`visual-check` paint probe, the examples, and whether a local Chrome exists. Chrome is the only optional one --
 everything except `visual-check` works without it.
 
 ## Usage
