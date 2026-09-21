@@ -3,7 +3,7 @@
   "version": "0.1.0-dev.1",
   "private": true,
   "type": "module",
-  "description": "ISO 1219-style hydraulic circuit schematics from a validated, port-aware JSON model.",
+  "description": "ISO 1219-style schematics of hydraulic circuits and compressed-air storage plants from a validated, port-aware JSON model.",
   "license": "MIT",
   "bin": {
     "hydraulify": "./bin/hydraulify.mjs"

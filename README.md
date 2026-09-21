@@ -1,7 +1,8 @@
 # hydraulify
 
-Turn a description of a hydraulic system into a validated, port-aware circuit
-model and an ISO 1219-style schematic.
+Turn a description of a hydraulic system, or of a compressed-air energy storage
+plant, into a validated, port-aware circuit model and an ISO 1219-style
+schematic.
 
 An agent skill, usable from Claude Code (`SKILL.md`) and Codex (`AGENTS.md`),
 and usable on its own as a command-line tool. Node 18 or newer. No install, no
@@ -98,15 +99,17 @@ node bin/hydraulify.mjs doctor
 
 Eight checks: the Node version, the committed validator and its freedom from
 runtime dependencies, the viewer template and that it is readable, the
-`visual-check` paint probe, the examples, and whether a local Chrome exists. Chrome is the only optional one --
-everything except `visual-check` works without it.
+`visual-check` paint probe, the examples, and whether a local Chrome exists.
+Chrome is the only optional one -- everything except `visual-check` works
+without it.
 
 ## Usage
 
 ### From an agent
 
 Describe the system. The skill triggers on hydraulic circuits, schematics,
-power units, topology checks and bills of materials:
+power units, compressed-air storage plants, topology checks and bills of
+materials:
 
 > Draw me a circuit for a single-acting clamp cylinder: fixed-displacement
 > pump, 3/2 solenoid valve, relief set at 160 bar, vented tank.
@@ -114,7 +117,11 @@ power units, topology checks and bills of materials:
 The agent writes the model, validates it, repairs what the diagnostics name,
 and only then produces artifacts. If a choice that changes how the circuit
 behaves is missing -- valve configuration, centre condition, actuation, single-
-versus double-acting -- it asks before guessing.
+versus double-acting -- it asks before guessing. For a compressed-air plant it
+also asks where the preheating heat comes from and how the shafts are arranged:
+
+> Draw a compressed-air storage plant: two-stage compressor with intercooling,
+> air stored over water, and a turbine driving a generator.
 
 ### From the command line
 
@@ -201,10 +208,24 @@ the renderer can attach lines to the right places on a symbol.
 
 ## What it draws
 
-Thirteen symbols plus an explicit junction: reservoir, pump, motor, cylinder,
-directional control valve, relief valve, check valve, pilot-operated check
-valve, counterbalance valve, flow control valve, filter, pressure gauge,
-accumulator.
+Twenty-two symbols plus an explicit junction.
+
+Hydraulic: reservoir, pump, motor, cylinder, directional control valve, relief
+valve, check valve, pilot-operated check valve, counterbalance valve, flow
+control valve, filter, pressure gauge, accumulator.
+
+Compressed-air plant: turbine, compressor, electrical machine (motor, generator
+or motor-generator), heat exchanger (heater or cooler), air receiver, pressure
+regulator, shut-off valve, silencer, and a boundary terminal for lines that
+enter or leave the drawing. The accumulator also takes a gas port, for an air
+store over water or an oil accumulator with a nitrogen bottle.
+
+A drawing can carry several fluids: oil, water, thermal oil, air, nitrogen,
+steam and flue gas. Ports declare which fluids they take and lines inherit from
+them, so a model never states a medium on a line, and two fluids meeting on one
+line is an error. Where the fluid changes, each line is labelled with its name.
+Shafts are connections of their own, drawn as double lines, with an optional
+clutch.
 
 Directional valves are drawn properly: 2/2, 3/2, 4/2 and 4/3 with the real flow
 paths of each spool position, all four common centre conditions (closed, open,
@@ -223,8 +244,9 @@ node scripts/symbol-sheet.mjs tmp/sheet.svg
 
 ## What it will not do
 
-- **Invent engineering values.** No pressure, flow, displacement, bore or relief
-  setting is ever estimated. Unstated values are reported as unspecified.
+- **Invent engineering values.** No pressure, flow, displacement, bore, relief
+  setting, power or temperature is ever estimated. Unstated values are reported
+  as unspecified.
 - **Add components nobody asked for.** Filtration missing from a description is
   a note in the report, not a part in the bill of materials.
 - **Draw an invalid circuit.** A hard error means no artifact is written and any
@@ -362,7 +384,7 @@ examples/      seven worked circuits
 references/    deep-dive docs, gated so an agent loads them only when needed
 docs/          architecture record, decisions, shared instruction source,
                and the example drawings this README shows
-test/          116 tests plus goldens
+test/          the test suite, fixtures and goldens
 ```
 
 Read `references/schema.md` to write a model, `references/symbols.md` for what
@@ -411,7 +433,21 @@ Known limitations:
   moved by hand.
 - **No rotation.** Symbols are drawn in their canonical orientation; `mirror`
   handles the in-line right-to-left case.
-- **No calculation.** No sizing, no pressure drop, no simulation.
+- **No calculation.** No sizing, no pressure drop, no simulation, and no
+  thermodynamics: a compressed-air plant is checked for topology (air reaches
+  the turbine, exhausts vent, every shaft has a driver), never for whether it
+  would work.
+- **Two drawing conventions meet in one plant.** Fluid-power symbols come from
+  ISO 1219; the turbine can be drawn in the ISO 10628 process form instead
+  (`meta.machine_style`), but the rest of the plant stays ISO 1219-style, and
+  the title block says so.
+- **Some plant symbols are less settled than the hydraulic ones.** The
+  silencer, the shut-off valve and the heat exchanger's triangle placement
+  follow the common reading of ISO 1219 rather than a single authoritative
+  figure, and the ISO 1219 turbine is drawn as a pneumatic motor. Check them
+  against your house standard.
+- **One shaft end per compressor.** A second compressor stage cannot share
+  a shaft with the first; it gets its own driver.
 - **Codex support is by construction**, not by observation: the skill is plain
   Node with no host-specific APIs and ships an `AGENTS.md`, but it has not been
   run under Codex.

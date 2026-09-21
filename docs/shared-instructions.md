@@ -50,9 +50,12 @@ rather than describing a schematic that does not exist.
 - `pos` is required, and is the top-left of the symbol's frame. There is no
   automatic layout. Use `node bin/hydraulify.mjs scaffold` to get provisional
   positions from an unpositioned model, then move things so the circuit reads.
-- Line types: `suction`, `pressure`, `working`, `return`, `drain`, `pilot`.
-  A control line must be typed `pilot`, or it will be drawn as a working line
-  and the drawing will state something the circuit does not do.
+- Line types: `suction`, `pressure`, `working`, `return`, `drain`, `pilot`,
+  and `mechanical` for a shaft. A control line must be typed `pilot`, or it
+  will be drawn as a working line and the drawing will state something the
+  circuit does not do.
+- A component that has to pass flow right to left takes `"mirror": true`.
+  Symbols are never rotated.
 
 # Components
 
@@ -92,13 +95,60 @@ by heart:
 | silencer | `inlet` |
 | boundary | `port` |
 
+# Fluids, compressed air and shafts
+
+A drawing can carry more than one fluid: oil, water, thermal oil, air,
+nitrogen, steam, flue gas. **Never write a medium on a line.** Ports declare
+what they accept and each connected run settles on what its ports agree on; a
+run nothing narrows is oil, which is why every hydraulic model is unchanged.
+Where a run could be anything, state it on the component that knows:
+
+- `heat_exchanger`: `function` (`heating` or `cooling`) and `utility_medium`,
+  the fluid on the heating or cooling side. The process side is whatever flows
+  through `in` and `out`.
+- `boundary`: where a line enters or leaves the drawing -- ambient air, a
+  stack, cooling water, thermal storage, another sheet. `direction` (`from` or
+  `to`) and `name` are required; `medium` if nothing else settles it. Utility
+  lines end on boundaries rather than on drawn plant.
+- `accumulator`: `gas_port: true` draws the gas side as a port, `gas` (`air`
+  or `nitrogen`) and `liquid` (`oil` or `water`) name the two sides, and
+  `accumulator_type: "none"` is direct contact, gas over liquid, as in a
+  water-compensated air store.
+- `air_receiver`: `gas: "nitrogen"` with `single_port: true` is a back-up
+  bottle on an oil accumulator's gas side.
+- `reservoir`: `liquid: "water"` for a basin or water tank.
+
+Two fluids that meet on one run are refused (`media/conflict`), not blended.
+In a drawing with more than one fluid the renderer prints the medium on lines
+where the fluid changes and on long runs; nothing has to be added for that.
+
+Shafts are connections with `"line": "mechanical"`, shaft port to shaft port,
+never through a junction. Add `"clutch": true` for a disengageable coupling.
+Power is drawn left to right: a turbine's shaft is on its right, a compressor's
+on its left, and a motor-generator (`electrical_machine` with `role:
+"motor_generator"`) has one each side, so it can sit between a turbine and a
+compressor. A compressor has one shaft end, so a second stage needs its own
+driver. Every shaft train needs something that drives it.
+
+`meta.machine_style: "iso10628"` draws the turbine as the process-plant
+trapezoid; the default, `iso1219`, draws it in the fluid-power form. Only the
+turbine changes, and the title block says so.
+
+Air flow is stated as normal volume (`flow_nm3h`) or mass (`mass_flow_kgs`),
+never both; machines take `power_kw`, and temperatures `temperature_c`.
+
+`examples/06-caes-plant.json` is a complete compressed-air storage plant and
+`examples/07-nitrogen-backup.json` an oil circuit with a nitrogen bottle: read
+the one that matches before placing a plant of that kind.
+
 # Never invent engineering values
 
-If the description does not state a pressure, flow, displacement, bore, stroke
-or relief setting, **leave it out**. Do not estimate, do not use a typical value,
-do not carry one over from an example. Write `null` when the description says a
-value is unknown; omit the field when it was simply never mentioned. Both appear
-in the validation report as unspecified, which is the honest outcome.
+If the description does not state a pressure, flow, displacement, bore, stroke,
+relief setting, power, temperature or air flow, **leave it out**. Do not
+estimate, do not use a typical value, do not carry one over from an example.
+Write `null` when the description says a value is unknown; omit the field when
+it was simply never mentioned. Both appear in the validation report as
+unspecified, which is the honest outcome.
 
 Do not add components either. A circuit gets a filter, a gauge or an accumulator
 only if the description asks for one. Good practice would add filtration to
@@ -111,13 +161,25 @@ time via `--units`, is marked with a tilde, and is never written back.
 
 # Ambiguity
 
-Four choices change how the circuit behaves and have no safe default. When the
-description leaves one open, ask before drawing:
+These choices change how the circuit behaves and have no safe default. When
+the description leaves one open, ask before drawing:
 
 - directional valve configuration (2/2, 3/2, 4/2, 4/3)
 - centre condition for a three-position valve (closed, open, tandem, float)
 - actuation (solenoid, lever, push button, pedal, mechanical, pilot, and springs)
 - single-acting versus double-acting cylinder
+
+For a compressed-air plant, two more:
+
+- heat source for preheating before expansion: combustion (`flue_gas`, a
+  diabatic plant), stored compression heat (`thermal_oil` or `water` from a
+  thermal store, an adiabatic plant), or none
+- shaft arrangement: one motor-generator shared through clutches, or a
+  separate motor on the compressor and generator on the turbine
+
+The accumulator's separating element and the turbine's drawing style are not
+asked: they take the defaults (direct contact for a water-compensated store,
+ISO 1219 form for the turbine) and are recorded as assumptions.
 
 Everything else takes a documented default. Every default that gets applied must
 be recorded in `assumptions`, which is printed on the drawing itself as well as
@@ -150,8 +212,8 @@ ports and something has to move, or the route needs explicit `via` waypoints.
 The output is an "ISO 1219-style hydraulic schematic". It is never certified and
 never safe. Describe a passing result as topologically consistent with the
 information provided. Raise the engineering concerns that the specific circuit
-raises -- relief settings, load holding, stored energy in an accumulator -- and
-leave out the ones it does not.
+raises -- relief settings, load holding, stored energy in an accumulator or an
+air store, hot surfaces on a preheater -- and leave out the ones it does not.
 
 Report the artifact paths, the validation status, the counts, and anything left
 unspecified. Do not claim a visual review that was not performed: `check` proves
