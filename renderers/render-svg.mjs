@@ -13,7 +13,7 @@
 // 1219 does not distinguish them graphically and a reader would misread a
 // non-standard style as something it is not.
 
-import { group, text, esc, n, arrowhead, segmentDirection } from './shared/svg.mjs';
+import { group, text, esc, n, arrowhead, segmentDirection, line, rect } from './shared/svg.mjs';
 import { presentParams } from './shared/units.mjs';
 
 const FONT = "'Helvetica Neue', Helvetica, Arial, sans-serif";
@@ -36,6 +36,11 @@ export const STYLESHEET = `
   .line { stroke-width: 1.6; }
   .pilot-line { stroke-width: 1; stroke-dasharray: 7 4; }
   .drain-line { stroke-width: 1; stroke-dasharray: 2.5 2.5; }
+  .shaft-line, .shaft-core { fill: none; stroke-linejoin: miter; }
+  .shaft-line { stroke: var(--ink); stroke-width: 4.4; }
+  .shaft-core { stroke: var(--paper); stroke-width: 1.6; stroke-linecap: square; }
+  .clutch-gap { fill: var(--paper); stroke: none; }
+  .clutch-plate { stroke: var(--ink); stroke-width: 1.6; }
   .enclosure { stroke-width: 1; stroke-dasharray: 9 3 2 3; }
   .element-dash { stroke-dasharray: 3 3; }
   .arrow-head { stroke: none; }
@@ -79,6 +84,9 @@ const LINE_CLASS = {
  */
 function arrowDirection(route) {
   const { connection } = route;
+  // A shaft carries torque, not flow: there is no direction of flow to show,
+  // and an authored arrow cannot give it one.
+  if (connection.line === 'mechanical') return null;
   if (connection.arrow === 'none') return null;
   if (connection.arrow === 'forward') return 'forward';
   if (connection.line === 'working' || connection.line === 'pilot') return null;
@@ -126,6 +134,61 @@ function routeArrow(points) {
   return '';
 }
 
+/**
+ * A shaft is the ISO double line. Drawn as a wide ink stroke with a narrow
+ * paper stroke along its middle, which leaves two parallel lines -- and unlike
+ * two offset polylines it keeps every corner mitred correctly and inverts
+ * with the theme. The widths match the double line inside the machine
+ * symbols (1.4-wide lines, 3 apart), so a routed shaft continues the one drawn
+ * in the symbol. The core has a square cap: with both strokes ending at the
+ * same point, anti-aliasing leaves a grey tick across the join, and running the
+ * core 0.8 past the end covers it. The core is exactly as wide as the gap
+ * between the symbol's own two lines, so the overrun lands only in that gap.
+ */
+function renderShaft(points) {
+  const d = pathData(points);
+  return `<path class="shaft-line" d="${d}"/><path class="shaft-core" d="${d}"/>`;
+}
+
+/** The longest straight run of a route: where a clutch has room to sit. */
+export function longestSegment(points) {
+  let best = null;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const [x1, y1] = points[index];
+    const [x2, y2] = points[index + 1];
+    const length = Math.abs(x2 - x1) + Math.abs(y2 - y1);
+    // Strictly longer, so the first of two equal runs wins and output is stable.
+    if (!best || length > best.length) best = { index, length, from: points[index], to: points[index + 1] };
+  }
+  return best;
+}
+
+/**
+ * A clutch: the shaft breaks, and two plates face each other across the gap.
+ * The break is what says the coupling can open. Drawn across the middle of
+ * the longest straight run, clear of both machines.
+ */
+function renderClutch(points) {
+  const segment = longestSegment(points);
+  if (!segment || segment.length < 24) return '';
+  const [x1, y1] = segment.from;
+  const [x2, y2] = segment.to;
+  const cx = (x1 + x2) / 2;
+  const cy = (y1 + y2) / 2;
+  const gap = 3;
+  const reach = 7;
+  const horizontal = y1 === y2;
+  const cut = horizontal
+    ? rect(cx - gap, cy - 3, gap * 2, 6, { cls: 'clutch-gap', fill: null })
+    : rect(cx - 3, cy - gap, 6, gap * 2, { cls: 'clutch-gap', fill: null });
+  const plates = horizontal
+    ? line(cx - gap, cy - reach, cx - gap, cy + reach, { cls: 'clutch-plate' })
+      + line(cx + gap, cy - reach, cx + gap, cy + reach, { cls: 'clutch-plate' })
+    : line(cx - reach, cy - gap, cx + reach, cy - gap, { cls: 'clutch-plate' })
+      + line(cx - reach, cy + gap, cx + reach, cy + gap, { cls: 'clutch-plate' });
+  return `<g class="clutch">${cut}${plates}</g>`;
+}
+
 function renderConnections(layout) {
   return layout.routed.map((route) => {
     const cls = LINE_CLASS[route.connection.line] ?? 'line';
@@ -133,9 +196,12 @@ function renderConnections(layout) {
     const label = route.connection.label ?? '';
     const title = `${route.connection.from} to ${route.connection.to} (${route.connection.line})`;
     const text_ = route.connection.label && route.connection.labelText ? '' : '';
+    const body = route.connection.line === 'mechanical'
+      ? renderShaft(route.points) + (route.connection.clutch ? renderClutch(route.points) : '')
+      : `<path class="${cls}" d="${pathData(route.points)}"/>`;
     return `<g class="conn" data-edge="${esc(label)}" data-line="${esc(route.connection.line)}">`
       + `<title>${esc(title)}</title>`
-      + `<path class="${cls}" d="${pathData(route.points)}"/>${arrow}${text_}</g>`;
+      + `${body}${arrow}${text_}</g>`;
   }).join('');
 }
 

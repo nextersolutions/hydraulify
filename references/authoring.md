@@ -84,6 +84,23 @@ Reach for `via` only after a diagnostic asks for it. Moving a component is
 almost always the better fix, because it improves every route through that area
 rather than one.
 
+## Shafts
+
+A `mechanical` line routes like any other and is drawn as the ISO double line.
+Machines put their shafts on the side power flows through -- a turbine drives
+out of its right, a compressor is driven from its left -- so a train reads left
+to right. A shared motor-generator between a compressor and a turbine is the
+exception every compressed-air plant has: mirror the compressor so its shaft
+faces the machine on its right, and the turbine so its shaft faces the one on
+its left.
+
+```json
+{ "id": "charge", "from": "MG1.shaft_a", "to": "C1.shaft", "line": "mechanical", "clutch": true }
+```
+
+Keep a clutched shaft long enough to show its break: the clutch sits across the
+middle of the longest straight run, and a run shorter than 24 has no room.
+
 ## Reading a layout report
 
 ```bash

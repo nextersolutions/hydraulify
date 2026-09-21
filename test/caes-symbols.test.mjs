@@ -8,6 +8,9 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { resolveComponent, getSymbol } from '../renderers/symbols/index.mjs';
 import { MECHANICAL } from '../renderers/symbols/contract.mjs';
@@ -15,6 +18,7 @@ import { validateModel } from '../validate/index.mjs';
 import { analyse, renderSvg } from '../renderers/pipeline.mjs';
 import { buildBom } from '../validate/bom.mjs';
 
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const resolve = (type, config, extra = {}) => resolveComponent({ id: 'X1', type, pos: [0, 0], config, ...extra });
 const draw = (type, config, { style, mirror } = {}) => {
   const entry = resolve(type, config, mirror ? { mirror: true } : {});
@@ -185,46 +189,9 @@ test('a boundary sizes to its name and points the way the flow goes', () => {
 // ---------------------------------------------------------------------------
 // A compressed-air circuit, end to end.
 
+// The same fragment the shaft tests draw; kept as a fixture so both agree.
 function caesFragment() {
-  const component = (id, type, pos, config) => ({ id, type, pos, ...(config ? { config } : {}) });
-  return {
-    schema_version: 1,
-    diagram_type: 'hydraulic_circuit',
-    meta: { title: 'CAES fragment', units: 'si' },
-    components: [
-      component('M1', 'electrical_machine', [20, 40], { role: 'motor' }),
-      component('C1', 'compressor', [140, 40]),
-      component('AIR', 'boundary', [120, 200], { direction: 'from', name: 'ambient', medium: 'air' }),
-      component('HX1', 'heat_exchanger', [300, 40], { function: 'cooling', utility_medium: 'water' }),
-      component('CWS', 'boundary', [240, 200], { direction: 'from', name: 'cooling water' }),
-      component('CWR', 'boundary', [360, -60], { direction: 'to', name: 'cooling return' }),
-      component('R1', 'air_receiver', [440, 300], { gas: 'air' }),
-      component('V1', 'shut_off_valve', [600, 300]),
-      component('PR1', 'pressure_regulator', [700, 300]),
-      component('HX2', 'heat_exchanger', [820, 300], { function: 'heating', utility_medium: 'thermal_oil' }),
-      component('TES', 'boundary', [760, 460], { direction: 'from', name: 'TES' }),
-      component('TESR', 'boundary', [880, 180], { direction: 'to', name: 'TES return' }),
-      component('T1', 'turbine', [980, 300]),
-      component('SIL', 'silencer', [1000, 420]),
-      component('G1', 'electrical_machine', [1100, 300], { role: 'generator' }),
-    ],
-    connections: [
-      { id: 'drive', from: 'M1.shaft', to: 'C1.shaft', line: 'mechanical' },
-      { id: 'intake', from: 'AIR.port', to: 'C1.inlet', line: 'suction' },
-      { id: 'discharge', from: 'C1.outlet', to: 'HX1.in', line: 'pressure' },
-      { id: 'cooled', from: 'HX1.out', to: 'R1.inlet', line: 'pressure' },
-      { id: 'cw-in', from: 'CWS.port', to: 'HX1.utility_in', line: 'pressure' },
-      { id: 'cw-out', from: 'HX1.utility_out', to: 'CWR.port', line: 'return' },
-      { id: 'store-out', from: 'R1.outlet', to: 'V1.inlet', line: 'pressure' },
-      { id: 'isolated', from: 'V1.outlet', to: 'PR1.inlet', line: 'pressure' },
-      { id: 'regulated', from: 'PR1.outlet', to: 'HX2.in', line: 'pressure' },
-      { id: 'heat-in', from: 'TES.port', to: 'HX2.utility_in', line: 'pressure' },
-      { id: 'heat-out', from: 'HX2.utility_out', to: 'TESR.port', line: 'return' },
-      { id: 'hot-air', from: 'HX2.out', to: 'T1.inlet', line: 'pressure' },
-      { id: 'exhaust', from: 'T1.exhaust', to: 'SIL.inlet', line: 'return' },
-      { id: 'output', from: 'T1.shaft', to: 'G1.shaft', line: 'mechanical' },
-    ],
-  };
+  return JSON.parse(fs.readFileSync(path.join(root, 'test', 'fixtures', 'caes-fragment.json'), 'utf8'));
 }
 
 test('a compressed-air circuit resolves every line to the fluid it really carries', () => {

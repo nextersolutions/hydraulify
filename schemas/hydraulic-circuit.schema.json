@@ -811,8 +811,14 @@
         "arrow": {
           "description": "auto draws a flow arrow only where the direction cannot reverse. Never set forward on a line a directional valve can reverse.",
           "enum": ["auto", "forward", "none"]
+        },
+        "clutch": {
+          "description": "A disengageable coupling on a shaft, drawn as a break with two facing plates. Only on a mechanical line.",
+          "type": "boolean"
         }
-      }
+      },
+      "if": { "properties": { "clutch": { "const": true } }, "required": ["clutch"] },
+      "then": { "properties": { "line": { "const": "mechanical" } } }
     },
 
     "assumption": {

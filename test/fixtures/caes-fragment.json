@@ -1,0 +1,254 @@
+{
+  "schema_version": 1,
+  "diagram_type": "hydraulic_circuit",
+  "meta": {
+    "title": "CAES fragment",
+    "units": "si"
+  },
+  "components": [
+    {
+      "id": "M1",
+      "type": "electrical_machine",
+      "pos": [
+        20,
+        40
+      ],
+      "config": {
+        "role": "motor"
+      }
+    },
+    {
+      "id": "C1",
+      "type": "compressor",
+      "pos": [
+        140,
+        40
+      ]
+    },
+    {
+      "id": "AIR",
+      "type": "boundary",
+      "pos": [
+        120,
+        200
+      ],
+      "config": {
+        "direction": "from",
+        "name": "ambient",
+        "medium": "air"
+      }
+    },
+    {
+      "id": "HX1",
+      "type": "heat_exchanger",
+      "pos": [
+        300,
+        40
+      ],
+      "config": {
+        "function": "cooling",
+        "utility_medium": "water"
+      }
+    },
+    {
+      "id": "CWS",
+      "type": "boundary",
+      "pos": [
+        240,
+        200
+      ],
+      "config": {
+        "direction": "from",
+        "name": "cooling water"
+      }
+    },
+    {
+      "id": "CWR",
+      "type": "boundary",
+      "pos": [
+        360,
+        -60
+      ],
+      "config": {
+        "direction": "to",
+        "name": "cooling return"
+      }
+    },
+    {
+      "id": "R1",
+      "type": "air_receiver",
+      "pos": [
+        440,
+        300
+      ],
+      "config": {
+        "gas": "air"
+      }
+    },
+    {
+      "id": "V1",
+      "type": "shut_off_valve",
+      "pos": [
+        600,
+        300
+      ]
+    },
+    {
+      "id": "PR1",
+      "type": "pressure_regulator",
+      "pos": [
+        700,
+        300
+      ]
+    },
+    {
+      "id": "HX2",
+      "type": "heat_exchanger",
+      "pos": [
+        820,
+        300
+      ],
+      "config": {
+        "function": "heating",
+        "utility_medium": "thermal_oil"
+      }
+    },
+    {
+      "id": "TES",
+      "type": "boundary",
+      "pos": [
+        760,
+        460
+      ],
+      "config": {
+        "direction": "from",
+        "name": "TES"
+      }
+    },
+    {
+      "id": "TESR",
+      "type": "boundary",
+      "pos": [
+        880,
+        180
+      ],
+      "config": {
+        "direction": "to",
+        "name": "TES return"
+      }
+    },
+    {
+      "id": "T1",
+      "type": "turbine",
+      "pos": [
+        980,
+        300
+      ]
+    },
+    {
+      "id": "SIL",
+      "type": "silencer",
+      "pos": [
+        1000,
+        420
+      ]
+    },
+    {
+      "id": "G1",
+      "type": "electrical_machine",
+      "pos": [
+        1100,
+        300
+      ],
+      "config": {
+        "role": "generator"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "drive",
+      "from": "M1.shaft",
+      "to": "C1.shaft",
+      "line": "mechanical"
+    },
+    {
+      "id": "intake",
+      "from": "AIR.port",
+      "to": "C1.inlet",
+      "line": "suction"
+    },
+    {
+      "id": "discharge",
+      "from": "C1.outlet",
+      "to": "HX1.in",
+      "line": "pressure"
+    },
+    {
+      "id": "cooled",
+      "from": "HX1.out",
+      "to": "R1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "cw-in",
+      "from": "CWS.port",
+      "to": "HX1.utility_in",
+      "line": "pressure"
+    },
+    {
+      "id": "cw-out",
+      "from": "HX1.utility_out",
+      "to": "CWR.port",
+      "line": "return"
+    },
+    {
+      "id": "store-out",
+      "from": "R1.outlet",
+      "to": "V1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "isolated",
+      "from": "V1.outlet",
+      "to": "PR1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "regulated",
+      "from": "PR1.outlet",
+      "to": "HX2.in",
+      "line": "pressure"
+    },
+    {
+      "id": "heat-in",
+      "from": "TES.port",
+      "to": "HX2.utility_in",
+      "line": "pressure"
+    },
+    {
+      "id": "heat-out",
+      "from": "HX2.utility_out",
+      "to": "TESR.port",
+      "line": "return"
+    },
+    {
+      "id": "hot-air",
+      "from": "HX2.out",
+      "to": "T1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "exhaust",
+      "from": "T1.exhaust",
+      "to": "SIL.inlet",
+      "line": "return"
+    },
+    {
+      "id": "output",
+      "from": "T1.shaft",
+      "to": "G1.shaft",
+      "line": "mechanical"
+    }
+  ]
+}

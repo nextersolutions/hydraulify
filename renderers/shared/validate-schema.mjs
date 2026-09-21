@@ -48,6 +48,12 @@ function fixesFor(ajvError) {
     case 'enum':
       return [`use one of: ${(ajvError.params.allowedValues ?? []).join(', ')}`];
     case 'const':
+      if (/^\/connections\/\d+\/line$/.test(ajvError.instancePath)) {
+        return [
+          'a clutch couples two shafts, so it belongs on a line typed "mechanical"',
+          'remove "clutch" if the line carries fluid',
+        ];
+      }
       if (ajvError.instancePath.endsWith('/gas_port')) {
         return [
           'a spring- or weight-loaded accumulator contains no gas, so it has no gas side: remove gas_port',

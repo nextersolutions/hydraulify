@@ -11,6 +11,11 @@
   .line { stroke-width: 1.6; }
   .pilot-line { stroke-width: 1; stroke-dasharray: 7 4; }
   .drain-line { stroke-width: 1; stroke-dasharray: 2.5 2.5; }
+  .shaft-line, .shaft-core { fill: none; stroke-linejoin: miter; }
+  .shaft-line { stroke: var(--ink); stroke-width: 4.4; }
+  .shaft-core { stroke: var(--paper); stroke-width: 1.6; stroke-linecap: square; }
+  .clutch-gap { fill: var(--paper); stroke: none; }
+  .clutch-plate { stroke: var(--ink); stroke-width: 1.6; }
   .enclosure { stroke-width: 1; stroke-dasharray: 9 3 2 3; }
   .element-dash { stroke-dasharray: 3 3; }
   .arrow-head { stroke: none; }

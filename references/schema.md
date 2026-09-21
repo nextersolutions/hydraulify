@@ -132,7 +132,11 @@ whole degrees in, whole degrees out, so 20 degC renders as `~68 degF`.
 - `via` pins explicit waypoints. Only reach for it after a routing diagnostic
   asks for one.
 - `arrow` is `auto` (default), `forward` or `none`. `auto` draws an arrow only
-  where flow cannot reverse, so a valve-to-actuator line never gets one.
+  where flow cannot reverse, so a valve-to-actuator line never gets one. A
+  shaft never gets one, whatever `arrow` says: it carries torque, not flow.
+- `clutch: true` puts a disengageable coupling on a shaft, drawn as a break
+  with two facing plates across the middle of its longest straight run. Only
+  on a `mechanical` line; the schema refuses it anywhere else.
 
 A port carries exactly one connection. Branches use a `junction`.
 
