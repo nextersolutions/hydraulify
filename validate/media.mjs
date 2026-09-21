@@ -57,6 +57,7 @@ function unionFind() {
  *   diagnostics: Array,
  *   connectionMedia: Map<string, string|null>,  connection label -> fluid, 'mechanical', or null on conflict
  *   groupMedia: Map<string, string|null>,       "C1#main" -> fluid, or null on conflict
+ *   groupDefaulted: Set<string>,                groups whose fluid was the default, not forced
  * }}
  */
 export function resolveMedia(resolved, connections) {
@@ -147,6 +148,7 @@ export function resolveMedia(resolved, connections) {
   }
 
   const setMedium = new Map(); // root -> fluid | null
+  const freeChoice = new Set(); // roots whose fluid nothing forced
   for (const root of [...members.keys()].sort()) {
     const all = members.get(root).flatMap((key) => constraints.get(key) ?? []);
     let allowed = [...MEDIA];
@@ -191,6 +193,7 @@ export function resolveMedia(resolved, connections) {
     // what it always meant. Otherwise the only fluid left, or the first in
     // canonical order with a note saying the choice was not forced.
     const medium = allowed.includes('oil') ? 'oil' : allowed[0];
+    if (allowed.length > 1) freeChoice.add(root);
     if (!allowed.includes('oil') && allowed.length > 1) {
       const components = [...new Set(members.get(root).map((key) => key.split('#')[0]))].sort();
       diagnostics.push(info({
@@ -210,9 +213,11 @@ export function resolveMedia(resolved, connections) {
   }
 
   const groupMedia = new Map();
+  const groupDefaulted = new Set();
   for (const key of [...constraints.keys()].sort()) {
     groupMedia.set(key, setMedium.get(sets.find(key)) ?? null);
+    if (freeChoice.has(sets.find(key))) groupDefaulted.add(key);
   }
 
-  return { diagnostics, connectionMedia, groupMedia };
+  return { diagnostics, connectionMedia, groupMedia, groupDefaulted };
 }

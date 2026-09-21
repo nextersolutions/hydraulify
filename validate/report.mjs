@@ -11,6 +11,7 @@
 
 import { formatDiagnostic } from '../renderers/shared/diagnostics.mjs';
 import { unknownParams } from '../renderers/shared/units.mjs';
+import { fluidGraph, traces, shaftTrains, isLiquid, isGas } from './paths.mjs';
 
 const MARK = { pass: '[ok]', fail: '[--]', unknown: '[??]' };
 
@@ -47,7 +48,15 @@ export function topologyChecklist(analysis) {
   if (!resolved) return [];
 
   const adjacency = buildGraph(resolved, connections);
+  // Fluid paths are traced per fluid, so a pump never "reaches" a tank through
+  // the far side of a heat exchanger. See paths.mjs.
+  const graph = fluidGraph(connections);
   const typeOf = (id) => resolved.get(id)?.component.type;
+  const mediumOf = (id) => analysis.groupMedia?.get(`${id}#main`) ?? null;
+  const boundaryIs = (id, direction) => typeOf(id) === 'boundary' && resolved.get(id).config.direction === direction;
+  const toReservoir = (id) => typeOf(id) === 'reservoir' || (boundaryIs(id, 'to') && isLiquid(mediumOf(id)));
+  const fromReservoir = (id) => typeOf(id) === 'reservoir' || (boundaryIs(id, 'from') && isLiquid(mediumOf(id)));
+  const toAtmosphere = (id) => typeOf(id) === 'silencer' || (boundaryIs(id, 'to') && isGas(mediumOf(id)));
   const idsOfType = (type) => [...resolved.keys()].filter((id) => typeOf(id) === type);
   const connected = new Set();
   for (const connection of connections) {
@@ -72,8 +81,7 @@ export function topologyChecklist(analysis) {
   } else if (!reservoirs.length) {
     add('unknown', 'Pump connected to reservoir', 'no reservoir in the circuit');
   } else {
-    const all = pumps.every((id) => portConnected(id, 'inlet')
-      && reaches(adjacency, id, (other) => typeOf(other) === 'reservoir'));
+    const all = pumps.every((id) => portConnected(id, 'inlet') && traces(graph, id, 'inlet', fromReservoir));
     add(all ? 'pass' : 'fail', 'Pump draws from a reservoir', pumps.join(', '));
   }
 
@@ -82,14 +90,22 @@ export function topologyChecklist(analysis) {
     add(all ? 'pass' : 'fail', 'Pump outlet connected to the pressure circuit', pumps.join(', '));
   }
 
+  // A relief valve on a liquid line returns to the tank; one on a gas line --
+  // a receiver's safety valve -- vents to atmosphere. Each is checked against
+  // the end its own fluid has.
+  const liquidReliefs = reliefs.filter((id) => !isGas(mediumOf(id)));
+  const gasReliefs = reliefs.filter((id) => isGas(mediumOf(id)));
   if (!reliefs.length) {
     add('unknown', 'Relief valve returns to the reservoir', 'no relief valve in the circuit');
-  } else if (!reservoirs.length) {
+  } else if (liquidReliefs.length && !reservoirs.length) {
     add('unknown', 'Relief valve returns to the reservoir', 'no reservoir in the circuit');
-  } else {
-    const all = reliefs.every((id) => portConnected(id, 'outlet')
-      && reaches(adjacency, id, (other) => typeOf(other) === 'reservoir'));
-    add(all ? 'pass' : 'fail', 'Relief valve discharges to the reservoir', reliefs.join(', '));
+  } else if (liquidReliefs.length) {
+    const all = liquidReliefs.every((id) => portConnected(id, 'outlet') && traces(graph, id, 'outlet', toReservoir));
+    add(all ? 'pass' : 'fail', 'Relief valve discharges to the reservoir', liquidReliefs.join(', '));
+  }
+  if (gasReliefs.length) {
+    const all = gasReliefs.every((id) => portConnected(id, 'outlet') && traces(graph, id, 'outlet', toAtmosphere));
+    add(all ? 'pass' : 'fail', 'Safety valve vents to atmosphere', gasReliefs.join(', '));
   }
 
   const actuators = [...cylinders, ...motors];
@@ -116,6 +132,30 @@ export function topologyChecklist(analysis) {
       && connection.endpoints[end].port.id === 'return'
     )));
     add(hasReturn ? 'pass' : 'fail', 'Flow returns to the reservoir', '');
+  }
+
+  // Compressed-air plant. These rows appear only when the drawing has the
+  // machines they describe, so a hydraulic report is exactly what it was.
+  const turbines = idsOfType('turbine');
+  const compressors = idsOfType('compressor');
+  const airSource = (id, key) => ['compressor', 'air_receiver'].includes(typeOf(id))
+    || (typeOf(id) === 'accumulator' && key.endsWith('#gas'))
+    || (boundaryIs(id, 'from') && isGas(mediumOf(id)));
+  if (turbines.length) {
+    const supplied = turbines.every((id) => portConnected(id, 'inlet') && traces(graph, id, 'inlet', airSource));
+    add(supplied ? 'pass' : 'fail', 'Turbine is supplied with air from a store or compressor', turbines.join(', '));
+    const vented = turbines.every((id) => portConnected(id, 'exhaust') && traces(graph, id, 'exhaust', toAtmosphere));
+    add(vented ? 'pass' : 'fail', 'Turbine exhausts to atmosphere', turbines.join(', '));
+  }
+  if (compressors.length) {
+    const intake = (id, key) => boundaryIs(id, 'from') || typeOf(id) === 'silencer' || airSource(id, key);
+    const all = compressors.every((id) => portConnected(id, 'inlet') && traces(graph, id, 'inlet', intake));
+    add(all ? 'pass' : 'fail', 'Compressor draws from an intake', compressors.join(', '));
+  }
+  const trains = shaftTrains(resolved, connections);
+  if (trains.length) {
+    const undriven = trains.filter((train) => !train.drivers.length).flatMap((train) => train.members);
+    add(undriven.length ? 'fail' : 'pass', 'Every shaft train has a driver', undriven.join(', '));
   }
 
   const requiredUnconnected = [];

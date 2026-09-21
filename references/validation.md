@@ -33,6 +33,7 @@ Severity follows the brief's three-way split:
 | `hydraulic/pump-to-pump` | a pump delivers into another pump's inlet |
 | `media/conflict` | connected ports cannot share one fluid -- air meeting liquid; the finding names the ports on each side |
 | `media/mechanical-mismatch` | a shaft joined to a fluid port or a junction, or a line typed against what its ports carry |
+| `mechanical/nothing-drives` | a shaft train with no driver (turbine, motor, motor-generator): nothing can turn it |
 
 `hydraulic/line-type-invalid` is an error rather than a warning because the line
 type decides how the line is drawn. A pilot line drawn as a working line tells
@@ -46,10 +47,16 @@ in a way that looks right.
 | `topology/port-unconnected` | an `expected` port is dangling |
 | `topology/disconnected-subcircuit` | a group of components has no path to the rest |
 | `hydraulic/line-type-unexpected` | e.g. a pump inlet fed by a line not typed `suction` |
-| `hydraulic/no-reservoir` | nothing for oil to be drawn from or returned to |
+| `hydraulic/no-reservoir` | liquid lines with no reservoir and no boundary to come from or go to |
 | `hydraulic/pump-without-source` | a pump's suction has no traceable path to a reservoir |
-| `hydraulic/no-return-path` | no line returns to the reservoir |
-| `hydraulic/relief-not-to-tank` | a relief discharges somewhere with no path to tank |
+| `hydraulic/no-return-path` | a tank with a pump on it, and no line back to it |
+| `hydraulic/relief-not-to-tank` | a liquid relief discharges somewhere with no path to tank |
+| `pneumatic/relief-not-to-atmosphere` | a gas relief (a receiver's safety valve) vents nowhere open |
+| `pneumatic/turbine-without-supply` | nothing upstream of a turbine inlet stores, compresses or brings in air |
+| `pneumatic/exhaust-not-to-atmosphere` | a turbine exhausts somewhere with no path to a silencer or boundary |
+| `pneumatic/compressor-without-intake` | nothing upstream of a compressor inlet brings air in |
+| `mechanical/nothing-driven` | a shaft train where nothing absorbs the power |
+| `media/heat-source-unstated` | nothing states what heats a preheater, so it would be drawn as oil |
 | `hydraulic/filter-position-mismatch` | a filter declared `suction` is wired into a pressure line |
 | `parameters/key-unspecified` | a parameter a reviewer would expect is missing |
 | `assumptions/undeclared` | a load-bearing choice was defaulted with nothing on the record |
@@ -66,6 +73,7 @@ in a way that looks right.
 | `parameters/unspecified` | a secondary parameter is missing |
 | `layout/line-crossings` | how many lines cross in the drawing |
 | `media/unresolved` | nothing fixes a run's fluid and oil is not allowed, so one was assumed |
+| `media/cooling-medium-unstated` | nothing states what cools a cooler, so it would be drawn as oil |
 
 Crossings are counted, not forbidden. A dense circuit legitimately has some, and
 an author needs to know how many rather than be blocked.
@@ -104,6 +112,24 @@ filters and junctions carry whatever they sit in.
 
 Shafts are not fluid. A shaft port takes a `mechanical` line and nothing else,
 and shafts never branch through junctions.
+
+## Paths are traced per fluid
+
+"Does the pump reach a tank" is answered over port groups, not components. A
+trace follows one fluid: it never crosses to the far side of a heat exchanger
+or an accumulator, and never along a shaft. It also starts from the port in
+question and never passes back through the component it started from, so a
+turbine's supply and its exhaust are traced apart even though both sit in one
+group of the turbine.
+
+Liquids circulate: drawn from a reservoir, returned to one. Gases flow through:
+supplied by a compressor, an air receiver, an accumulator's gas side or an
+intake, and leaving to a silencer. A boundary stands in for either end in the
+direction it states. A tank with no pump on it -- a compensation basin that
+fills and empties through one line -- is not asked for a return.
+
+A shaft train (machines joined by mechanical lines) needs a driver: a turbine,
+a motor, or a motor-generator, which both drives and is driven.
 
 ## The assumptions rule
 

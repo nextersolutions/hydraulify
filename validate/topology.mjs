@@ -15,6 +15,7 @@
 import { resolveComponent, findPort } from '../renderers/symbols/index.mjs';
 import { error, warning, info } from '../renderers/shared/diagnostics.mjs';
 import { resolveMedia } from './media.mjs';
+import { fluidGraph, traces, shaftTrains, isLiquid, isGas } from './paths.mjs';
 
 /** Parse "P1.outlet" into its two halves. */
 export function parsePortRef(reference) {
@@ -27,6 +28,9 @@ export function parsePortRef(reference) {
 const LOAD_BEARING_CONFIG = {
   directional_control_valve: ['configuration', 'center_condition', 'actuation'],
   cylinder: ['cylinder_type'],
+  // Generator, motor or motor-generator decides the shaft arrangement: how many
+  // machines there are and which way power flows through the train.
+  electrical_machine: ['role'],
 };
 
 // Parameters whose absence a reviewer would raise. Everything else that is
@@ -37,6 +41,11 @@ const KEY_PARAMS = {
   relief_valve: [['setting_bar', 'setting_psi'], 'pressure setting'],
   counterbalance_valve: [['setting_bar', 'setting_psi'], 'pressure setting'],
   cylinder: [['bore_mm', 'bore_in'], 'bore'],
+  turbine: [['power_kw', 'power_hp'], 'rated power'],
+  compressor: [['flow_nm3h', 'flow_scfm', 'mass_flow_kgs', 'mass_flow_lbs'], 'delivery (normal volume or mass flow)'],
+  electrical_machine: [['power_kw', 'power_hp'], 'rated power'],
+  pressure_regulator: [['setting_bar', 'setting_psi'], 'pressure setting'],
+  air_receiver: [['volume_l', 'volume_gal'], 'volume'],
 };
 
 const SECONDARY_PARAMS = {
@@ -47,6 +56,10 @@ const SECONDARY_PARAMS = {
   reservoir: [[['volume_l', 'volume_gal'], 'volume']],
   pressure_gauge: [[['range_bar', 'range_psi'], 'range']],
   flow_control_valve: [[['flow_lpm', 'flow_gpm'], 'flow setting']],
+  turbine: [[['mass_flow_kgs', 'mass_flow_lbs', 'flow_nm3h', 'flow_scfm'], 'air flow']],
+  compressor: [[['max_pressure_bar', 'max_pressure_psi'], 'discharge pressure']],
+  heat_exchanger: [[['power_kw', 'power_hp'], 'duty']],
+  air_receiver: [[['max_pressure_bar', 'max_pressure_psi'], 'maximum pressure']],
 };
 
 function hasValue(params, names) {
@@ -286,7 +299,9 @@ export function validateTopology(model) {
   }
 
   diagnostics.push(...checkLineSemantics(connections, resolved));
-  diagnostics.push(...checkHydraulicPaths(connections, resolved, adjacency));
+  diagnostics.push(...checkHydraulicPaths(connections, resolved, media.groupMedia));
+  diagnostics.push(...checkShafts(connections, resolved));
+  diagnostics.push(...checkHeatSources(resolved, connections, media.groupDefaulted));
   diagnostics.push(...checkParameters(resolved));
   diagnostics.push(...checkAssumptions(model, resolved));
 
@@ -400,70 +415,79 @@ function checkLineSemantics(connections, resolved) {
   return diagnostics;
 }
 
-/** Whole-circuit paths: where oil comes from, and where it goes back to. */
-function checkHydraulicPaths(connections, resolved, adjacency) {
+const MEDIUM_WORDS = { oil: 'oil', water: 'water', thermal_oil: 'thermal oil', air: 'air', nitrogen: 'nitrogen', steam: 'steam', flue_gas: 'flue gas' };
+
+/**
+ * Whole-circuit paths: where each fluid comes from, and where it goes.
+ *
+ * Traced per fluid, over port groups (see paths.mjs), so a trace never crosses
+ * from air to water through a heat exchanger or along a shaft. Liquids circulate:
+ * they are drawn from a reservoir and returned to one. Gases flow through: air
+ * comes from a compressor, a store or an intake, and leaves to atmosphere. A
+ * boundary stands in for either end, because the drawing honestly stops there.
+ */
+function checkHydraulicPaths(connections, resolved, groupMedia) {
   const diagnostics = [];
+  const graph = fluidGraph(connections);
   const typeOf = (id) => resolved.get(id)?.component.type;
-  const reservoirs = [...resolved.keys()].filter((id) => typeOf(id) === 'reservoir');
+  const idsOfType = (type) => [...resolved.keys()].filter((id) => typeOf(id) === type);
+  const connected = (id, port) => graph.attached.has(`${id}.${port}`);
+  const boundaryIs = (id, direction) => typeOf(id) === 'boundary' && resolved.get(id).config.direction === direction;
+  const mediumOf = (id, group = 'main') => groupMedia?.get(`${id}#${group}`) ?? null;
 
-  // Reach ignoring nothing: a hydraulic path exists if the graph connects them.
-  const reaches = (startId, predicate) => {
-    const seen = new Set([startId]);
-    const queue = [startId];
-    while (queue.length) {
-      const id = queue.shift();
-      if (id !== startId && predicate(id)) return true;
-      for (const neighbour of adjacency.get(id) ?? []) {
-        if (seen.has(neighbour)) continue;
-        seen.add(neighbour);
-        queue.push(neighbour);
-      }
-    }
-    return false;
-  };
+  const reservoirs = idsOfType('reservoir');
+  const liquidBoundaries = idsOfType('boundary').filter((id) => isLiquid(mediumOf(id)));
+  const liquidLines = connections.filter((connection) => isLiquid(connection.medium));
 
-  if (reservoirs.length === 0) {
+  // Liquid ends: where liquid can be drawn from, and where it can go back to.
+  const liquidSource = (id) => typeOf(id) === 'reservoir' || (boundaryIs(id, 'from') && isLiquid(mediumOf(id)));
+  const liquidSink = (id) => typeOf(id) === 'reservoir' || (boundaryIs(id, 'to') && isLiquid(mediumOf(id)));
+  // Gas ends: a compressor, a store or an intake supplies it; atmosphere takes it.
+  const airSource = (id, key) => typeOf(id) === 'compressor' || typeOf(id) === 'air_receiver'
+    || (typeOf(id) === 'accumulator' && key.endsWith('#gas'))
+    || (boundaryIs(id, 'from') && isGas(mediumOf(id)));
+  const atmosphere = (id) => typeOf(id) === 'silencer' || (boundaryIs(id, 'to') && isGas(mediumOf(id)));
+
+  if (liquidLines.length && !reservoirs.length && !liquidBoundaries.length) {
+    const word = MEDIUM_WORDS[liquidLines[0].medium];
     diagnostics.push(warning({
       code: 'hydraulic/no-reservoir',
       subject: { scope: 'circuit' },
-      message: 'The circuit shows no reservoir, so there is nowhere for oil to be drawn from or returned to.',
-      evidence: {},
+      message: `The circuit carries ${word} but shows no reservoir, so there is nowhere for it to be drawn from or returned to.`,
+      evidence: { liquids: [...new Set(liquidLines.map((connection) => connection.medium))] },
       supportedFixes: [
         'add a reservoir and connect the suction and return lines',
+        'if the liquid comes from and goes to somewhere this drawing does not show, end those lines on a boundary',
         'if this drawing is a fragment of a larger circuit, no change is needed',
       ],
     }));
   }
 
-  for (const [id, entry] of resolved) {
-    if (entry.component.type !== 'pump') continue;
-    const suctionConnected = connections.some((connection) => (
-      ['from', 'to'].some((end) => connection.endpoints[end].componentId === id
-        && connection.endpoints[end].port.id === 'inlet')
-    ));
-    if (suctionConnected && reservoirs.length && !reaches(id, (other) => typeOf(other) === 'reservoir')) {
-      diagnostics.push(warning({
-        code: 'hydraulic/pump-without-source',
-        subject: { component: id },
-        message: `${id} has a suction connection but no traceable path to a reservoir.`,
-        evidence: {},
-        supportedFixes: [`route ${id}.inlet to a reservoir outlet, through a suction filter if one is fitted`],
-      }));
+  const pumps = idsOfType('pump');
+  if (reservoirs.length || liquidBoundaries.length) {
+    for (const id of pumps) {
+      if (connected(id, 'inlet') && !traces(graph, id, 'inlet', liquidSource)) {
+        diagnostics.push(warning({
+          code: 'hydraulic/pump-without-source',
+          subject: { component: id },
+          message: `${id} has a suction connection but no traceable path to a reservoir.`,
+          evidence: {},
+          supportedFixes: [`route ${id}.inlet to a reservoir outlet, through a suction filter if one is fitted`],
+        }));
+      }
     }
   }
 
-  const returnsToTank = connections.some((connection) => (
-    ['from', 'to'].some((end) => (
-      end === 'to'
-        ? connection.endpoints.to.target.component.type === 'reservoir' && connection.endpoints.to.port.id === 'return'
-        : connection.endpoints.from.target.component.type === 'reservoir' && connection.endpoints.from.port.id === 'return'
-    ))
-  ));
-  if (reservoirs.length && !returnsToTank) {
+  // A tank with a pump on it needs a way back. A tank with no pump -- a
+  // compensation basin that fills and empties through one line -- does not.
+  const returnsToTank = connections.some((connection) => ['from', 'to'].some((end) => (
+    connection.endpoints[end].target.component.type === 'reservoir' && connection.endpoints[end].port.id === 'return'
+  ))) || liquidBoundaries.some((id) => boundaryIs(id, 'to'));
+  if (reservoirs.length && pumps.length && !returnsToTank) {
     diagnostics.push(warning({
       code: 'hydraulic/no-return-path',
       subject: { scope: 'circuit' },
-      message: 'No line returns to the reservoir. Oil delivered by the pump has nowhere to go.',
+      message: 'No line returns to the reservoir. Liquid delivered by the pump has nowhere to go.',
       evidence: {},
       supportedFixes: [
         'connect the directional valve T port, and the relief valve outlet, back to the reservoir return',
@@ -471,19 +495,63 @@ function checkHydraulicPaths(connections, resolved, adjacency) {
     }));
   }
 
-  for (const [id, entry] of resolved) {
-    if (entry.component.type !== 'relief_valve') continue;
-    if (!reservoirs.length) continue;
-    const outletConnected = connections.some((connection) => ['from', 'to'].some((end) => (
-      connection.endpoints[end].componentId === id && connection.endpoints[end].port.id === 'outlet'
-    )));
-    if (outletConnected && !reaches(id, (other) => typeOf(other) === 'reservoir')) {
+  for (const id of idsOfType('relief_valve')) {
+    if (!connected(id, 'outlet')) continue;
+    const medium = mediumOf(id);
+    if (isGas(medium)) {
+      if (!traces(graph, id, 'outlet', atmosphere)) {
+        diagnostics.push(warning({
+          code: 'pneumatic/relief-not-to-atmosphere',
+          subject: { component: id },
+          message: `${id} relieves ${MEDIUM_WORDS[medium]} to a point with no traceable path to atmosphere.`,
+          evidence: { medium },
+          supportedFixes: [`vent ${id}.outlet through a silencer`, 'or end it on a boundary marked "to"'],
+        }));
+      }
+    } else if ((reservoirs.length || liquidBoundaries.length) && !traces(graph, id, 'outlet', liquidSink)) {
       diagnostics.push(warning({
         code: 'hydraulic/relief-not-to-tank',
         subject: { component: id },
         message: `${id} discharges to a point with no traceable path to the reservoir.`,
         evidence: {},
         supportedFixes: [`route ${id}.outlet back to the reservoir return`],
+      }));
+    }
+  }
+
+  for (const id of idsOfType('turbine')) {
+    if (connected(id, 'inlet') && !traces(graph, id, 'inlet', airSource)) {
+      diagnostics.push(warning({
+        code: 'pneumatic/turbine-without-supply',
+        subject: { component: id },
+        message: `${id} has no traceable supply of air: nothing upstream of its inlet stores, compresses or brings in air.`,
+        evidence: {},
+        supportedFixes: [
+          `route ${id}.inlet back to an air receiver, the accumulator's gas side, or a compressor`,
+          'or, if the supply is not drawn, end the line on a boundary marked "from"',
+        ],
+      }));
+    }
+    if (connected(id, 'exhaust') && !traces(graph, id, 'exhaust', atmosphere)) {
+      diagnostics.push(warning({
+        code: 'pneumatic/exhaust-not-to-atmosphere',
+        subject: { component: id },
+        message: `${id} exhausts to a point with no traceable path to atmosphere.`,
+        evidence: {},
+        supportedFixes: [`end ${id}.exhaust in a silencer`, 'or on a boundary marked "to", for a recuperator or stack not drawn'],
+      }));
+    }
+  }
+
+  for (const id of idsOfType('compressor')) {
+    const intake = (other, key) => boundaryIs(other, 'from') || typeOf(other) === 'silencer' || airSource(other, key);
+    if (connected(id, 'inlet') && !traces(graph, id, 'inlet', intake)) {
+      diagnostics.push(warning({
+        code: 'pneumatic/compressor-without-intake',
+        subject: { component: id },
+        message: `${id} has no traceable intake: nothing upstream of its inlet brings air in.`,
+        evidence: {},
+        supportedFixes: [`draw the intake: end ${id}.inlet on a boundary marked "from" (ambient air)`],
       }));
     }
   }
@@ -510,6 +578,78 @@ function checkHydraulicPaths(connections, resolved, adjacency) {
     }
   }
 
+  return diagnostics;
+}
+
+/**
+ * Shaft trains. Every machine's shaft port is required, so an unconnected shaft
+ * is already an error; what is left to check is the train as a whole. Nothing
+ * driving it cannot turn -- a compressor coupled only to a generator. Nothing
+ * driven by it absorbs no power, which is suspicious but not impossible, so it
+ * is a warning.
+ */
+function checkShafts(connections, resolved) {
+  const diagnostics = [];
+  for (const train of shaftTrains(resolved, connections)) {
+    const names = train.members.join(', ');
+    if (!train.drivers.length) {
+      diagnostics.push(error({
+        code: 'mechanical/nothing-drives',
+        subject: { components: names },
+        message: `${names} are coupled by shafts, but none of them drives the train, so nothing can turn it.`,
+        evidence: { members: train.members, driven: train.driven },
+        supportedFixes: [
+          'couple a driver into the train: a turbine, or an electrical machine with role motor or motor_generator',
+          'check the electrical machine role: a generator is driven, it does not drive',
+        ],
+      }));
+    } else if (!train.driven.length) {
+      diagnostics.push(warning({
+        code: 'mechanical/nothing-driven',
+        subject: { components: names },
+        message: `${names} are coupled by shafts, but nothing in the train is driven: the power has nowhere to go.`,
+        evidence: { members: train.members, drivers: train.drivers },
+        supportedFixes: [
+          'couple the load the train drives: a compressor, or an electrical machine with role generator or motor_generator',
+        ],
+      }));
+    }
+  }
+  return diagnostics;
+}
+
+/**
+ * What heats a preheater is load-bearing: it decides whether the plant burns
+ * fuel, draws on stored heat, or recovers its own exhaust. When nothing states
+ * it, the utility side falls to the default fluid -- oil -- and the drawing
+ * would print "oil" on a line nobody said carries oil. So it is raised. A
+ * cooler's medium changes less, and is only noted.
+ */
+function checkHeatSources(resolved, connections, groupDefaulted) {
+  const diagnostics = [];
+  const utilityConnected = (id) => connections.some((connection) => ['from', 'to'].some((end) => (
+    connection.endpoints[end].componentId === id && connection.endpoints[end].port.group === 'utility'
+  )));
+  for (const [id, entry] of resolved) {
+    if (entry.component.type !== 'heat_exchanger') continue;
+    if (!utilityConnected(id) || !groupDefaulted?.has(`${id}#utility`)) continue;
+    const heating = entry.config.function !== 'cooling';
+    const make = heating ? warning : info;
+    diagnostics.push(make({
+      code: heating ? 'media/heat-source-unstated' : 'media/cooling-medium-unstated',
+      subject: { component: id },
+      message: heating
+        ? `${id}: nothing states what heats it, so its heating side is drawn as oil by default.`
+        : `${id}: nothing states what cools it, so its cooling side is drawn as oil by default.`,
+      evidence: { function: entry.config.function },
+      supportedFixes: heating
+        ? [
+          'state it: "config": { "utility_medium": "flue_gas" } for a fired plant, "thermal_oil" or "water" from thermal storage, "steam"',
+          'or give the boundary the heat comes from a medium',
+        ]
+        : ['state it: "config": { "utility_medium": "water" }, or give the cooling boundary a medium'],
+    }));
+  }
   return diagnostics;
 }
 
