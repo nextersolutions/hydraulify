@@ -415,7 +415,21 @@
         "stroke_in": { "$ref": "#/$defs/quantity" },
         "rating_micron": { "$ref": "#/$defs/quantity" },
         "speed_rpm": { "$ref": "#/$defs/quantity" },
-        "pilot_ratio": { "$ref": "#/$defs/quantity" }
+        "pilot_ratio": { "$ref": "#/$defs/quantity" },
+        "temperature_c": { "$ref": "#/$defs/signedQuantity", "minimum": -273.15 },
+        "temperature_f": { "$ref": "#/$defs/signedQuantity", "minimum": -459.67 },
+        "power_kw": { "$ref": "#/$defs/quantity" },
+        "power_hp": { "$ref": "#/$defs/quantity" },
+        "flow_nm3h": {
+          "description": "Normal volume flow of a gas: cubic metres per hour at 0 degC and 1.01325 bar (DIN 1343).",
+          "$ref": "#/$defs/quantity"
+        },
+        "flow_scfm": {
+          "description": "Standard volume flow of a gas: cubic feet per minute at 60 degF and 14.696 psia. Not CAGI's 68 degF scfm.",
+          "$ref": "#/$defs/quantity"
+        },
+        "mass_flow_kgs": { "$ref": "#/$defs/quantity" },
+        "mass_flow_lbs": { "$ref": "#/$defs/quantity" }
       },
       "allOf": [
         { "not": { "required": ["setting_bar", "setting_psi"] } },
@@ -428,7 +442,22 @@
         { "not": { "required": ["volume_l", "volume_gal"] } },
         { "not": { "required": ["bore_mm", "bore_in"] } },
         { "not": { "required": ["rod_mm", "rod_in"] } },
-        { "not": { "required": ["stroke_mm", "stroke_in"] } }
+        { "not": { "required": ["stroke_mm", "stroke_in"] } },
+        { "not": { "required": ["temperature_c", "temperature_f"] } },
+        { "not": { "required": ["power_kw", "power_hp"] } },
+        { "not": { "required": ["flow_nm3h", "flow_scfm"] } },
+        { "not": { "required": ["mass_flow_kgs", "mass_flow_lbs"] } },
+        { "$ref": "#/$defs/airFlowExclusive" }
+      ]
+    },
+
+    "airFlowExclusive": {
+      "description": "A gas flow is stated once, either as normal volume flow or as mass flow. Both on one component would be two statements of one fact that can disagree.",
+      "allOf": [
+        { "not": { "required": ["flow_nm3h", "mass_flow_kgs"] } },
+        { "not": { "required": ["flow_nm3h", "mass_flow_lbs"] } },
+        { "not": { "required": ["flow_scfm", "mass_flow_kgs"] } },
+        { "not": { "required": ["flow_scfm", "mass_flow_lbs"] } }
       ]
     },
 
@@ -436,6 +465,11 @@
       "description": "A number as the author stated it, or null meaning explicitly unknown.",
       "type": ["number", "null"],
       "exclusiveMinimum": 0
+    },
+
+    "signedQuantity": {
+      "description": "A quantity that may be zero or negative, such as a temperature. Its lower bound is set on the field that uses it.",
+      "type": ["number", "null"]
     },
 
     "lineType": {

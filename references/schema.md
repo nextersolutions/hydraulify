@@ -69,24 +69,50 @@ Every quantity has an SI and an imperial field name:
 | length | `_mm` | `_in` |
 | volume | `_l` | `_gal` |
 | displacement | `_cm3_rev` | `_in3_rev` |
+| temperature | `_c` | `_f` |
+| power | `_kw` | `_hp` (mechanical, 745.7 W) |
+| gas volume flow | `flow_nm3h` | `flow_scfm` |
+| gas mass flow | `mass_flow_kgs` | `mass_flow_lbs` |
 
 Full set: `setting`, `cracking_pressure`, `max_pressure`, `precharge`, `range`,
-`flow`, `displacement`, `volume`, `bore`, `rod`, `stroke`, plus the
-system-independent `rating_micron`, `speed_rpm` and `pilot_ratio`.
+`flow`, `displacement`, `volume`, `bore`, `rod`, `stroke`, `temperature`,
+`power`, `mass_flow`, plus the system-independent `rating_micron`, `speed_rpm`
+and `pilot_ratio`.
+
+`flow_lpm` / `flow_gpm` is liquid flow and `flow_nm3h` / `flow_scfm` is gas
+flow: the suffix decides which, so a heat exchanger can state its cooling water
+in L/min and its process air in Nm3/h side by side.
+
+**Gas volume is at reference conditions, and the two systems use different
+ones.** `flow_nm3h` is normal cubic metres per hour at 0 degC and 1.01325 bar
+(DIN 1343); `flow_scfm` is standard cubic feet per minute at 60 degF and 14.696
+psia. The conversion applies the temperature ratio -- skipping it is a 5.7%
+error. CAGI's 68 degF scfm, common on compressor datasheets, is a different
+unit again: if a source quotes it, record the value in the model's note rather
+than as `flow_scfm`.
 
 Two rules the schema enforces:
 
 - **One unit per quantity.** `setting_bar` and `setting_psi` on the same
   component is rejected. Two spellings of one value is two values that can
   disagree.
+- **A gas flow is stated once.** Normal volume flow or mass flow, never both on
+  one component: they are two statements of one fact that can disagree, and
+  deriving one from the other needs a gas density the model does not have.
 - **A value is a positive number or `null`.** `null` means explicitly unknown,
   and is reported as such. Omitting the field means it was never mentioned.
-  Both are honest; a substituted value is not.
+  Both are honest; a substituted value is not. Temperature is the exception to
+  positive: it may be zero or negative, down to absolute zero.
 
 Conversion happens only when rendering with `--units`, is rounded to the
 significant figures of the source, and is marked with a tilde: 180 bar renders
 as `~2610 psi`, never `2610.69 psi`, because the second states a precision
 nobody gave.
+
+Temperature rounds differently. Its conversion has an offset, and significant
+figures do not survive one -- 0 degC has one figure, and 32 degF rounded to one
+figure prints 30. A temperature keeps the resolution of its source instead:
+whole degrees in, whole degrees out, so 20 degC renders as `~68 degF`.
 
 ## Connections
 
@@ -95,9 +121,12 @@ nobody gave.
 ```
 
 - `from` and `to` are `component.port`, exactly the notation the brief uses.
-- `line` is the hydraulic function: `suction`, `pressure`, `working`, `return`,
-  `drain`, `pilot`. It drives how the line is drawn and is checked against the
-  ports it joins.
+- `line` is the function: `suction`, `pressure`, `working`, `return`, `drain`,
+  `pilot`, or `mechanical` for a shaft between machines. It drives how the line
+  is drawn and is checked against the ports it joins.
+- There is no `medium` field. The fluid a line carries is worked out from the
+  ports it joins, and defaults to oil; see the Media section of
+  `references/validation.md`.
 - `fromSide` / `toSide` override which face the line leaves by. Rarely needed;
   the port already declares one.
 - `via` pins explicit waypoints. Only reach for it after a routing diagnostic

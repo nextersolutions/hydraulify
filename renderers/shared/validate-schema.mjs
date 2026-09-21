@@ -54,12 +54,22 @@ function fixesFor(ajvError) {
     case 'type':
       return [`use a value of type ${ajvError.params.type}`];
     case 'not':
+      if (ajvError.schemaPath.includes('airFlowExclusive')) {
+        return [
+          'state a gas flow once: normal volume flow (flow_nm3h or flow_scfm) or mass flow (mass_flow_kgs or mass_flow_lbs), not both',
+          'keep whichever the source document gives; never derive one from the other',
+        ];
+      }
       return [
         'a quantity may be given in SI or imperial units, never both',
         'delete whichever of the two unit fields was not authored by the user',
       ];
     case 'exclusiveMinimum':
       return ['use a positive number, or null to state that the value is unknown'];
+    case 'minimum':
+      return ajvError.instancePath.includes('temperature')
+        ? [`use a value of at least ${ajvError.params.limit}: nothing is colder than absolute zero`]
+        : [`use a value of at least ${ajvError.params.limit}`];
     default:
       return ['correct the value so it satisfies the schema'];
   }

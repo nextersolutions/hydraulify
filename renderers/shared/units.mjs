@@ -19,7 +19,26 @@
 // representation, ignoring sign, decimal point and leading zeros. 180 -> 3,
 // 0.5 -> 1, 20 -> 2. Trailing zeros in an integer are treated as significant,
 // which keeps a stated 180 bar from decaying into 2600 psi.
+//
+// Temperature is the exception. Its conversion has an offset, and significant
+// figures do not survive an offset: 0 degC has one significant figure, and
+// rounding 32 degF to one figure prints 30. A temperature keeps the RESOLUTION of
+// its source instead -- whole degrees in, whole degrees out -- which states what
+// the author actually knew.
 
+// Normal and standard volume are both "a cubic metre (or foot) of gas", but at
+// different reference temperatures: Nm3 at 0 degC (DIN 1343), scf at 60 degF
+// (the US gas-industry standard), both at 1 atm. Converting between them without
+// the temperature ratio is off by nearly 6%, which is the trap this factor is
+// derived rather than typed to avoid. CAGI's 68 degF / 14.5 psia "scfm" is a
+// different unit again; hydraulify's scfm is the 60 degF one.
+const NORMAL_K = 273.15;
+const STANDARD_K = 273.15 + (60 - 32) * 5 / 9;
+const CUBIC_FEET_PER_CUBIC_METRE = 1 / 0.3048 ** 3;
+const NM3H_TO_SCFM = (STANDARD_K / NORMAL_K) * CUBIC_FEET_PER_CUBIC_METRE / 60;
+
+// A quantity converts by `factor` (imperial = si x factor) unless it supplies
+// its own pair of functions, which only an offset scale needs.
 export const QUANTITIES = {
   pressure: { si: 'bar', imperial: 'psi', factor: 14.503773773, siLabel: 'bar', imperialLabel: 'psi' },
   flow: { si: 'lpm', imperial: 'gpm', factor: 0.2641720524, siLabel: 'L/min', imperialLabel: 'gpm' },
@@ -28,40 +47,64 @@ export const QUANTITIES = {
   displacement: {
     si: 'cm3_rev', imperial: 'in3_rev', factor: 1 / 16.387064, siLabel: 'cm3/rev', imperialLabel: 'in3/rev',
   },
+  temperature: {
+    si: 'c',
+    imperial: 'f',
+    toImperial: (celsius) => celsius * 9 / 5 + 32,
+    toSi: (fahrenheit) => (fahrenheit - 32) * 5 / 9,
+    rounding: 'resolution',
+    siLabel: '\u00b0C',
+    imperialLabel: '\u00b0F',
+  },
+  // Mechanical horsepower (745.7 W), the one on motor and turbine nameplates.
+  power: { si: 'kw', imperial: 'hp', factor: 1000 / 745.69987158227022, siLabel: 'kW', imperialLabel: 'hp' },
+  normal_flow: { si: 'nm3h', imperial: 'scfm', factor: NM3H_TO_SCFM, siLabel: 'Nm3/h', imperialLabel: 'scfm' },
+  mass_flow: { si: 'kgs', imperial: 'lbs', factor: 1 / 0.45359237, siLabel: 'kg/s', imperialLabel: 'lb/s' },
 };
 
-// Every parameter name, mapped to its quantity and the base name shared by its
-// SI and imperial spellings.
-export const PARAM_QUANTITY = {
-  setting: 'pressure',
-  cracking_pressure: 'pressure',
-  max_pressure: 'pressure',
-  precharge: 'pressure',
-  range: 'pressure',
-  flow: 'flow',
-  displacement: 'displacement',
-  volume: 'volume',
-  bore: 'length',
-  rod: 'length',
-  stroke: 'length',
-};
-
-const SUFFIXES = {
-  pressure: ['bar', 'psi'],
-  flow: ['lpm', 'gpm'],
-  length: ['mm', 'in'],
-  volume: ['l', 'gal'],
-  displacement: ['cm3_rev', 'in3_rev'],
-};
+// Every convertible parameter: its base name and quantity. One base can belong
+// to two quantities -- flow_lpm is liquid flow, flow_nm3h is gas flow -- because
+// the suffix, not the base, decides which.
+export const PARAM_QUANTITY = [
+  ['setting', 'pressure'],
+  ['cracking_pressure', 'pressure'],
+  ['max_pressure', 'pressure'],
+  ['precharge', 'pressure'],
+  ['range', 'pressure'],
+  ['flow', 'flow'],
+  ['flow', 'normal_flow'],
+  ['mass_flow', 'mass_flow'],
+  ['displacement', 'displacement'],
+  ['volume', 'volume'],
+  ['bore', 'length'],
+  ['rod', 'length'],
+  ['stroke', 'length'],
+  ['temperature', 'temperature'],
+  ['power', 'power'],
+];
 
 /** Split "setting_bar" into { base: "setting", suffix: "bar" } when it is a convertible quantity. */
 export function splitParamName(name) {
-  for (const [base, quantity] of Object.entries(PARAM_QUANTITY)) {
-    for (const suffix of SUFFIXES[quantity]) {
+  for (const [base, quantity] of PARAM_QUANTITY) {
+    const { si, imperial } = QUANTITIES[quantity];
+    for (const suffix of [si, imperial]) {
       if (name === `${base}_${suffix}`) return { base, quantity, suffix };
     }
   }
   return null;
+}
+
+/** Digits after the decimal point, as authored: 20 -> 0, 20.5 -> 1. */
+export function decimalPlaces(value) {
+  const text = String(Math.abs(value));
+  if (/e/i.test(text)) return 0;
+  const dot = text.indexOf('.');
+  return dot === -1 ? 0 : text.length - dot - 1;
+}
+
+function convert(quantity, value, toImperial) {
+  if (quantity.factor !== undefined) return toImperial ? value * quantity.factor : value / quantity.factor;
+  return toImperial ? quantity.toImperial(value) : quantity.toSi(value);
 }
 
 export function significantFigures(value) {
@@ -109,9 +152,12 @@ export function presentParam(name, value, system = 'si') {
     return { text: `${value} ${unit}`, converted: false, unit, value };
   }
 
-  const converted = authoredIsSi ? value * quantity.factor : value / quantity.factor;
-  const figures = significantFigures(value);
-  const shown = toSignificant(converted, figures);
+  const converted = convert(quantity, value, authoredIsSi);
+  let shown = quantity.rounding === 'resolution'
+    ? converted.toFixed(decimalPlaces(value))
+    : toSignificant(converted, significantFigures(value));
+  // toFixed keeps the sign of a value that rounds to zero; "-0" is never a reading.
+  if (Number(shown) === 0) shown = '0';
   const unit = wantSi ? quantity.siLabel : quantity.imperialLabel;
   return { text: `~${shown} ${unit}`, converted: true, unit, value: Number(shown) };
 }
