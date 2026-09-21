@@ -10,6 +10,10 @@
 // A circuit may legitimately show the same physical tank more than once to avoid
 // dragging return lines across the drawing. `config.same_reservoir_as` records
 // that, so validation and the BOM count one vessel rather than several.
+//
+// `liquid` fixes what the tank holds. Unstated, it holds any liquid and takes the
+// fluid of the circuit it serves -- oil, for every circuit written before media
+// existed. A compressed-air store's compensation basin states water.
 
 import { line, polyline } from '../shared/svg.mjs';
 import { port, labelBelow, CRITICALITY } from './contract.mjs';
@@ -25,7 +29,8 @@ export const defaults = {
   vented: true,
 };
 
-export function geometry() {
+export function geometry(config) {
+  const medium = config.liquid ?? 'liquid';
   return {
     width: WIDTH,
     height: HEIGHT,
@@ -36,12 +41,12 @@ export function geometry() {
       // air receiver, which has its own symbol.
       outlet: port('outlet', OUTLET_X, 0, 'top', {
         criticality: CRITICALITY.OPTIONAL,
-        medium: 'liquid',
+        medium,
         label: 'S',
       }),
       return: port('return', RETURN_X, 0, 'top', {
         criticality: CRITICALITY.OPTIONAL,
-        medium: 'liquid',
+        medium,
         label: 'R',
         aliases: ['ret', 'T'],
       }),
@@ -73,5 +78,6 @@ export function draw({ config }) {
 }
 
 export function describe({ config }) {
-  return config.vented === false ? 'Pressurised hydraulic reservoir' : 'Hydraulic reservoir';
+  const content = config.liquid === 'water' ? 'Water' : 'Hydraulic';
+  return config.vented === false ? `Pressurised ${content.toLowerCase()} reservoir` : `${content} reservoir`;
 }

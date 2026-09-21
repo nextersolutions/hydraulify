@@ -154,7 +154,11 @@
               "additionalProperties": false,
               "properties": {
                 "vented": { "type": "boolean" },
-                "same_reservoir_as": { "$ref": "#/$defs/id" }
+                "same_reservoir_as": { "$ref": "#/$defs/id" },
+                "liquid": {
+                  "description": "What the tank holds. Unstated, it takes the liquid of the circuit it serves.",
+                  "enum": ["oil", "water"]
+                }
               }
             }
           }
@@ -349,7 +353,26 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "accumulator_type": { "enum": ["bladder", "piston", "diaphragm", "spring", "weight"] }
+                "accumulator_type": {
+                  "description": "The separating element. none is direct contact: gas sits on the liquid with no separator.",
+                  "enum": ["bladder", "piston", "diaphragm", "spring", "weight", "none"]
+                },
+                "gas_port": {
+                  "description": "Draw the gas side as a connection on top of the shell. Without it the gas is sealed behind a charging valve and not drawn.",
+                  "type": "boolean"
+                },
+                "liquid": {
+                  "description": "What the liquid side holds. Unstated, it takes the liquid of the line it sits on.",
+                  "enum": ["oil", "water"]
+                }
+              },
+              "if": {
+                "properties": { "accumulator_type": { "enum": ["spring", "weight"] } },
+                "required": ["accumulator_type"]
+              },
+              "then": {
+                "description": "A spring- or weight-loaded accumulator contains no gas, so it has no gas side to connect.",
+                "properties": { "gas_port": { "const": false } }
               }
             }
           }

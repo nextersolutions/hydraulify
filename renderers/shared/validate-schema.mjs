@@ -48,6 +48,12 @@ function fixesFor(ajvError) {
     case 'enum':
       return [`use one of: ${(ajvError.params.allowedValues ?? []).join(', ')}`];
     case 'const':
+      if (ajvError.instancePath.endsWith('/gas_port')) {
+        return [
+          'a spring- or weight-loaded accumulator contains no gas, so it has no gas side: remove gas_port',
+          'or choose a gas-charged type: bladder, piston, diaphragm, or none for direct contact',
+        ];
+      }
       return [`set this to ${JSON.stringify(ajvError.params.allowedValue)}`];
     case 'pattern':
       return [`match the required pattern ${ajvError.params.pattern}`];

@@ -35,7 +35,7 @@ inventing a connection.
 
 | Type | Ports | Configuration |
 | --- | --- | --- |
-| `reservoir` | `outlet`, `return` | `vented`, `same_reservoir_as` |
+| `reservoir` | `outlet`, `return` | `vented`, `same_reservoir_as`, `liquid` |
 | `pump` | `inlet`, `outlet`, `case_drain` | `pump_type`, `drive`, `bidirectional`, `has_case_drain` |
 | `motor` | `inlet`/`outlet`, or `A`/`B` when bidirectional | `motor_type`, `bidirectional`, `has_case_drain` |
 | `cylinder` | `cap`, `rod` (aliases `A`, `B`); `cap`, `vent` when single-acting | `cylinder_type`, `rod`, `spring_return`, `cushioned` |
@@ -47,7 +47,7 @@ inventing a connection.
 | `flow_control_valve` | `inlet`, `outlet` | `flow_control_type`, `free_flow_direction` |
 | `filter` | `inlet`, `outlet` | `position`, `with_bypass`, `with_indicator` |
 | `pressure_gauge` | `inlet` | `with_isolator` |
-| `accumulator` | `inlet` | `accumulator_type` |
+| `accumulator` | `inlet`; plus `gas` on top with `gas_port` | `accumulator_type` (incl. `none`), `gas_port`, `liquid` |
 | `junction` | `left`, `right`, `top`, `bottom` | `way` |
 
 ## Drawing conventions fixed by this library
@@ -81,6 +81,14 @@ top-right. On multi-position valves the leftmost working envelope is parallel
 (P to A, B to T) and the rightmost is crossed (P to B, A to T). Centre
 conditions: `closed` blocks all four; `open` joins all four; `tandem` joins P to
 T with A and B blocked; `float` joins A, B and T with P blocked.
+
+**Accumulator.** The gas side is sealed and not drawn unless `gas_port` is set,
+which adds a `gas` connection on top of the shell. That port carries air and
+sits in its own port group, so the gas side and the liquid side resolve their
+fluids independently. A declared gas port is required, and spring- and
+weight-loaded types cannot have one: they contain no gas. `accumulator_type:
+none` is direct contact, drawn as a free liquid surface with the level marker,
+for stores where air sits straight on water.
 
 **Counterbalance valve.** A pilot-assisted relief in one leg and a bypass check
 in the other, inside a dash-dot enclosure because they are one cartridge. Free
