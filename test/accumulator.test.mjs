@@ -39,7 +39,7 @@ test('a gas port sits on the top edge, in its own group, and is required', () =>
 
   assert.equal(ports.gas.side, 'top');
   assert.equal(ports.gas.y, 0);
-  assert.equal(ports.gas.medium, 'air');
+  assert.deepEqual(ports.gas.medium, ['air', 'nitrogen'], 'air or nitrogen, never steam');
   assert.equal(ports.gas.group, 'gas');
   assert.equal(ports.gas.criticality, CRITICALITY.REQUIRED);
 
@@ -64,11 +64,17 @@ test('liquid fixes the liquid side; unstated, it inherits', () => {
   assert.equal(accumulator({}).ports.inlet.medium, 'liquid');
 });
 
+test('gas fixes the gas side, so an oil accumulator can be charged with nitrogen', () => {
+  assert.equal(accumulator({ gas_port: true, gas: 'nitrogen' }).ports.gas.medium, 'nitrogen');
+  assert.equal(accumulator({ gas_port: true, gas: 'air' }).ports.gas.medium, 'air');
+});
+
 test('the bill of materials says what was chosen', () => {
   const describe = (config) => getSymbol('accumulator').describe({ config: accumulator(config).config });
   assert.equal(describe({}), 'Bladder accumulator');
   assert.equal(describe({ accumulator_type: 'none', gas_port: true, liquid: 'water' }), 'Accumulator, direct gas-liquid contact, water, with gas port');
   assert.equal(describe({ gas_port: true }), 'Bladder accumulator, with gas port');
+  assert.equal(describe({ gas_port: true, gas: 'nitrogen' }), 'Bladder accumulator, with nitrogen gas port');
 });
 
 test('schema: a spring- or weight-loaded accumulator cannot declare a gas port', () => {
@@ -95,19 +101,26 @@ test('a declared gas port left open is an error, because it contradicts itself',
   assert.deepEqual([finding.subject.component, finding.subject.port], ['ACC1', 'gas']);
 });
 
-test('in a real circuit the gas side carries air while the liquid side stays oil', () => {
+test('in a real circuit the gas side carries gas while the liquid side stays oil', () => {
   const model = example05();
   const acc = model.components.find((component) => component.id === 'ACC1');
   acc.config.gas_port = true;
   model.components.push({ id: 'PG9', type: 'pressure_gauge', pos: [acc.pos[0], acc.pos[1] - 90] });
   model.connections.push({ id: 'gas-side', from: 'ACC1.gas', to: 'PG9.inlet', line: 'pressure' });
 
-  const result = validateModel(model);
+  let result = validateModel(model);
   assert.deepEqual(result.diagnostics.filter((item) => item.severity === 'error'), []);
+  // Nothing on the gas side says air or nitrogen, so the choice is noted, not hidden.
+  const note = result.diagnostics.find((item) => item.code === 'media/unresolved');
+  assert.ok(note && note.subject.components.includes('ACC1'), 'an unstated gas is recorded as assumed');
+
+  acc.config.gas = 'nitrogen';
+  result = validateModel(model);
+  assert.equal(result.diagnostics.find((item) => item.code === 'media/unresolved'), undefined);
   const medium = (id) => result.connections.find((connection) => connection.id === id).medium;
-  assert.equal(medium('gas-side'), 'air');
+  assert.equal(medium('gas-side'), 'nitrogen');
   assert.equal(medium(model.connections.find((connection) => connection.to === 'ACC1.inlet').id), 'oil');
-  assert.equal(result.groupMedia.get('ACC1#gas'), 'air');
+  assert.equal(result.groupMedia.get('ACC1#gas'), 'nitrogen');
   assert.equal(result.groupMedia.get('ACC1#liquid'), 'oil');
 });
 

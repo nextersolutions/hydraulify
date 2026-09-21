@@ -364,6 +364,10 @@
                 "liquid": {
                   "description": "What the liquid side holds. Unstated, it takes the liquid of the line it sits on.",
                   "enum": ["oil", "water"]
+                },
+                "gas": {
+                  "description": "What the gas side holds: air for a compressed-air store, nitrogen for an oil accumulator. Unstated, it takes the gas of the line on its gas port.",
+                  "enum": ["air", "nitrogen"]
                 }
               },
               "if": {
@@ -502,7 +506,7 @@
 
     "medium": {
       "description": "A fluid. Used where a component's configuration fixes what one of its sides carries; everywhere else the fluid is resolved from the ports a line joins, and defaults to oil.",
-      "enum": ["oil", "water", "thermal_oil", "air", "steam", "flue_gas"]
+      "enum": ["oil", "water", "thermal_oil", "air", "nitrogen", "steam", "flue_gas"]
     },
 
     "connection": {

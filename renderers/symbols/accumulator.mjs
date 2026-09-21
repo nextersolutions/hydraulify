@@ -19,7 +19,10 @@
 //
 // The two sides are separate port groups, so the gas side and the liquid side
 // resolve their fluids independently. The liquid side is any liquid unless
-// `liquid` fixes it.
+// `liquid` fixes it. The gas side is air or nitrogen unless `gas` fixes it: air
+// for a compressed-air store, nitrogen for an oil accumulator's back-up bottle,
+// because compressed air over oil risks the diesel effect and nobody charges a
+// hydraulic accumulator with it.
 
 import { line, rect, path, polyline, polygon } from '../shared/svg.mjs';
 import { spring } from './glyphs.mjs';
@@ -56,7 +59,7 @@ export function geometry(config) {
     ports.gas = port('gas', CENTRE_X, 0, 'top', {
       criticality: CRITICALITY.REQUIRED,
       label: 'G',
-      medium: 'air',
+      medium: config.gas ?? ['air', 'nitrogen'],
       group: 'gas',
     });
   }
@@ -116,7 +119,8 @@ export function describe({ config }) {
     none: 'Accumulator, direct gas-liquid contact',
   }[config.accumulator_type] ?? 'Hydraulic accumulator';
   const liquid = config.liquid ? `, ${config.liquid.replace(/_/g, ' ')}` : '';
-  return config.gas_port ? `${kind}${liquid}, with gas port` : `${kind}${liquid}`;
+  if (!config.gas_port) return `${kind}${liquid}`;
+  return config.gas ? `${kind}${liquid}, with ${config.gas} gas port` : `${kind}${liquid}, with gas port`;
 }
 
 export { polyline };

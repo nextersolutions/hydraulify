@@ -92,6 +92,10 @@ outlet share one group; an accumulator's gas and liquid sides are separate
 groups. Every fluid line joins the groups at its two ends, and each joined run
 must agree on one fluid.
 
+The fluids are `oil`, `water`, `thermal_oil`, `air`, `nitrogen`, `steam` and
+`flue_gas`. A port may also admit an explicit list: an accumulator's gas side is
+air or nitrogen, never steam.
+
 A run that nothing narrows is oil, so every circuit written before media existed
 means what it always meant. A conflict is reported with every port that
 constrained the run, because "air meets liquid" is useless without saying where

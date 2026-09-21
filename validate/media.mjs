@@ -17,7 +17,7 @@
 // Shafts are not fluid. A mechanical port takes a mechanical line and nothing
 // else, and mechanical connections never take part in fluid resolution.
 
-import { MEDIA, MECHANICAL, admittedMedia } from '../renderers/symbols/contract.mjs';
+import { MEDIA, MECHANICAL, admittedMedia, describeMedium } from '../renderers/symbols/contract.mjs';
 import { error, info } from '../renderers/shared/diagnostics.mjs';
 
 const groupKey = (componentId, port) => `${componentId}#${port.group ?? 'main'}`;
@@ -46,10 +46,6 @@ function unionFind() {
     if (a < b) parent.set(b, a); else parent.set(a, b);
   };
   return { find, union, keys: () => [...parent.keys()] };
-}
-
-function describeConstraint(medium) {
-  return medium === 'any' ? 'any fluid' : medium.replace(/_/g, ' ');
 }
 
 /**
@@ -162,12 +158,13 @@ export function resolveMedia(resolved, connections) {
     if (!allowed.length) {
       // Report the constraints that actually narrow the set; "any fluid" never
       // causes a conflict and would only bury the ports that did.
-      const narrowing = new Map(); // medium -> [ports]
+      const narrowing = new Map(); // described medium -> [ports]
       for (const constraint of all) {
         if (constraint.medium === 'any') continue;
-        const ports = narrowing.get(constraint.medium) ?? [];
+        const described = describeMedium(constraint.medium);
+        const ports = narrowing.get(described) ?? [];
         ports.push(constraint.port);
-        narrowing.set(constraint.medium, ports);
+        narrowing.set(described, ports);
       }
       const sources = [...narrowing.entries()]
         .sort(([left], [right]) => left.localeCompare(right))
@@ -178,7 +175,7 @@ export function resolveMedia(resolved, connections) {
         code: 'media/conflict',
         subject: { components: components.join(', ') },
         message: 'These connected ports cannot share one fluid: '
-          + sources.map((source) => `${describeConstraint(source.medium)} (${source.ports.join(', ')})`).join(' vs ')
+          + sources.map((source) => `${source.medium} (${source.ports.join(', ')})`).join(' vs ')
           + '.',
         evidence: { constraints: sources, components },
         supportedFixes: [

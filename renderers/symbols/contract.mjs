@@ -40,17 +40,19 @@ export const CRITICALITY = Object.freeze({
  * that every model written before media existed resolves exactly as it always
  * meant to.
  */
-export const MEDIA = Object.freeze(['oil', 'water', 'thermal_oil', 'air', 'steam', 'flue_gas']);
+export const MEDIA = Object.freeze(['oil', 'water', 'thermal_oil', 'air', 'nitrogen', 'steam', 'flue_gas']);
 
 /**
- * What a port may declare as its medium: one fluid, a class of fluids, or a
- * shaft. `any` is the default because most of the library -- valves, gauges,
- * junctions -- works in whatever fluid it sits in.
+ * What a port may declare as its medium: one fluid, a class of fluids, an
+ * explicit list of fluids, or a shaft. `any` is the default because most of the
+ * library -- valves, gauges, junctions -- works in whatever fluid it sits in. A
+ * list is for the narrow cases no class describes: an accumulator's gas side is
+ * air or nitrogen, never steam.
  */
 export const MEDIUM_CLASSES = Object.freeze({
   any: MEDIA,
   liquid: Object.freeze(['oil', 'water', 'thermal_oil']),
-  gas: Object.freeze(['air', 'steam', 'flue_gas']),
+  gas: Object.freeze(['air', 'nitrogen', 'steam', 'flue_gas']),
 });
 
 /** A shaft port. It carries torque, not fluid, and takes only mechanical lines. */
@@ -59,7 +61,14 @@ export const MECHANICAL = 'mechanical';
 /** The fluids a port's medium declaration admits, or null for a shaft. */
 export function admittedMedia(medium) {
   if (medium === MECHANICAL) return null;
+  if (Array.isArray(medium)) return medium;
   return MEDIUM_CLASSES[medium] ?? [medium];
+}
+
+/** A medium declaration as words: "air or nitrogen", "liquid", "any fluid". */
+export function describeMedium(medium) {
+  if (Array.isArray(medium)) return medium.map((item) => item.replace(/_/g, ' ')).join(' or ');
+  return medium === 'any' ? 'any fluid' : medium.replace(/_/g, ' ');
 }
 
 /**
@@ -87,9 +96,12 @@ export function port(id, x, y, side, {
   if (!['left', 'right', 'top', 'bottom'].includes(side)) {
     throw new Error(`symbol port ${id}: unknown side ${side}`);
   }
-  if (medium !== MECHANICAL && !MEDIUM_CLASSES[medium] && !MEDIA.includes(medium)) {
-    throw new Error(`symbol port ${id}: unknown medium ${medium}`);
-  }
+  const known = (item) => MEDIA.includes(item);
+  const valid = medium === MECHANICAL
+    || Boolean(MEDIUM_CLASSES[medium])
+    || known(medium)
+    || (Array.isArray(medium) && medium.length > 0 && medium.every(known));
+  if (!valid) throw new Error(`symbol port ${id}: unknown medium ${medium}`);
   return { id, x, y, side, criticality, label: label ?? id.toUpperCase(), aliases, medium, group };
 }
 

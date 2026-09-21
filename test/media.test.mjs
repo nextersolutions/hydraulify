@@ -147,6 +147,22 @@ test('a gas class nothing narrows is assumed, and says so', () => {
   assert.equal(result.connectionMedia.get('c0'), 'air');
 });
 
+test('an explicit list narrows like a class, and is named in a conflict as words', () => {
+  const nitrogen = run(
+    { ACC: { ports: { gas: { medium: ['air', 'nitrogen'] } } }, B: { ports: { out: { medium: 'nitrogen' } } } },
+    [['B.out', 'ACC.gas']],
+  );
+  assert.deepEqual(codes(nitrogen), []);
+  assert.equal(nitrogen.connectionMedia.get('c0'), 'nitrogen');
+
+  const steam = run(
+    { ACC: { ports: { gas: { medium: ['air', 'nitrogen'] } } }, B: { ports: { out: { medium: 'steam' } } } },
+    [['B.out', 'ACC.gas']],
+  );
+  assert.deepEqual(codes(steam), ['media/conflict']);
+  assert.match(steam.diagnostics[0].message, /air or nitrogen \(ACC\.gas\)/);
+});
+
 test('a shaft to shaft connection typed mechanical carries no fluid and raises nothing', () => {
   const result = run(
     {
@@ -210,6 +226,9 @@ test('resolution does not depend on the order connections were written in', () =
 
 test('a port refuses a medium it does not know', () => {
   assert.throws(() => port('x', 0, 0, 'top', { medium: 'hydrogen' }), /unknown medium hydrogen/);
+  assert.throws(() => port('x', 0, 0, 'top', { medium: ['air', 'hydrogen'] }), /unknown medium/);
+  assert.throws(() => port('x', 0, 0, 'top', { medium: [] }), /unknown medium/);
+  assert.deepEqual(port('x', 0, 0, 'top', { medium: ['air', 'nitrogen'] }).medium, ['air', 'nitrogen']);
   assert.equal(port('x', 0, 0, 'top').medium, 'any');
   assert.equal(port('x', 0, 0, 'top').group, 'main');
 });
