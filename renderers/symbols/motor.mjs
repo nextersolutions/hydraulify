@@ -23,19 +23,21 @@ export const defaults = {
 
 export function geometry(config) {
   const centreX = BODY / 2;
+  // Liquid only: a machine driven by air is a turbine, drawn as one.
   const ports = config.bidirectional
     ? {
-      A: port('A', centreX, 0, 'top', { criticality: CRITICALITY.REQUIRED, label: 'A' }),
-      B: port('B', centreX, BODY, 'bottom', { criticality: CRITICALITY.REQUIRED, label: 'B' }),
+      A: port('A', centreX, 0, 'top', { criticality: CRITICALITY.REQUIRED, label: 'A', medium: 'liquid' }),
+      B: port('B', centreX, BODY, 'bottom', { criticality: CRITICALITY.REQUIRED, label: 'B', medium: 'liquid' }),
     }
     : {
-      inlet: port('inlet', centreX, 0, 'top', { criticality: CRITICALITY.REQUIRED, label: 'A' }),
-      outlet: port('outlet', centreX, BODY, 'bottom', { criticality: CRITICALITY.REQUIRED, label: 'B' }),
+      inlet: port('inlet', centreX, 0, 'top', { criticality: CRITICALITY.REQUIRED, label: 'A', medium: 'liquid' }),
+      outlet: port('outlet', centreX, BODY, 'bottom', { criticality: CRITICALITY.REQUIRED, label: 'B', medium: 'liquid' }),
     };
 
   if (config.has_case_drain) {
     ports.case_drain = port('case_drain', BODY, 16, 'right', {
       criticality: CRITICALITY.OPTIONAL,
+      medium: 'liquid',
       label: 'L',
       aliases: ['drain', 'L'],
     });

@@ -11,7 +11,8 @@ import { validateTopology } from './topology.mjs';
 /**
  * @returns {{
  *   ok: boolean, status: string, diagnostics: Array, counts: object,
- *   resolved: Map|null, connections: Array|null, stage: 'schema'|'topology'
+ *   resolved: Map|null, connections: Array|null, groupMedia: Map|null,
+ *   stage: 'schema'|'topology'
  * }}
  */
 export function validateModel(model) {
@@ -25,10 +26,11 @@ export function validateModel(model) {
       counts: countBySeverity(schemaResult.diagnostics),
       resolved: null,
       connections: null,
+      groupMedia: null,
     };
   }
 
-  const { diagnostics, resolved, connections } = validateTopology(model);
+  const { diagnostics, resolved, connections, groupMedia } = validateTopology(model);
   const counts = countBySeverity(diagnostics);
   const failed = hasErrors(diagnostics);
 
@@ -42,6 +44,7 @@ export function validateModel(model) {
     counts,
     resolved,
     connections,
+    groupMedia,
   };
 }
 

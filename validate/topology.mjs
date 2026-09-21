@@ -14,6 +14,7 @@
 
 import { resolveComponent, findPort } from '../renderers/symbols/index.mjs';
 import { error, warning, info } from '../renderers/shared/diagnostics.mjs';
+import { resolveMedia } from './media.mjs';
 
 /** Parse "P1.outlet" into its two halves. */
 export function parsePortRef(reference) {
@@ -275,12 +276,19 @@ export function validateTopology(model) {
     }
   }
 
+  // --- media: which fluid each line carries ---------------------------------
+  const media = resolveMedia(resolved, connections);
+  diagnostics.push(...media.diagnostics);
+  for (const connection of connections) {
+    connection.medium = media.connectionMedia.get(connection.label) ?? null;
+  }
+
   diagnostics.push(...checkLineSemantics(connections, resolved));
   diagnostics.push(...checkHydraulicPaths(connections, resolved, adjacency));
   diagnostics.push(...checkParameters(resolved));
   diagnostics.push(...checkAssumptions(model, resolved));
 
-  return { diagnostics, resolved, connections };
+  return { diagnostics, resolved, connections, groupMedia: media.groupMedia };
 }
 
 function connectedGroups(adjacency) {

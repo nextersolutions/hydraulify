@@ -439,8 +439,13 @@
     },
 
     "lineType": {
-      "description": "Hydraulic function of the line. ISO 1219 renders working lines (suction, pressure, working, return) continuous, pilot lines long-dashed and drain lines short-dashed.",
-      "enum": ["suction", "pressure", "working", "return", "drain", "pilot"]
+      "description": "Function of the line. ISO 1219 renders working lines (suction, pressure, working, return) continuous, pilot lines long-dashed and drain lines short-dashed. A mechanical line is a shaft between machines, drawn as a double line; it carries torque, not fluid, and joins only shaft ports. The fluid a line carries is never written here: it is resolved from the ports the line joins.",
+      "enum": ["suction", "pressure", "working", "return", "drain", "pilot", "mechanical"]
+    },
+
+    "medium": {
+      "description": "A fluid. Used where a component's configuration fixes what one of its sides carries; everywhere else the fluid is resolved from the ports a line joins, and defaults to oil.",
+      "enum": ["oil", "water", "thermal_oil", "air", "steam", "flue_gas"]
     },
 
     "connection": {

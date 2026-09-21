@@ -32,13 +32,16 @@ export function geometry() {
     ports: {
       // Neither port is individually required: a tank may appear purely as a
       // source or purely as a sink. The domain validator separately requires that
-      // a reservoir is connected to something.
+      // a reservoir is connected to something. Liquid only: stored air is an
+      // air receiver, which has its own symbol.
       outlet: port('outlet', OUTLET_X, 0, 'top', {
         criticality: CRITICALITY.OPTIONAL,
+        medium: 'liquid',
         label: 'S',
       }),
       return: port('return', RETURN_X, 0, 'top', {
         criticality: CRITICALITY.OPTIONAL,
+        medium: 'liquid',
         label: 'R',
         aliases: ['ret', 'T'],
       }),

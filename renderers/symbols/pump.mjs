@@ -33,13 +33,17 @@ export function geometry(config) {
   const width = offsetX + BODY;
   const centreX = offsetX + BODY / 2;
 
+  // Liquid only. Air is moved by a compressor, which is a different machine with
+  // a different symbol, and a pump drawn on an air line would say otherwise.
   const ports = {
     inlet: port('inlet', centreX, BODY, 'bottom', {
       criticality: CRITICALITY.REQUIRED,
+      medium: 'liquid',
       label: 'S',
     }),
     outlet: port('outlet', centreX, 0, 'top', {
       criticality: CRITICALITY.REQUIRED,
+      medium: 'liquid',
       label: 'P',
     }),
   };
@@ -49,6 +53,7 @@ export function geometry(config) {
     // routed, so an unconnected case drain is silent rather than a finding.
     ports.case_drain = port('case_drain', width, 16, 'right', {
       criticality: CRITICALITY.OPTIONAL,
+      medium: 'liquid',
       label: 'L',
       aliases: ['drain', 'L'],
     });

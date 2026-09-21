@@ -35,19 +35,62 @@ export const CRITICALITY = Object.freeze({
 });
 
 /**
+ * The fluids a line can carry, in resolution order: when a connected set of
+ * ports would accept several, the first one allowed wins. Oil comes first so
+ * that every model written before media existed resolves exactly as it always
+ * meant to.
+ */
+export const MEDIA = Object.freeze(['oil', 'water', 'thermal_oil', 'air', 'steam', 'flue_gas']);
+
+/**
+ * What a port may declare as its medium: one fluid, a class of fluids, or a
+ * shaft. `any` is the default because most of the library -- valves, gauges,
+ * junctions -- works in whatever fluid it sits in.
+ */
+export const MEDIUM_CLASSES = Object.freeze({
+  any: MEDIA,
+  liquid: Object.freeze(['oil', 'water', 'thermal_oil']),
+  gas: Object.freeze(['air', 'steam', 'flue_gas']),
+});
+
+/** A shaft port. It carries torque, not fluid, and takes only mechanical lines. */
+export const MECHANICAL = 'mechanical';
+
+/** The fluids a port's medium declaration admits, or null for a shaft. */
+export function admittedMedia(medium) {
+  if (medium === MECHANICAL) return null;
+  return MEDIUM_CLASSES[medium] ?? [medium];
+}
+
+/**
  * Declare a port.
+ *
+ * `medium` is what the port can carry. `group` ties ports that must share one
+ * fluid: a check valve's inlet and outlet carry the same fluid, while an
+ * accumulator's gas port and liquid port do not, so they sit in different
+ * groups. Ports default to one shared group, which is right for everything
+ * that does not separate two fluids.
  *
  * @param {string} id        port name as authored in a port reference (P1.outlet)
  * @param {number} x         local x on the frame boundary
  * @param {number} y         local y on the frame boundary
  * @param {string} side      which frame edge the line leaves through
- * @param {object} [options] criticality, display label, aliases
+ * @param {object} [options] criticality, display label, aliases, medium, group
  */
-export function port(id, x, y, side, { criticality = CRITICALITY.EXPECTED, label, aliases = [] } = {}) {
+export function port(id, x, y, side, {
+  criticality = CRITICALITY.EXPECTED,
+  label,
+  aliases = [],
+  medium = 'any',
+  group = 'main',
+} = {}) {
   if (!['left', 'right', 'top', 'bottom'].includes(side)) {
     throw new Error(`symbol port ${id}: unknown side ${side}`);
   }
-  return { id, x, y, side, criticality, label: label ?? id.toUpperCase(), aliases };
+  if (medium !== MECHANICAL && !MEDIUM_CLASSES[medium] && !MEDIA.includes(medium)) {
+    throw new Error(`symbol port ${id}: unknown medium ${medium}`);
+  }
+  return { id, x, y, side, criticality, label: label ?? id.toUpperCase(), aliases, medium, group };
 }
 
 /** Merge authored config over a symbol's defaults without mutating either. */

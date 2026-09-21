@@ -18,7 +18,7 @@ import { countBySeverity, sortDiagnostics, hasErrors } from './shared/diagnostic
  * view they are the same kind of finding.
  *
  * @returns {{
- *   ok, status, stage, diagnostics, counts, resolved, connections, layout
+ *   ok, status, stage, diagnostics, counts, resolved, connections, groupMedia, layout
  * }}
  */
 export function analyse(model) {
@@ -38,6 +38,7 @@ export function analyse(model) {
     counts,
     resolved: validation.resolved,
     connections: validation.connections,
+    groupMedia: validation.groupMedia,
     layout,
   };
 }

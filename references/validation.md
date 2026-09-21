@@ -31,6 +31,8 @@ Severity follows the brief's three-way split:
 | `hydraulic/line-type-invalid` | a control port carries a line not typed `pilot` |
 | `hydraulic/actuator-to-tank` | a cylinder working port is wired straight to the reservoir |
 | `hydraulic/pump-to-pump` | a pump delivers into another pump's inlet |
+| `media/conflict` | connected ports cannot share one fluid -- air meeting liquid; the finding names the ports on each side |
+| `media/mechanical-mismatch` | a shaft joined to a fluid port or a junction, or a line typed against what its ports carry |
 
 `hydraulic/line-type-invalid` is an error rather than a warning because the line
 type decides how the line is drawn. A pilot line drawn as a working line tells
@@ -63,6 +65,7 @@ in a way that looks right.
 | --- | --- |
 | `parameters/unspecified` | a secondary parameter is missing |
 | `layout/line-crossings` | how many lines cross in the drawing |
+| `media/unresolved` | nothing fixes a run's fluid and oil is not allowed, so one was assumed |
 
 Crossings are counted, not forbidden. A dense circuit legitimately has some, and
 an author needs to know how many rather than be blocked.
@@ -79,6 +82,24 @@ an author needs to know how many rather than be blocked.
 - **Anything requiring physics.** No pressure drop, no flow balance, no thermal
   behaviour, no stability. The claim is topological consistency with the
   information provided, and that is all the report says.
+
+## Media
+
+No connection states its fluid. Each port declares what it can carry -- one
+fluid, a class (`liquid`, `gas`), `any`, or a shaft -- and ports that must share
+a fluid sit in the same group on their component. A check valve's inlet and
+outlet share one group; an accumulator's gas and liquid sides are separate
+groups. Every fluid line joins the groups at its two ends, and each joined run
+must agree on one fluid.
+
+A run that nothing narrows is oil, so every circuit written before media existed
+means what it always meant. A conflict is reported with every port that
+constrained the run, because "air meets liquid" is useless without saying where
+each came from. Pumps, motors and reservoirs are liquid-only; valves, gauges,
+filters and junctions carry whatever they sit in.
+
+Shafts are not fluid. A shaft port takes a `mechanical` line and nothing else,
+and shafts never branch through junctions.
 
 ## The assumptions rule
 
