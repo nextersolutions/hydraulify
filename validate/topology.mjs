@@ -338,10 +338,12 @@ function connectedGroups(adjacency) {
 function checkLineSemantics(connections, resolved) {
   const diagnostics = [];
 
-  const expectation = (componentType, portId) => {
+  const expectation = (componentType, portId, farType) => {
     if (portId === 'pilot') return { required: ['pilot'], why: 'a pilot port carries a control line' };
     if (portId === 'case_drain') return { preferred: ['drain'], why: 'a case drain carries leakage back to tank' };
-    if (componentType === 'reservoir' && portId === 'outlet') return { preferred: ['suction'], why: 'a pump draws from the reservoir through a suction line' };
+    // A compensation basin feeds a water-compensated store by head, not through
+    // a pump, so its outlet line is not a suction line.
+    if (componentType === 'reservoir' && portId === 'outlet' && farType !== 'accumulator') return { preferred: ['suction'], why: 'a pump draws from the reservoir through a suction line' };
     if (componentType === 'reservoir' && portId === 'return') return { preferred: ['return', 'drain'], why: 'lines entering the reservoir are return or drain lines' };
     if (componentType === 'pump' && portId === 'inlet') return { preferred: ['suction'], why: 'a pump inlet is fed by a suction line' };
     if (componentType === 'pump' && portId === 'outlet') return { preferred: ['pressure'], why: 'a pump delivers into a pressure line' };
@@ -354,7 +356,8 @@ function checkLineSemantics(connections, resolved) {
   for (const connection of connections) {
     for (const end of ['from', 'to']) {
       const { componentId, port, target } = connection.endpoints[end];
-      const rule = expectation(target.component.type, port.id);
+      const far = connection.endpoints[end === 'from' ? 'to' : 'from'].target.component.type;
+      const rule = expectation(target.component.type, port.id, far);
       if (!rule) continue;
 
       if (rule.required && !rule.required.includes(connection.line)) {
@@ -678,6 +681,9 @@ function checkParameters(resolved) {
     }
 
     for (const [names, description] of SECONDARY_PARAMS[type] ?? []) {
+      // A direct-contact store has no gas charge sealed behind a separator, so
+      // there is no pre-charge to state.
+      if (names.includes('precharge_bar') && entry.config.accumulator_type === 'none') continue;
       if (!hasValue(params, names)) {
         diagnostics.push(info({
           code: 'parameters/unspecified',

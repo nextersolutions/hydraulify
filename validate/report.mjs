@@ -126,7 +126,10 @@ export function topologyChecklist(analysis) {
     add(all ? 'pass' : 'fail', 'Every cylinder working port is connected', cylinders.join(', '));
   }
 
-  if (reservoirs.length) {
+  // Only a pumped circuit has flow that must come back. A compensation basin
+  // under a compressed-air store has nothing returning to it, by design; the
+  // validator's no-return-path rule makes the same distinction.
+  if (reservoirs.length && pumps.length) {
     const hasReturn = connections.some((connection) => ['from', 'to'].some((end) => (
       connection.endpoints[end].target.component.type === 'reservoir'
       && connection.endpoints[end].port.id === 'return'

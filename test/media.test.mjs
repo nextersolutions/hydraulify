@@ -239,8 +239,9 @@ test('the schema and the symbol contract agree on the list of fluids', () => {
   assert.ok(schema.$defs.lineType.enum.includes('mechanical'));
 });
 
-test('every worked example still resolves to oil on every line, with no media findings', () => {
-  const examples = fs.readdirSync(path.join(root, 'examples')).filter((name) => name.endsWith('.json'));
+test('every hydraulic example still resolves to oil on every line, with no media findings', () => {
+  // 06 and 07 carry more than one fluid on purpose; caes-examples.test.mjs covers them.
+  const examples = fs.readdirSync(path.join(root, 'examples')).filter((name) => /^0[1-5]-.*\.json$/.test(name));
   assert.ok(examples.length >= 5);
   for (const name of examples) {
     const model = JSON.parse(fs.readFileSync(path.join(root, 'examples', name), 'utf8'));

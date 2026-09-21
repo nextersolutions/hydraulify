@@ -178,7 +178,7 @@ review needs both.
 node bin/hydraulify.mjs inspect model.json            # anchors, sides, routes
 node bin/hydraulify.mjs check out.svg                 # structure, no inline colour
 node bin/hydraulify.mjs visual-check out.html --png shot.png
-node bin/hydraulify.mjs demo tmp/                     # render all five examples
+node bin/hydraulify.mjs demo tmp/                     # render all seven examples
 ```
 
 `inspect` is the artifact to diff when a layout changes: it reads as "C1.rod
@@ -257,14 +257,14 @@ to a path with `--json-out`.
 
 ## Examples
 
-Five worked circuits, each one a model in `examples/` and a drawing generated
+Seven worked circuits, each one a model in `examples/` and a drawing generated
 from it. The drawings below are produced by `npm run generate:examples` and
 `npm test` fails if they no longer match what the renderer emits, so what you
 see here is what you get.
 
 ```bash
 node bin/hydraulify.mjs examples          # list them
-node bin/hydraulify.mjs demo tmp/         # render all five, with reports and BOMs
+node bin/hydraulify.mjs demo tmp/         # render all seven, with reports and BOMs
 ```
 
 <details open>
@@ -322,6 +322,28 @@ Suction and return filtration, an accumulator on the pressure rail, and a mirror
 
 </details>
 
+<details>
+<summary><b>06-caes-plant</b> -- A compressed-air energy storage plant</summary>
+
+Two compressor stages with an intercooler and an aftercooler charge a water-compensated air store. On discharge the air is regulated, preheated by flue gas and expanded through a turbine. The turbine shares a motor-generator with the LP compressor, with a clutch at each end. Each line carries its fluid's name wherever the fluid changes, and the shafts are drawn as double lines.
+
+<p align="center">
+  <img src="docs/examples/06-caes-plant.svg" width="820" alt="A compressed-air storage plant: compressors, coolers, an air store over a water basin, a preheater, a turbine and a motor-generator on clutched shafts.">
+</p>
+
+</details>
+
+<details>
+<summary><b>07-nitrogen-backup</b> -- An oil circuit with a nitrogen bottle</summary>
+
+Example 05 with a piston accumulator whose gas side runs through an isolation valve to a nitrogen back-up bottle. The oil and nitrogen sides are named where they meet at the accumulator. An air bottle on the same port is refused, because the accumulator's gas side is declared nitrogen.
+
+<p align="center">
+  <img src="docs/examples/07-nitrogen-backup.svg" width="820" alt="The filtered power unit with a piston accumulator connected on its gas side to a nitrogen bottle through a shut-off valve.">
+</p>
+
+</details>
+
 Each is rendered from its model with nothing hand-drawn:
 
 ```bash
@@ -336,7 +358,7 @@ schemas/       the model schema; the committed validator is generated from it
 renderers/     symbols, layout, SVG and HTML renderers, vendored geometry
 validate/      topology and hydraulic rules, validation report, BOM
 scaffold/      provisional band placement
-examples/      five worked circuits
+examples/      seven worked circuits
 references/    deep-dive docs, gated so an agent loads them only when needed
 docs/          architecture record, decisions, shared instruction source,
                and the example drawings this README shows

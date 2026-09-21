@@ -43,7 +43,8 @@ function arrowOf(svg, edge) {
 }
 
 test('a drawing with one fluid prints no medium labels at all', () => {
-  for (const name of fs.readdirSync(path.join(root, 'examples')).filter((file) => file.endsWith('.json'))) {
+  // 01 to 05 are oil throughout; 06 and 07 are the mixed ones.
+  for (const name of fs.readdirSync(path.join(root, 'examples')).filter((file) => /^0[1-5]-.*\.json$/.test(file))) {
     const { svg } = render(load(`examples/${name}`));
     assert.doesNotMatch(svg, /class="line-label"/, name);
   }

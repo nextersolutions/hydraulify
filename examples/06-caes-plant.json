@@ -1,0 +1,542 @@
+{
+  "schema_version": 1,
+  "diagram_type": "hydraulic_circuit",
+  "meta": {
+    "title": "Diabatic compressed-air energy storage",
+    "subtitle": "Two-stage compression with intercooling and aftercooling, water-compensated store, flue-gas preheated expansion on a shared motor-generator",
+    "units": "si"
+  },
+  "components": [
+    {
+      "id": "T1",
+      "type": "turbine",
+      "label": "Expander",
+      "pos": [
+        240,
+        220
+      ],
+      "params": {
+        "power_kw": 2000,
+        "mass_flow_kgs": 5
+      }
+    },
+    {
+      "id": "MG1",
+      "type": "electrical_machine",
+      "pos": [
+        400,
+        220
+      ],
+      "config": {
+        "role": "motor_generator"
+      },
+      "params": {
+        "power_kw": 2000
+      }
+    },
+    {
+      "id": "C1",
+      "type": "compressor",
+      "label": "LP compressor",
+      "pos": [
+        580,
+        220
+      ],
+      "params": {
+        "flow_nm3h": 12000,
+        "max_pressure_bar": 12
+      }
+    },
+    {
+      "id": "M2",
+      "type": "electrical_machine",
+      "pos": [
+        1100,
+        220
+      ],
+      "mirror": true,
+      "config": {
+        "role": "motor"
+      },
+      "params": {
+        "power_kw": 800
+      }
+    },
+    {
+      "id": "C2",
+      "type": "compressor",
+      "label": "HP compressor",
+      "pos": [
+        940,
+        220
+      ],
+      "mirror": true,
+      "params": {
+        "flow_nm3h": 12000,
+        "max_pressure_bar": 70
+      }
+    },
+    {
+      "id": "AMB",
+      "type": "boundary",
+      "pos": [
+        650,
+        320
+      ],
+      "config": {
+        "direction": "from",
+        "name": "ambient",
+        "medium": "air"
+      }
+    },
+    {
+      "id": "HX1",
+      "type": "heat_exchanger",
+      "label": "Intercooler",
+      "pos": [
+        740,
+        80
+      ],
+      "config": {
+        "function": "cooling",
+        "utility_medium": "water"
+      },
+      "params": {
+        "power_kw": 600
+      }
+    },
+    {
+      "id": "CWS1",
+      "type": "boundary",
+      "pos": [
+        680,
+        160
+      ],
+      "mirror": true,
+      "config": {
+        "direction": "from",
+        "name": "CW supply"
+      }
+    },
+    {
+      "id": "CWR1",
+      "type": "boundary",
+      "pos": [
+        800,
+        30
+      ],
+      "config": {
+        "direction": "to",
+        "name": "CW return"
+      }
+    },
+    {
+      "id": "HX2",
+      "type": "heat_exchanger",
+      "label": "Aftercooler",
+      "pos": [
+        1020,
+        80
+      ],
+      "config": {
+        "function": "cooling",
+        "utility_medium": "water"
+      },
+      "params": {
+        "power_kw": 700
+      }
+    },
+    {
+      "id": "CWS2",
+      "type": "boundary",
+      "pos": [
+        1080,
+        160
+      ],
+      "config": {
+        "direction": "from",
+        "name": "CW supply"
+      }
+    },
+    {
+      "id": "CWR2",
+      "type": "boundary",
+      "pos": [
+        1080,
+        30
+      ],
+      "config": {
+        "direction": "to",
+        "name": "CW return"
+      }
+    },
+    {
+      "id": "J2",
+      "type": "junction",
+      "pos": [
+        1216,
+        296
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "RV1",
+      "type": "relief_valve",
+      "label": "Safety valve",
+      "pos": [
+        1260,
+        330
+      ],
+      "params": {
+        "setting_bar": 75
+      }
+    },
+    {
+      "id": "VENT",
+      "type": "boundary",
+      "pos": [
+        1330,
+        440
+      ],
+      "config": {
+        "direction": "to",
+        "name": "atmosphere",
+        "medium": "air"
+      }
+    },
+    {
+      "id": "CV1",
+      "type": "check_valve",
+      "pos": [
+        1100,
+        462
+      ],
+      "mirror": true,
+      "config": {
+        "spring_loaded": true
+      }
+    },
+    {
+      "id": "J1",
+      "type": "junction",
+      "pos": [
+        996,
+        476
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "ACC1",
+      "type": "accumulator",
+      "label": "Air store",
+      "pos": [
+        977,
+        540
+      ],
+      "config": {
+        "accumulator_type": "none",
+        "gas_port": true,
+        "gas": "air",
+        "liquid": "water"
+      },
+      "params": {
+        "volume_l": 400000,
+        "max_pressure_bar": 72
+      }
+    },
+    {
+      "id": "B1",
+      "type": "reservoir",
+      "label": "Compensation basin",
+      "pos": [
+        978,
+        680
+      ],
+      "config": {
+        "liquid": "water",
+        "vented": true
+      },
+      "params": {
+        "volume_l": 450000
+      },
+      "ports": {
+        "return": {
+          "plugged": true
+        }
+      }
+    },
+    {
+      "id": "V1",
+      "type": "shut_off_valve",
+      "label": "Store isolation",
+      "pos": [
+        740,
+        454
+      ],
+      "mirror": true,
+      "config": {
+        "normal_position": "closed"
+      }
+    },
+    {
+      "id": "PR1",
+      "type": "pressure_regulator",
+      "pos": [
+        600,
+        445
+      ],
+      "mirror": true,
+      "params": {
+        "setting_bar": 45
+      }
+    },
+    {
+      "id": "HX3",
+      "type": "heat_exchanger",
+      "label": "Preheater",
+      "pos": [
+        80,
+        80
+      ],
+      "config": {
+        "function": "heating",
+        "utility_medium": "flue_gas"
+      },
+      "params": {
+        "power_kw": 900,
+        "temperature_c": 550
+      }
+    },
+    {
+      "id": "FG",
+      "type": "boundary",
+      "pos": [
+        130,
+        170
+      ],
+      "config": {
+        "direction": "from",
+        "name": "flue gas"
+      }
+    },
+    {
+      "id": "STACK",
+      "type": "boundary",
+      "pos": [
+        140,
+        20
+      ],
+      "config": {
+        "direction": "to",
+        "name": "stack"
+      }
+    },
+    {
+      "id": "SIL",
+      "type": "silencer",
+      "pos": [
+        254,
+        330
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "expander-shaft",
+      "from": "T1.shaft",
+      "to": "MG1.shaft_a",
+      "line": "mechanical",
+      "clutch": true
+    },
+    {
+      "id": "compressor-shaft",
+      "from": "MG1.shaft_b",
+      "to": "C1.shaft",
+      "line": "mechanical",
+      "clutch": true
+    },
+    {
+      "id": "hp-drive",
+      "from": "M2.shaft",
+      "to": "C2.shaft",
+      "line": "mechanical"
+    },
+    {
+      "id": "intake",
+      "from": "AMB.port",
+      "to": "C1.inlet",
+      "line": "suction"
+    },
+    {
+      "id": "lp-discharge",
+      "from": "C1.outlet",
+      "to": "HX1.in",
+      "line": "pressure"
+    },
+    {
+      "id": "intercooled",
+      "from": "HX1.out",
+      "to": "C2.inlet",
+      "line": "pressure",
+      "via": [
+        [
+          850,
+          114
+        ],
+        [
+          850,
+          300
+        ],
+        [
+          968,
+          300
+        ]
+      ]
+    },
+    {
+      "id": "cw1-in",
+      "from": "CWS1.port",
+      "to": "HX1.utility_in",
+      "line": "pressure"
+    },
+    {
+      "id": "cw1-out",
+      "from": "HX1.utility_out",
+      "to": "CWR1.port",
+      "line": "return"
+    },
+    {
+      "id": "hp-discharge",
+      "from": "C2.outlet",
+      "to": "HX2.in",
+      "line": "pressure"
+    },
+    {
+      "id": "cw2-in",
+      "from": "CWS2.port",
+      "to": "HX2.utility_in",
+      "line": "pressure"
+    },
+    {
+      "id": "cw2-out",
+      "from": "HX2.utility_out",
+      "to": "CWR2.port",
+      "line": "return"
+    },
+    {
+      "id": "aftercooled",
+      "from": "HX2.out",
+      "to": "J2.top",
+      "line": "pressure"
+    },
+    {
+      "id": "safety-in",
+      "from": "J2.right",
+      "to": "RV1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "safety-vent",
+      "from": "RV1.outlet",
+      "to": "VENT.port",
+      "line": "return"
+    },
+    {
+      "id": "charge",
+      "from": "J2.bottom",
+      "to": "CV1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "charge-store",
+      "from": "CV1.outlet",
+      "to": "J1.right",
+      "line": "pressure"
+    },
+    {
+      "id": "store-air",
+      "from": "J1.bottom",
+      "to": "ACC1.gas",
+      "line": "pressure"
+    },
+    {
+      "id": "store-water",
+      "from": "ACC1.inlet",
+      "to": "B1.outlet",
+      "line": "pressure"
+    },
+    {
+      "id": "store-out",
+      "from": "J1.left",
+      "to": "V1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "isolated",
+      "from": "V1.outlet",
+      "to": "PR1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "regulated",
+      "from": "PR1.outlet",
+      "to": "HX3.in",
+      "line": "pressure"
+    },
+    {
+      "id": "flue-in",
+      "from": "FG.port",
+      "to": "HX3.utility_in",
+      "line": "pressure"
+    },
+    {
+      "id": "flue-out",
+      "from": "HX3.utility_out",
+      "to": "STACK.port",
+      "line": "return"
+    },
+    {
+      "id": "hot-air",
+      "from": "HX3.out",
+      "to": "T1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "exhaust",
+      "from": "T1.exhaust",
+      "to": "SIL.inlet",
+      "line": "return"
+    }
+  ],
+  "assumptions": [
+    {
+      "subject": "MG1",
+      "statement": "One motor-generator serves both modes, with a clutch to the expander and a clutch to the LP compressor; only one clutch is engaged at a time.",
+      "rationale": "Asked first: the shaft arrangement was stated as a shared machine."
+    },
+    {
+      "subject": "HX3",
+      "statement": "The preheater is fired by flue gas from outside the drawing, which is what makes the plant diabatic.",
+      "rationale": "Asked first: the heat source was stated as combustion."
+    },
+    {
+      "subject": "C2",
+      "statement": "The HP stage has its own motor, because a compressor has one shaft end and the LP stage takes the shared machine's.",
+      "rationale": "Two stages were asked for; the drive of the second was not stated."
+    },
+    {
+      "subject": "ACC1",
+      "statement": "Drawn as direct contact, air over water with no separator, as a water-compensated store is built.",
+      "rationale": "The separating element was not stated."
+    },
+    {
+      "subject": "T1",
+      "statement": "Drawn in the ISO 1219 fluid-power form; set meta.machine_style to iso10628 for the process-plant trapezoid.",
+      "rationale": "The drawing convention for the turbine was not stated."
+    }
+  ]
+}

@@ -36,7 +36,7 @@ function visualCheck(file) {
 
 const hasChrome = visualCheck(path.join(root, 'docs', 'examples', '04-load-holding.svg')) !== null;
 
-for (const name of ['04-load-holding', '05-filtered-power-unit']) {
+for (const name of ['04-load-holding', '05-filtered-power-unit', '06-caes-plant']) {
   test(`${name}: every solid element is painted solid in Chrome`, { skip: !hasChrome && 'Chrome not found' }, () => {
     const { status, receipt } = visualCheck(path.join(root, 'docs', 'examples', `${name}.svg`));
     assert.equal(status, 0, receipt.findings.join('\n'));

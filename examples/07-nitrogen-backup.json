@@ -1,0 +1,355 @@
+{
+  "schema_version": 1,
+  "diagram_type": "hydraulic_circuit",
+  "meta": {
+    "title": "Power unit with a nitrogen back-up bottle",
+    "subtitle": "Piston accumulator whose gas side is extended by an isolable nitrogen bottle",
+    "units": "si"
+  },
+  "components": [
+    {
+      "id": "T1",
+      "type": "reservoir",
+      "pos": [
+        60,
+        600
+      ],
+      "params": {
+        "volume_l": 160
+      }
+    },
+    {
+      "id": "F1",
+      "type": "filter",
+      "pos": [
+        150,
+        556
+      ],
+      "config": {
+        "position": "suction"
+      },
+      "params": {
+        "rating_micron": 125
+      }
+    },
+    {
+      "id": "P1",
+      "type": "pump",
+      "pos": [
+        280,
+        470
+      ],
+      "config": {
+        "pump_type": "fixed_displacement",
+        "drive": "electric_motor"
+      },
+      "params": {
+        "flow_lpm": 30,
+        "max_pressure_bar": 250
+      }
+    },
+    {
+      "id": "J1",
+      "type": "junction",
+      "pos": [
+        356,
+        376
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "RV1",
+      "type": "relief_valve",
+      "pos": [
+        470,
+        420
+      ],
+      "params": {
+        "setting_bar": 200
+      }
+    },
+    {
+      "id": "CV1",
+      "type": "check_valve",
+      "pos": [
+        420,
+        300
+      ],
+      "config": {
+        "spring_loaded": true
+      },
+      "params": {
+        "cracking_pressure_bar": 0.5
+      }
+    },
+    {
+      "id": "J2",
+      "type": "junction",
+      "pos": [
+        556,
+        314
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "ACC1",
+      "type": "accumulator",
+      "pos": [
+        537,
+        180
+      ],
+      "config": {
+        "accumulator_type": "piston",
+        "gas_port": true,
+        "gas": "nitrogen"
+      },
+      "params": {
+        "volume_l": 10,
+        "precharge_bar": 90
+      }
+    },
+    {
+      "id": "V2",
+      "type": "shut_off_valve",
+      "label": "Gas isolation",
+      "pos": [
+        660,
+        84
+      ]
+    },
+    {
+      "id": "NB1",
+      "type": "air_receiver",
+      "label": "Back-up bottle",
+      "pos": [
+        760,
+        93
+      ],
+      "config": {
+        "gas": "nitrogen",
+        "single_port": true
+      },
+      "params": {
+        "volume_l": 50,
+        "max_pressure_bar": 250
+      }
+    },
+    {
+      "id": "J3",
+      "type": "junction",
+      "pos": [
+        758,
+        314
+      ],
+      "config": {
+        "way": 3
+      }
+    },
+    {
+      "id": "PG1",
+      "type": "pressure_gauge",
+      "pos": [
+        740,
+        214
+      ],
+      "params": {
+        "range_bar": 250
+      }
+    },
+    {
+      "id": "V1",
+      "type": "directional_control_valve",
+      "pos": [
+        780,
+        400
+      ],
+      "config": {
+        "configuration": "4/2",
+        "actuation": {
+          "left": "solenoid",
+          "right": "none",
+          "spring": "right_return"
+        }
+      }
+    },
+    {
+      "id": "C1",
+      "type": "cylinder",
+      "pos": [
+        980,
+        200
+      ],
+      "config": {
+        "cylinder_type": "double_acting"
+      },
+      "params": {
+        "bore_mm": 50,
+        "rod_mm": 28,
+        "stroke_mm": 250
+      }
+    },
+    {
+      "id": "F2",
+      "type": "filter",
+      "pos": [
+        620,
+        596
+      ],
+      "mirror": true,
+      "config": {
+        "position": "return",
+        "with_bypass": true
+      },
+      "params": {
+        "rating_micron": 10
+      }
+    },
+    {
+      "id": "J4",
+      "type": "junction",
+      "pos": [
+        510,
+        616
+      ],
+      "config": {
+        "way": 3
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "tank-to-filter",
+      "from": "T1.outlet",
+      "to": "F1.inlet",
+      "line": "suction"
+    },
+    {
+      "id": "suction",
+      "from": "F1.outlet",
+      "to": "P1.inlet",
+      "line": "suction"
+    },
+    {
+      "id": "delivery",
+      "from": "P1.outlet",
+      "to": "J1.bottom",
+      "line": "pressure"
+    },
+    {
+      "id": "relief-tap",
+      "from": "J1.right",
+      "to": "RV1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "to-check",
+      "from": "J1.top",
+      "to": "CV1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "check-out",
+      "from": "CV1.outlet",
+      "to": "J2.left",
+      "line": "pressure"
+    },
+    {
+      "id": "accumulator-tap",
+      "from": "J2.top",
+      "to": "ACC1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "gas-side",
+      "from": "ACC1.gas",
+      "to": "V2.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "bottle",
+      "from": "V2.outlet",
+      "to": "NB1.port",
+      "line": "pressure"
+    },
+    {
+      "id": "rail",
+      "from": "J2.right",
+      "to": "J3.left",
+      "line": "pressure"
+    },
+    {
+      "id": "gauge-tap",
+      "from": "J3.top",
+      "to": "PG1.inlet",
+      "line": "pressure"
+    },
+    {
+      "id": "to-valve",
+      "from": "J3.right",
+      "to": "V1.P",
+      "line": "pressure"
+    },
+    {
+      "id": "extend",
+      "from": "V1.A",
+      "to": "C1.cap",
+      "line": "working"
+    },
+    {
+      "id": "retract",
+      "from": "V1.B",
+      "to": "C1.rod",
+      "line": "working"
+    },
+    {
+      "id": "valve-return",
+      "from": "V1.T",
+      "to": "F2.inlet",
+      "line": "return"
+    },
+    {
+      "id": "filter-return",
+      "from": "F2.outlet",
+      "to": "J4.right",
+      "line": "return"
+    },
+    {
+      "id": "relief-discharge",
+      "from": "RV1.outlet",
+      "to": "J4.top",
+      "line": "return"
+    },
+    {
+      "id": "tank-return",
+      "from": "J4.left",
+      "to": "T1.return",
+      "line": "return"
+    }
+  ],
+  "assumptions": [
+    {
+      "subject": "CV1",
+      "statement": "The accumulator is isolated from the pump by a check valve, so stored energy cannot drive the pump backwards.",
+      "rationale": "The description asked for an accumulator on the pressure line but did not say how it is isolated."
+    },
+    {
+      "subject": "ACC1",
+      "statement": "A piston accumulator, because a back-up bottle adds gas volume behind a separator and a piston is the usual one for it.",
+      "rationale": "The description asked for a nitrogen bottle on the accumulator but did not state the separating element."
+    },
+    {
+      "subject": "V2",
+      "statement": "The bottle can be isolated from the accumulator, so either can be charged or serviced alone.",
+      "rationale": "The description did not say how the bottle is connected."
+    },
+    {
+      "subject": "V1",
+      "statement": "Drawn as a 4/2 valve with a spring return, so the cylinder has a defined rest position.",
+      "rationale": "The description named a directional valve without stating positions or actuation."
+    }
+  ]
+}

@@ -45,7 +45,10 @@ export function geometry(config) {
         criticality: CRITICALITY.EXPECTED, label: 'U2', medium: utility, group: 'utility',
       }),
     },
-    labelAnchor: { x: CENTRE + 14, y: 8, anchor: 'start' },
+    // Upper left, clear of all four lines: the tag and two captions run 26
+    // units deep, so below y = 8 the last caption sat on the process line, and
+    // the upper right is where the utility line's medium label goes.
+    labelAnchor: { x: CENTRE - 14, y: -10, anchor: 'end' },
   };
 }
 
