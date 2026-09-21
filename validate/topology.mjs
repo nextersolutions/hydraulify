@@ -166,7 +166,9 @@ export function validateTopology(model) {
       return;
     }
 
-    connections.push({ ...connection, index, label, endpoints });
+    // `label` becomes the identifier findings use; what the author wrote to be
+    // printed beside the line travels on as `authoredLabel`.
+    connections.push({ ...connection, authoredLabel: connection.label, index, label, endpoints });
   });
 
   for (const [portKey, users] of portUsage) {

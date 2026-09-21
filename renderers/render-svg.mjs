@@ -75,31 +75,61 @@ const LINE_CLASS = {
   drain: 'drain-line',
 };
 
+// Ports flow can only leave, and ports flow can only enter. A line touching one
+// of these has a direction that cannot reverse, so it may carry an arrow.
+const FLOW_OUT = [
+  ['pump', ['outlet']],
+  ['reservoir', ['outlet']],
+  ['compressor', ['outlet']],
+  ['turbine', ['exhaust']],
+  ['air_receiver', ['outlet']],
+  ['heat_exchanger', ['out', 'utility_out']],
+  ['pressure_regulator', ['outlet']],
+];
+const FLOW_IN = [
+  ['pump', ['inlet']],
+  ['reservoir', ['return']],
+  ['compressor', ['inlet']],
+  ['turbine', ['inlet']],
+  ['air_receiver', ['inlet']],
+  ['heat_exchanger', ['in', 'utility_in']],
+  ['pressure_regulator', ['inlet']],
+  ['silencer', ['inlet']],
+];
+
 /**
- * Whether a flow arrow may be drawn on this line.
+ * Whether a flow arrow may be drawn on this line, and which way.
  *
- * A working line between a directional valve and an actuator reverses with the
- * spool: an arrow on it would simply be false. Arrows go only where direction
- * cannot change -- suction, pump delivery, and flow into the reservoir.
+ * Returns 'forward' when flow runs from the connection's `from` end to its `to`
+ * end, 'reverse' when it runs the other way, or null for no arrow. Direction
+ * comes from the ports, not from the order the author wrote the ends in, so a
+ * line written from the silencer back to the turbine still points at the
+ * silencer.
  */
-function arrowDirection(route) {
+export function arrowDirection(route) {
   const { connection } = route;
   // A shaft carries torque, not flow: there is no direction of flow to show,
   // and an authored arrow cannot give it one.
   if (connection.line === 'mechanical') return null;
   if (connection.arrow === 'none') return null;
   if (connection.arrow === 'forward') return 'forward';
+  // A working line between a directional valve and an actuator reverses with
+  // the spool, and a pilot line carries a signal: an arrow on either is false.
   if (connection.line === 'working' || connection.line === 'pilot') return null;
 
-  const fromType = connection.endpoints.from.target.component.type;
-  const toType = connection.endpoints.to.target.component.type;
-  const fromPort = connection.endpoints.from.port.id;
-  const toPort = connection.endpoints.to.port.id;
+  const { from, to } = connection.endpoints;
+  const matches = (end, table) => table.some(([type, ports]) => (
+    end.target.component.type === type && ports.includes(end.port.id)
+  ));
+  if (matches(from, FLOW_OUT) || matches(to, FLOW_IN)) return 'forward';
+  if (matches(to, FLOW_OUT) || matches(from, FLOW_IN)) return 'reverse';
+
+  // A boundary says which way the flow crosses it.
+  const boundary = (end) => (end.target.component.type === 'boundary' ? end.target.config.direction : null);
+  if (boundary(from) === 'from' || boundary(to) === 'to') return 'forward';
+  if (boundary(to) === 'from' || boundary(from) === 'to') return 'reverse';
 
   if (connection.line === 'suction') return 'forward';
-  if (fromType === 'pump' && fromPort === 'outlet') return 'forward';
-  if (toType === 'reservoir' && toPort === 'return') return 'forward';
-  if (fromType === 'reservoir' && fromPort === 'outlet') return 'forward';
   return null;
 }
 
@@ -189,13 +219,92 @@ function renderClutch(points) {
   return `<g class="clutch">${cut}${plates}</g>`;
 }
 
+const MEDIUM_WORDS = {
+  oil: 'oil',
+  water: 'water',
+  thermal_oil: 'thermal oil',
+  air: 'air',
+  nitrogen: 'nitrogen',
+  steam: 'steam',
+  flue_gas: 'flue gas',
+};
+
+// A run at least this long gets its medium printed even away from a change of
+// fluid, so a reader following a long line across a mixed drawing need not
+// trace it back to a symbol.
+const LONG_RUN = 240;
+
+function routeLength(points) {
+  let total = 0;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    total += Math.abs(points[index + 1][0] - points[index][0]) + Math.abs(points[index + 1][1] - points[index][1]);
+  }
+  return total;
+}
+
+/**
+ * Which lines carry their medium in words.
+ *
+ * ISO 1219 draws air, water and oil lines alike, so in a drawing with more
+ * than one fluid a line alone does not say what it carries. It gets said where
+ * it matters: on every line into a component that carries a different fluid
+ * on another side -- an accumulator's gas and liquid, a heat exchanger's
+ * process and utility -- and on long runs. A drawing with one fluid prints
+ * none, so every oil-only drawing is exactly what it was.
+ */
+export function mediumLabelling(layout) {
+  const fluid = layout.routed.filter((route) => route.connection.medium && route.connection.medium !== 'mechanical');
+  if (new Set(fluid.map((route) => route.connection.medium)).size < 2) return () => false;
+
+  const mediaAt = new Map(); // component id -> fluids on its lines
+  for (const route of fluid) {
+    for (const end of ['from', 'to']) {
+      const id = route.connection.endpoints[end].componentId;
+      const media = mediaAt.get(id) ?? new Set();
+      media.add(route.connection.medium);
+      mediaAt.set(id, media);
+    }
+  }
+  return (route) => {
+    const { connection } = route;
+    if (!connection.medium || connection.medium === 'mechanical') return false;
+    const atChange = ['from', 'to'].some((end) => (mediaAt.get(connection.endpoints[end].componentId)?.size ?? 0) > 1);
+    return atChange || routeLength(route.points) >= LONG_RUN;
+  };
+}
+
+/** The words printed beside a line: what the author wrote, then the medium. */
+function lineLabelText(route, withMedium) {
+  const words = [route.connection.authoredLabel, withMedium ? MEDIUM_WORDS[route.connection.medium] : null];
+  return words.filter(Boolean).join(' - ');
+}
+
+/**
+ * A line label sits beside the middle of the line's longest straight run:
+ * above a horizontal run, to the right of a vertical one. It clears an
+ * arrowhead or a clutch drawn on the same run, and carries the text halo, so a
+ * line passing under it stays readable.
+ */
+function renderLineLabel(points, content) {
+  if (!content) return '';
+  const segment = longestSegment(points);
+  if (!segment) return '';
+  const cx = (segment.from[0] + segment.to[0]) / 2;
+  const cy = (segment.from[1] + segment.to[1]) / 2;
+  return segment.from[1] === segment.to[1]
+    ? text(cx, cy - 9, content, { cls: 'line-label', anchor: 'middle' })
+    : text(cx + 9, cy + 3, content, { cls: 'line-label', anchor: 'start' });
+}
+
 function renderConnections(layout) {
+  const labelMedium = mediumLabelling(layout);
   return layout.routed.map((route) => {
     const cls = LINE_CLASS[route.connection.line] ?? 'line';
-    const arrow = arrowDirection(route) ? routeArrow(route.points) : '';
+    const direction = arrowDirection(route);
+    const arrow = direction ? routeArrow(direction === 'reverse' ? [...route.points].reverse() : route.points) : '';
     const label = route.connection.label ?? '';
     const title = `${route.connection.from} to ${route.connection.to} (${route.connection.line})`;
-    const text_ = route.connection.label && route.connection.labelText ? '' : '';
+    const text_ = renderLineLabel(route.points, lineLabelText(route, labelMedium(route)));
     const body = route.connection.line === 'mechanical'
       ? renderShaft(route.points) + (route.connection.clutch ? renderClutch(route.points) : '')
       : `<path class="${cls}" d="${pathData(route.points)}"/>`;

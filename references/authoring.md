@@ -84,6 +84,23 @@ Reach for `via` only after a diagnostic asks for it. Moving a component is
 almost always the better fix, because it improves every route through that area
 rather than one.
 
+## Media on the drawing
+
+ISO 1219 draws air, water and oil lines alike. In a drawing with one fluid that
+costs nothing, and nothing is printed. In a drawing with several, a line alone
+does not say what it carries, so the medium is printed in words -- on every
+line into a component that carries a different fluid on another side (an
+accumulator's gas and liquid, a heat exchanger's process and utility), and on
+any run 240 or longer. Short lines between parts of one fluid stay clean, and
+shafts are never labelled.
+
+Flow arrows follow the ports, not the order a line was written in: a line
+written from the silencer back to the turbine still points at the silencer.
+They go wherever direction cannot reverse -- out of a pump, compressor,
+receiver, regulator or heat exchanger, into a reservoir, turbine or silencer,
+across a boundary in its stated direction -- and never on a working line
+between valve and actuator, a pilot line, or a shaft.
+
 ## Shafts
 
 A `mechanical` line routes like any other and is drawn as the ISO double line.

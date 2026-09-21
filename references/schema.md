@@ -127,6 +127,9 @@ whole degrees in, whole degrees out, so 20 degC renders as `~68 degF`.
 - There is no `medium` field. The fluid a line carries is worked out from the
   ports it joins, and defaults to oil; see the Media section of
   `references/validation.md`.
+- `label` is printed beside the middle of the line's longest straight run. In a
+  drawing with more than one fluid, the medium is appended where one is printed:
+  `stage 1 - air`.
 - `fromSide` / `toSide` override which face the line leaves by. Rarely needed;
   the port already declares one.
 - `via` pins explicit waypoints. Only reach for it after a routing diagnostic
