@@ -24,6 +24,7 @@
   .port-label { font-size: 8.5px; fill: var(--faint); stroke-width: 2.5px; }
   .line-label { font-size: 9px; fill: var(--faint); }
   .glyph-text { fill: var(--ink); }
+  .boundary-text { font-size: 9.5px; fill: var(--ink); }
   .title { font-size: 17px; font-weight: 600; fill: var(--ink); }
   .subtitle, .meta-line { font-size: 10.5px; fill: var(--faint); }
   .note-heading { font-size: 10px; font-weight: 600; fill: var(--ink); }

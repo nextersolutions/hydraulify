@@ -5,7 +5,38 @@
 // conservative standard form is used rather than a more decorative one -- a reader
 // misinterpreting a non-standard glyph is a worse failure than an austere drawing.
 
-import { line, polyline, polygon, circle, rect, path, arrowhead } from '../shared/svg.mjs';
+import { line, polyline, polygon, circle, rect, path, arrowhead, text } from '../shared/svg.mjs';
+
+/**
+ * Text drawn inside a symbol that stays readable when the symbol is mirrored.
+ *
+ * A mirrored symbol is drawn inside a horizontal flip, so ordinary text would
+ * come out backwards -- a generator's G, a boundary's name. This counter-flips
+ * the text about its own anchor, which cancels the outer flip exactly and leaves
+ * it where the mirrored frame puts it. Every glyph letter must go through here.
+ */
+export function uprightText(x, y, content, mirrored, { cls = 'glyph-text', size, anchor = 'middle' } = {}) {
+  if (!mirrored) return text(x, y, content, { cls, size, anchor });
+  const flipped = anchor === 'start' ? 'end' : (anchor === 'end' ? 'start' : 'middle');
+  return text(x, y, content, {
+    cls,
+    size,
+    anchor: flipped,
+    extra: [['transform', `matrix(-1 0 0 1 ${2 * x} 0)`]],
+  });
+}
+
+/**
+ * A shaft: ISO 1219 draws a mechanical connection as a double line. Horizontal
+ * or vertical only, like every other line in the library.
+ */
+export function shaft(x1, y1, x2, y2, { gap = 3, cls = 'sym' } = {}) {
+  const half = gap / 2;
+  if (y1 === y2) {
+    return line(x1, y1 - half, x2, y2 - half, { cls }) + line(x1, y1 + half, x2, y2 + half, { cls });
+  }
+  return line(x1 - half, y1, x2 - half, y2, { cls }) + line(x1 + half, y1, x2 + half, y2, { cls });
+}
 
 /**
  * Spring: a zigzag along an axis. Springs appear on relief valves, spring-centred

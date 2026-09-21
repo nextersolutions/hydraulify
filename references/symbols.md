@@ -1,6 +1,7 @@
 # Symbols
 
-Fourteen entries: thirteen drawable components plus the junction. Each is one
+Twenty-three entries: thirteen fluid-power components, the junction, and nine
+for compressed-air plant. Each is one
 module under `renderers/symbols/`, owning its frame size, its port coordinates
 and its graphics together, so a port can never drift away from the graphic it
 belongs to.
@@ -49,6 +50,15 @@ inventing a connection.
 | `pressure_gauge` | `inlet` | `with_isolator` |
 | `accumulator` | `inlet`; plus `gas` on top with `gas_port` | `accumulator_type` (incl. `none`), `gas_port`, `liquid`, `gas` |
 | `junction` | `left`, `right`, `top`, `bottom` | `way` |
+| `turbine` | `inlet`, `exhaust` (air), `shaft` (right) | -- ; `meta.machine_style` picks the drawing |
+| `compressor` | `inlet`, `outlet` (air), `shaft` (left) | -- |
+| `electrical_machine` | `shaft`, or `shaft_a` + `shaft_b` | `role`: generator, motor, motor_generator |
+| `heat_exchanger` | `in`, `out`, `utility_in`, `utility_out` | `function`, `utility_medium` |
+| `air_receiver` | `inlet`, `outlet`, or `port` | `gas`, `single_port` |
+| `pressure_regulator` | `inlet`, `outlet` | -- |
+| `shut_off_valve` | `inlet`, `outlet` | `normal_position` |
+| `silencer` | `inlet` | -- |
+| `boundary` | `port` | `direction`, `name`, `medium` (required: direction, name) |
 
 ## Drawing conventions fixed by this library
 
@@ -91,6 +101,40 @@ fluids independently. A declared gas port is required, and spring- and
 weight-loaded types cannot have one: they contain no gas. `accumulator_type:
 none` is direct contact, drawn as a free liquid surface with the level marker,
 for stores where air sits straight on water.
+
+**Solid versus hollow.** A solid triangle is a liquid machine, a hollow one a
+gas machine: the pump and motor are solid, the compressor and turbine hollow.
+It is the only thing telling a pump from a compressor, so it is tested -- and
+`visual-check` measures that solids actually paint solid, because a stylesheet
+once hollowed them all while the source said otherwise.
+
+**Shafts.** Drawn as the ISO double line. Power flows left to right, as from
+the drive motor into a pump: machines that drive (turbine, motor) put their
+shaft on the right, machines that are driven (compressor, generator) on the
+left, and a motor-generator has one each side. Mirror a machine to turn it
+round.
+
+**Turbine.** ISO 1219 has no turbine; the default draws the pneumatic motor
+form, a hollow triangle pointing in. `meta.machine_style: iso10628` draws the
+process-plant trapezoid instead, widening in the direction of flow, and the
+title block then says the turbine is drawn to ISO 10628. Both styles share one
+frame and port table, so switching never moves a line.
+
+**Heat exchanger.** ISO 1219's diamond, process fluid across the side corners,
+heating or cooling medium at the top and bottom. Triangles pointing in mean
+heat is added; pointing out, removed. The process and utility sides are
+separate port groups.
+
+**Pressure regulator.** The relief valve's opposite: open at rest, so its arrow
+is in line with the ports, and its pilot senses the outlet.
+
+**Shut-off valve.** Two triangles tip to tip with a hand stem, filled when
+normally closed. Not a directional valve: drawing an isolator as a 2/2 would
+claim spool positions it does not have.
+
+**Boundary.** Where a line leaves the drawing: a flag with a name, pointed the
+way the flow goes. It is not a part, has no tag, and is left out of the BOM.
+The validator treats it as a source or sink for its medium.
 
 **Counterbalance valve.** A pilot-assisted relief in one leg and a bypass check
 in the other, inside a dash-dot enclosure because they are one cartridge. Free

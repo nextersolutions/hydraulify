@@ -46,8 +46,10 @@ export function buildBom(model, analysis, { units } = {}) {
   }
 
   for (const [id, entry] of analysis.resolved) {
+    // Junctions and drawing boundaries are not parts. Only a junction implies a
+    // fitting, so only a junction is counted as a tee.
     if (entry.geometry.excludeFromBom) {
-      junctions += 1;
+      if (entry.component.type === 'junction') junctions += 1;
       continue;
     }
     if (reservoirAliases.has(id)) continue;

@@ -3,8 +3,8 @@
 "use strict";
 export const validate = validate20;
 export default validate20;
-const schema31 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/hydraulify/schemas/hydraulic-circuit.schema.json","title":"Hydraulify Circuit Model","description":"Port-aware hydraulic circuit model. The model is the source of truth; the schematic is a representation of it.","type":"object","additionalProperties":false,"required":["schema_version","diagram_type","meta","components","connections"],"properties":{"schema_version":{"const":1},"diagram_type":{"const":"hydraulic_circuit"},"meta":{"$ref":"#/$defs/meta"},"components":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/component"}},"connections":{"type":"array","items":{"$ref":"#/$defs/connection"}},"assumptions":{"type":"array","items":{"$ref":"#/$defs/assumption"}},"notes":{"type":"array","items":{"type":"string","minLength":1,"maxLength":300}}},"$defs":{"id":{"type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*$","maxLength":32},"portRef":{"description":"Component and port, written exactly as the brief notates it: P1.outlet","type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*\\.[A-Za-z][A-Za-z0-9_]*$","maxLength":70},"point":{"type":"array","prefixItems":[{"type":"number"},{"type":"number"}],"items":false,"minItems":2,"maxItems":2},"side":{"enum":["left","right","top","bottom"]},"meta":{"type":"object","additionalProperties":false,"required":["title"],"properties":{"title":{"type":"string","minLength":1,"maxLength":120},"subtitle":{"type":"string","maxLength":200},"output":{"type":"string","minLength":1},"units":{"description":"Unit system used when rendering. Model values are always stored as authored.","enum":["si","imperial"],"default":"si"},"viewBox":{"type":"array","prefixItems":[{"type":"number","minimum":200},{"type":"number","minimum":200}],"items":false,"minItems":2,"maxItems":2},"drawing_number":{"type":"string","maxLength":60},"revision":{"type":"string","maxLength":20}}},"componentType":{"enum":["reservoir","pump","motor","cylinder","directional_control_valve","relief_valve","check_valve","pilot_operated_check_valve","counterbalance_valve","flow_control_valve","filter","pressure_gauge","accumulator","junction"]},"component":{"type":"object","additionalProperties":false,"required":["id","type","pos"],"properties":{"id":{"$ref":"#/$defs/id"},"type":{"$ref":"#/$defs/componentType"},"label":{"type":"string","maxLength":80},"pos":{"$ref":"#/$defs/point"},"mirror":{"description":"Flip the symbol horizontally, so an in-line component can pass flow right to left. Rotation is deliberately not offered: see references/symbols.md.","type":"boolean"},"config":{"type":"object"},"params":{"$ref":"#/$defs/params"},"ports":{"description":"Per-port authoring overrides. A plugged port is never reported as unconnected.","type":"object","additionalProperties":{"type":"object","additionalProperties":false,"properties":{"plugged":{"type":"boolean"},"label":{"type":"string","maxLength":24}}}},"note":{"type":"string","maxLength":200}},"allOf":[{"$ref":"#/$defs/configByType/reservoir"},{"$ref":"#/$defs/configByType/pump"},{"$ref":"#/$defs/configByType/motor"},{"$ref":"#/$defs/configByType/cylinder"},{"$ref":"#/$defs/configByType/directional_control_valve"},{"$ref":"#/$defs/configByType/relief_valve"},{"$ref":"#/$defs/configByType/check_valve"},{"$ref":"#/$defs/configByType/pilot_operated_check_valve"},{"$ref":"#/$defs/configByType/counterbalance_valve"},{"$ref":"#/$defs/configByType/flow_control_valve"},{"$ref":"#/$defs/configByType/filter"},{"$ref":"#/$defs/configByType/pressure_gauge"},{"$ref":"#/$defs/configByType/accumulator"},{"$ref":"#/$defs/configByType/junction"}]},"configByType":{"reservoir":{"if":{"properties":{"type":{"const":"reservoir"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"vented":{"type":"boolean"},"same_reservoir_as":{"$ref":"#/$defs/id"},"liquid":{"description":"What the tank holds. Unstated, it takes the liquid of the circuit it serves.","enum":["oil","water"]}}}}}},"pump":{"if":{"properties":{"type":{"const":"pump"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pump_type":{"enum":["fixed_displacement","variable_displacement"]},"drive":{"enum":["electric_motor","combustion_engine","manual","none"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}},"motor":{"if":{"properties":{"type":{"const":"motor"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"motor_type":{"enum":["fixed_displacement","variable_displacement"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}},"cylinder":{"if":{"properties":{"type":{"const":"cylinder"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"cylinder_type":{"enum":["single_acting","double_acting"]},"rod":{"enum":["single","double"]},"spring_return":{"type":"boolean"},"cushioned":{"type":"boolean"}}}}}},"directional_control_valve":{"if":{"properties":{"type":{"const":"directional_control_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"configuration":{"enum":["2/2","3/2","4/2","4/3"]},"center_condition":{"enum":["closed","open","tandem","float"]},"normal_position":{"enum":["closed","open"]},"actuation":{"type":"object","additionalProperties":false,"properties":{"left":{"$ref":"#/$defs/actuationGlyph"},"right":{"$ref":"#/$defs/actuationGlyph"},"spring":{"enum":["centred","left_return","right_return","none"]}}}}}}}},"relief_valve":{"if":{"properties":{"type":{"const":"relief_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_operated":{"type":"boolean"},"remote_pilot":{"type":"boolean"}}}}}},"check_valve":{"if":{"properties":{"type":{"const":"check_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"spring_loaded":{"type":"boolean"}}}}}},"pilot_operated_check_valve":{"if":{"properties":{"type":{"const":"pilot_operated_check_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_action":{"enum":["pilot_to_open","pilot_to_close"]},"drained":{"type":"boolean"}}}}}},"counterbalance_valve":{"if":{"properties":{"type":{"const":"counterbalance_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_type":{"enum":["internal","external","internal_external"]},"vented":{"type":"boolean"}}}}}},"flow_control_valve":{"if":{"properties":{"type":{"const":"flow_control_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"flow_control_type":{"enum":["fixed_throttle","variable_throttle","one_way","pressure_compensated"]},"free_flow_direction":{"enum":["inlet_to_outlet","outlet_to_inlet"]}}}}}},"filter":{"if":{"properties":{"type":{"const":"filter"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"position":{"enum":["suction","return","pressure"]},"with_bypass":{"type":"boolean"},"with_indicator":{"type":"boolean"}}}}}},"pressure_gauge":{"if":{"properties":{"type":{"const":"pressure_gauge"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"with_isolator":{"type":"boolean"}}}}}},"accumulator":{"if":{"properties":{"type":{"const":"accumulator"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"accumulator_type":{"description":"The separating element. none is direct contact: gas sits on the liquid with no separator.","enum":["bladder","piston","diaphragm","spring","weight","none"]},"gas_port":{"description":"Draw the gas side as a connection on top of the shell. Without it the gas is sealed behind a charging valve and not drawn.","type":"boolean"},"liquid":{"description":"What the liquid side holds. Unstated, it takes the liquid of the line it sits on.","enum":["oil","water"]},"gas":{"description":"What the gas side holds: air for a compressed-air store, nitrogen for an oil accumulator. Unstated, it takes the gas of the line on its gas port.","enum":["air","nitrogen"]}},"if":{"properties":{"accumulator_type":{"enum":["spring","weight"]}},"required":["accumulator_type"]},"then":{"description":"A spring- or weight-loaded accumulator contains no gas, so it has no gas side to connect.","properties":{"gas_port":{"const":false}}}}}}},"junction":{"if":{"properties":{"type":{"const":"junction"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"way":{"enum":[3,4]}}},"params":{"maxProperties":0}}}}},"actuationGlyph":{"enum":["solenoid","lever","push_button","pedal","mechanical","pilot","pneumatic_pilot","solenoid_pilot","none"]},"params":{"description":"Engineering parameters, stored exactly as authored. A null value means unknown and is never replaced by a guess. Each quantity has an SI and an imperial field name; a component may use one or the other, never both for the same quantity.","type":"object","additionalProperties":false,"properties":{"setting_bar":{"$ref":"#/$defs/quantity"},"setting_psi":{"$ref":"#/$defs/quantity"},"cracking_pressure_bar":{"$ref":"#/$defs/quantity"},"cracking_pressure_psi":{"$ref":"#/$defs/quantity"},"max_pressure_bar":{"$ref":"#/$defs/quantity"},"max_pressure_psi":{"$ref":"#/$defs/quantity"},"precharge_bar":{"$ref":"#/$defs/quantity"},"precharge_psi":{"$ref":"#/$defs/quantity"},"range_bar":{"$ref":"#/$defs/quantity"},"range_psi":{"$ref":"#/$defs/quantity"},"flow_lpm":{"$ref":"#/$defs/quantity"},"flow_gpm":{"$ref":"#/$defs/quantity"},"displacement_cm3_rev":{"$ref":"#/$defs/quantity"},"displacement_in3_rev":{"$ref":"#/$defs/quantity"},"volume_l":{"$ref":"#/$defs/quantity"},"volume_gal":{"$ref":"#/$defs/quantity"},"bore_mm":{"$ref":"#/$defs/quantity"},"bore_in":{"$ref":"#/$defs/quantity"},"rod_mm":{"$ref":"#/$defs/quantity"},"rod_in":{"$ref":"#/$defs/quantity"},"stroke_mm":{"$ref":"#/$defs/quantity"},"stroke_in":{"$ref":"#/$defs/quantity"},"rating_micron":{"$ref":"#/$defs/quantity"},"speed_rpm":{"$ref":"#/$defs/quantity"},"pilot_ratio":{"$ref":"#/$defs/quantity"},"temperature_c":{"$ref":"#/$defs/signedQuantity","minimum":-273.15},"temperature_f":{"$ref":"#/$defs/signedQuantity","minimum":-459.67},"power_kw":{"$ref":"#/$defs/quantity"},"power_hp":{"$ref":"#/$defs/quantity"},"flow_nm3h":{"description":"Normal volume flow of a gas: cubic metres per hour at 0 degC and 1.01325 bar (DIN 1343).","$ref":"#/$defs/quantity"},"flow_scfm":{"description":"Standard volume flow of a gas: cubic feet per minute at 60 degF and 14.696 psia. Not CAGI's 68 degF scfm.","$ref":"#/$defs/quantity"},"mass_flow_kgs":{"$ref":"#/$defs/quantity"},"mass_flow_lbs":{"$ref":"#/$defs/quantity"}},"allOf":[{"not":{"required":["setting_bar","setting_psi"]}},{"not":{"required":["cracking_pressure_bar","cracking_pressure_psi"]}},{"not":{"required":["max_pressure_bar","max_pressure_psi"]}},{"not":{"required":["precharge_bar","precharge_psi"]}},{"not":{"required":["range_bar","range_psi"]}},{"not":{"required":["flow_lpm","flow_gpm"]}},{"not":{"required":["displacement_cm3_rev","displacement_in3_rev"]}},{"not":{"required":["volume_l","volume_gal"]}},{"not":{"required":["bore_mm","bore_in"]}},{"not":{"required":["rod_mm","rod_in"]}},{"not":{"required":["stroke_mm","stroke_in"]}},{"not":{"required":["temperature_c","temperature_f"]}},{"not":{"required":["power_kw","power_hp"]}},{"not":{"required":["flow_nm3h","flow_scfm"]}},{"not":{"required":["mass_flow_kgs","mass_flow_lbs"]}},{"$ref":"#/$defs/airFlowExclusive"}]},"airFlowExclusive":{"description":"A gas flow is stated once, either as normal volume flow or as mass flow. Both on one component would be two statements of one fact that can disagree.","allOf":[{"not":{"required":["flow_nm3h","mass_flow_kgs"]}},{"not":{"required":["flow_nm3h","mass_flow_lbs"]}},{"not":{"required":["flow_scfm","mass_flow_kgs"]}},{"not":{"required":["flow_scfm","mass_flow_lbs"]}}]},"quantity":{"description":"A number as the author stated it, or null meaning explicitly unknown.","type":["number","null"],"exclusiveMinimum":0},"signedQuantity":{"description":"A quantity that may be zero or negative, such as a temperature. Its lower bound is set on the field that uses it.","type":["number","null"]},"lineType":{"description":"Function of the line. ISO 1219 renders working lines (suction, pressure, working, return) continuous, pilot lines long-dashed and drain lines short-dashed. A mechanical line is a shaft between machines, drawn as a double line; it carries torque, not fluid, and joins only shaft ports. The fluid a line carries is never written here: it is resolved from the ports the line joins.","enum":["suction","pressure","working","return","drain","pilot","mechanical"]},"medium":{"description":"A fluid. Used where a component's configuration fixes what one of its sides carries; everywhere else the fluid is resolved from the ports a line joins, and defaults to oil.","enum":["oil","water","thermal_oil","air","nitrogen","steam","flue_gas"]},"connection":{"type":"object","additionalProperties":false,"required":["from","to","line"],"properties":{"id":{"$ref":"#/$defs/id"},"from":{"$ref":"#/$defs/portRef"},"to":{"$ref":"#/$defs/portRef"},"line":{"$ref":"#/$defs/lineType"},"label":{"type":"string","maxLength":60},"fromSide":{"$ref":"#/$defs/side"},"toSide":{"$ref":"#/$defs/side"},"via":{"description":"Explicit orthogonal waypoints. Only add one after a routing diagnostic asks for it.","type":"array","minItems":1,"maxItems":8,"items":{"$ref":"#/$defs/point"}},"arrow":{"description":"auto draws a flow arrow only where the direction cannot reverse. Never set forward on a line a directional valve can reverse.","enum":["auto","forward","none"]}}},"assumption":{"description":"An engineering choice hydraulify made because the description did not state it. Never hidden.","type":"object","additionalProperties":false,"required":["subject","statement"],"properties":{"id":{"$ref":"#/$defs/id"},"subject":{"description":"Component id, port reference, or a short scope such as the whole circuit.","type":"string","minLength":1,"maxLength":70},"statement":{"type":"string","minLength":1,"maxLength":240},"rationale":{"type":"string","maxLength":240}}}}};
-const schema32 = {"type":"object","additionalProperties":false,"required":["title"],"properties":{"title":{"type":"string","minLength":1,"maxLength":120},"subtitle":{"type":"string","maxLength":200},"output":{"type":"string","minLength":1},"units":{"description":"Unit system used when rendering. Model values are always stored as authored.","enum":["si","imperial"],"default":"si"},"viewBox":{"type":"array","prefixItems":[{"type":"number","minimum":200},{"type":"number","minimum":200}],"items":false,"minItems":2,"maxItems":2},"drawing_number":{"type":"string","maxLength":60},"revision":{"type":"string","maxLength":20}}};
+const schema31 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/hydraulify/schemas/hydraulic-circuit.schema.json","title":"Hydraulify Circuit Model","description":"Port-aware hydraulic circuit model. The model is the source of truth; the schematic is a representation of it.","type":"object","additionalProperties":false,"required":["schema_version","diagram_type","meta","components","connections"],"properties":{"schema_version":{"const":1},"diagram_type":{"const":"hydraulic_circuit"},"meta":{"$ref":"#/$defs/meta"},"components":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/component"}},"connections":{"type":"array","items":{"$ref":"#/$defs/connection"}},"assumptions":{"type":"array","items":{"$ref":"#/$defs/assumption"}},"notes":{"type":"array","items":{"type":"string","minLength":1,"maxLength":300}}},"$defs":{"id":{"type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*$","maxLength":32},"portRef":{"description":"Component and port, written exactly as the brief notates it: P1.outlet","type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*\\.[A-Za-z][A-Za-z0-9_]*$","maxLength":70},"point":{"type":"array","prefixItems":[{"type":"number"},{"type":"number"}],"items":false,"minItems":2,"maxItems":2},"side":{"enum":["left","right","top","bottom"]},"meta":{"type":"object","additionalProperties":false,"required":["title"],"properties":{"title":{"type":"string","minLength":1,"maxLength":120},"subtitle":{"type":"string","maxLength":200},"output":{"type":"string","minLength":1},"units":{"description":"Unit system used when rendering. Model values are always stored as authored.","enum":["si","imperial"],"default":"si"},"viewBox":{"type":"array","prefixItems":[{"type":"number","minimum":200},{"type":"number","minimum":200}],"items":false,"minItems":2,"maxItems":2},"machine_style":{"description":"Drawing convention for the turbine. iso1219 draws it in the fluid-power form, as a pneumatic motor; iso10628 draws the process-plant trapezoid. Only the turbine changes, and the title block says so.","enum":["iso1219","iso10628"],"default":"iso1219"},"drawing_number":{"type":"string","maxLength":60},"revision":{"type":"string","maxLength":20}}},"componentType":{"enum":["reservoir","pump","motor","cylinder","directional_control_valve","relief_valve","check_valve","pilot_operated_check_valve","counterbalance_valve","flow_control_valve","filter","pressure_gauge","accumulator","junction","turbine","compressor","electrical_machine","heat_exchanger","air_receiver","pressure_regulator","shut_off_valve","silencer","boundary"]},"component":{"type":"object","additionalProperties":false,"required":["id","type","pos"],"properties":{"id":{"$ref":"#/$defs/id"},"type":{"$ref":"#/$defs/componentType"},"label":{"type":"string","maxLength":80},"pos":{"$ref":"#/$defs/point"},"mirror":{"description":"Flip the symbol horizontally, so an in-line component can pass flow right to left. Rotation is deliberately not offered: see references/symbols.md.","type":"boolean"},"config":{"type":"object"},"params":{"$ref":"#/$defs/params"},"ports":{"description":"Per-port authoring overrides. A plugged port is never reported as unconnected.","type":"object","additionalProperties":{"type":"object","additionalProperties":false,"properties":{"plugged":{"type":"boolean"},"label":{"type":"string","maxLength":24}}}},"note":{"type":"string","maxLength":200}},"allOf":[{"$ref":"#/$defs/configByType/reservoir"},{"$ref":"#/$defs/configByType/pump"},{"$ref":"#/$defs/configByType/motor"},{"$ref":"#/$defs/configByType/cylinder"},{"$ref":"#/$defs/configByType/directional_control_valve"},{"$ref":"#/$defs/configByType/relief_valve"},{"$ref":"#/$defs/configByType/check_valve"},{"$ref":"#/$defs/configByType/pilot_operated_check_valve"},{"$ref":"#/$defs/configByType/counterbalance_valve"},{"$ref":"#/$defs/configByType/flow_control_valve"},{"$ref":"#/$defs/configByType/filter"},{"$ref":"#/$defs/configByType/pressure_gauge"},{"$ref":"#/$defs/configByType/accumulator"},{"$ref":"#/$defs/configByType/junction"},{"$ref":"#/$defs/configByType/turbine"},{"$ref":"#/$defs/configByType/compressor"},{"$ref":"#/$defs/configByType/electrical_machine"},{"$ref":"#/$defs/configByType/heat_exchanger"},{"$ref":"#/$defs/configByType/air_receiver"},{"$ref":"#/$defs/configByType/pressure_regulator"},{"$ref":"#/$defs/configByType/shut_off_valve"},{"$ref":"#/$defs/configByType/silencer"},{"$ref":"#/$defs/configByType/boundary"}]},"configByType":{"reservoir":{"if":{"properties":{"type":{"const":"reservoir"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"vented":{"type":"boolean"},"same_reservoir_as":{"$ref":"#/$defs/id"},"liquid":{"description":"What the tank holds. Unstated, it takes the liquid of the circuit it serves.","enum":["oil","water"]}}}}}},"pump":{"if":{"properties":{"type":{"const":"pump"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pump_type":{"enum":["fixed_displacement","variable_displacement"]},"drive":{"enum":["electric_motor","combustion_engine","manual","none"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}},"motor":{"if":{"properties":{"type":{"const":"motor"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"motor_type":{"enum":["fixed_displacement","variable_displacement"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}},"cylinder":{"if":{"properties":{"type":{"const":"cylinder"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"cylinder_type":{"enum":["single_acting","double_acting"]},"rod":{"enum":["single","double"]},"spring_return":{"type":"boolean"},"cushioned":{"type":"boolean"}}}}}},"directional_control_valve":{"if":{"properties":{"type":{"const":"directional_control_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"configuration":{"enum":["2/2","3/2","4/2","4/3"]},"center_condition":{"enum":["closed","open","tandem","float"]},"normal_position":{"enum":["closed","open"]},"actuation":{"type":"object","additionalProperties":false,"properties":{"left":{"$ref":"#/$defs/actuationGlyph"},"right":{"$ref":"#/$defs/actuationGlyph"},"spring":{"enum":["centred","left_return","right_return","none"]}}}}}}}},"relief_valve":{"if":{"properties":{"type":{"const":"relief_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_operated":{"type":"boolean"},"remote_pilot":{"type":"boolean"}}}}}},"check_valve":{"if":{"properties":{"type":{"const":"check_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"spring_loaded":{"type":"boolean"}}}}}},"pilot_operated_check_valve":{"if":{"properties":{"type":{"const":"pilot_operated_check_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_action":{"enum":["pilot_to_open","pilot_to_close"]},"drained":{"type":"boolean"}}}}}},"counterbalance_valve":{"if":{"properties":{"type":{"const":"counterbalance_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pilot_type":{"enum":["internal","external","internal_external"]},"vented":{"type":"boolean"}}}}}},"flow_control_valve":{"if":{"properties":{"type":{"const":"flow_control_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"flow_control_type":{"enum":["fixed_throttle","variable_throttle","one_way","pressure_compensated"]},"free_flow_direction":{"enum":["inlet_to_outlet","outlet_to_inlet"]}}}}}},"filter":{"if":{"properties":{"type":{"const":"filter"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"position":{"enum":["suction","return","pressure"]},"with_bypass":{"type":"boolean"},"with_indicator":{"type":"boolean"}}}}}},"pressure_gauge":{"if":{"properties":{"type":{"const":"pressure_gauge"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"with_isolator":{"type":"boolean"}}}}}},"accumulator":{"if":{"properties":{"type":{"const":"accumulator"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"accumulator_type":{"description":"The separating element. none is direct contact: gas sits on the liquid with no separator.","enum":["bladder","piston","diaphragm","spring","weight","none"]},"gas_port":{"description":"Draw the gas side as a connection on top of the shell. Without it the gas is sealed behind a charging valve and not drawn.","type":"boolean"},"liquid":{"description":"What the liquid side holds. Unstated, it takes the liquid of the line it sits on.","enum":["oil","water"]},"gas":{"description":"What the gas side holds: air for a compressed-air store, nitrogen for an oil accumulator. Unstated, it takes the gas of the line on its gas port.","enum":["air","nitrogen"]}},"if":{"properties":{"accumulator_type":{"enum":["spring","weight"]}},"required":["accumulator_type"]},"then":{"description":"A spring- or weight-loaded accumulator contains no gas, so it has no gas side to connect.","properties":{"gas_port":{"const":false}}}}}}},"junction":{"if":{"properties":{"type":{"const":"junction"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"way":{"enum":[3,4]}}},"params":{"maxProperties":0}}}},"turbine":{"if":{"properties":{"type":{"const":"turbine"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{}}}}},"compressor":{"if":{"properties":{"type":{"const":"compressor"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{}}}}},"electrical_machine":{"if":{"properties":{"type":{"const":"electrical_machine"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"role":{"description":"generator (shaft in on the left), motor (shaft out on the right), or motor_generator (a shaft each side, for a shared compressor/turbine train).","enum":["generator","motor","motor_generator"]}}}}}},"heat_exchanger":{"if":{"properties":{"type":{"const":"heat_exchanger"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"function":{"description":"heating draws the ISO heater (triangles pointing in), cooling the ISO cooler (triangles pointing out).","enum":["heating","cooling"]},"utility_medium":{"description":"What flows on the heating or cooling side. Unstated, it takes the fluid of the lines on the utility ports.","$ref":"#/$defs/medium"}}}}}},"air_receiver":{"if":{"properties":{"type":{"const":"air_receiver"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"gas":{"description":"Air, or nitrogen for a back-up bottle on an oil accumulator. Unstated, it takes the gas of the lines it is connected to.","enum":["air","nitrogen"]},"single_port":{"description":"One connection, filled and emptied through the same line, instead of an inlet and an outlet.","type":"boolean"}}}}}},"pressure_regulator":{"if":{"properties":{"type":{"const":"pressure_regulator"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{}}}}},"shut_off_valve":{"if":{"properties":{"type":{"const":"shut_off_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"normal_position":{"enum":["open","closed"]}}}}}},"silencer":{"if":{"properties":{"type":{"const":"silencer"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{}}}}},"boundary":{"if":{"properties":{"type":{"const":"boundary"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"direction":{"description":"from: flow enters the drawing here. to: flow leaves it here.","enum":["from","to"]},"name":{"description":"Where the line comes from or goes to: \"TES\", \"stack\", \"cooling water supply\", \"sheet 2\".","type":"string","minLength":1,"maxLength":24},"medium":{"description":"What crosses the boundary. Unstated, it takes the fluid of the line.","$ref":"#/$defs/medium"}},"required":["direction","name"]},"params":{"maxProperties":0}},"required":["config"]}}},"actuationGlyph":{"enum":["solenoid","lever","push_button","pedal","mechanical","pilot","pneumatic_pilot","solenoid_pilot","none"]},"params":{"description":"Engineering parameters, stored exactly as authored. A null value means unknown and is never replaced by a guess. Each quantity has an SI and an imperial field name; a component may use one or the other, never both for the same quantity.","type":"object","additionalProperties":false,"properties":{"setting_bar":{"$ref":"#/$defs/quantity"},"setting_psi":{"$ref":"#/$defs/quantity"},"cracking_pressure_bar":{"$ref":"#/$defs/quantity"},"cracking_pressure_psi":{"$ref":"#/$defs/quantity"},"max_pressure_bar":{"$ref":"#/$defs/quantity"},"max_pressure_psi":{"$ref":"#/$defs/quantity"},"precharge_bar":{"$ref":"#/$defs/quantity"},"precharge_psi":{"$ref":"#/$defs/quantity"},"range_bar":{"$ref":"#/$defs/quantity"},"range_psi":{"$ref":"#/$defs/quantity"},"flow_lpm":{"$ref":"#/$defs/quantity"},"flow_gpm":{"$ref":"#/$defs/quantity"},"displacement_cm3_rev":{"$ref":"#/$defs/quantity"},"displacement_in3_rev":{"$ref":"#/$defs/quantity"},"volume_l":{"$ref":"#/$defs/quantity"},"volume_gal":{"$ref":"#/$defs/quantity"},"bore_mm":{"$ref":"#/$defs/quantity"},"bore_in":{"$ref":"#/$defs/quantity"},"rod_mm":{"$ref":"#/$defs/quantity"},"rod_in":{"$ref":"#/$defs/quantity"},"stroke_mm":{"$ref":"#/$defs/quantity"},"stroke_in":{"$ref":"#/$defs/quantity"},"rating_micron":{"$ref":"#/$defs/quantity"},"speed_rpm":{"$ref":"#/$defs/quantity"},"pilot_ratio":{"$ref":"#/$defs/quantity"},"temperature_c":{"$ref":"#/$defs/signedQuantity","minimum":-273.15},"temperature_f":{"$ref":"#/$defs/signedQuantity","minimum":-459.67},"power_kw":{"$ref":"#/$defs/quantity"},"power_hp":{"$ref":"#/$defs/quantity"},"flow_nm3h":{"description":"Normal volume flow of a gas: cubic metres per hour at 0 degC and 1.01325 bar (DIN 1343).","$ref":"#/$defs/quantity"},"flow_scfm":{"description":"Standard volume flow of a gas: cubic feet per minute at 60 degF and 14.696 psia. Not CAGI's 68 degF scfm.","$ref":"#/$defs/quantity"},"mass_flow_kgs":{"$ref":"#/$defs/quantity"},"mass_flow_lbs":{"$ref":"#/$defs/quantity"}},"allOf":[{"not":{"required":["setting_bar","setting_psi"]}},{"not":{"required":["cracking_pressure_bar","cracking_pressure_psi"]}},{"not":{"required":["max_pressure_bar","max_pressure_psi"]}},{"not":{"required":["precharge_bar","precharge_psi"]}},{"not":{"required":["range_bar","range_psi"]}},{"not":{"required":["flow_lpm","flow_gpm"]}},{"not":{"required":["displacement_cm3_rev","displacement_in3_rev"]}},{"not":{"required":["volume_l","volume_gal"]}},{"not":{"required":["bore_mm","bore_in"]}},{"not":{"required":["rod_mm","rod_in"]}},{"not":{"required":["stroke_mm","stroke_in"]}},{"not":{"required":["temperature_c","temperature_f"]}},{"not":{"required":["power_kw","power_hp"]}},{"not":{"required":["flow_nm3h","flow_scfm"]}},{"not":{"required":["mass_flow_kgs","mass_flow_lbs"]}},{"$ref":"#/$defs/airFlowExclusive"}]},"airFlowExclusive":{"description":"A gas flow is stated once, either as normal volume flow or as mass flow. Both on one component would be two statements of one fact that can disagree.","allOf":[{"not":{"required":["flow_nm3h","mass_flow_kgs"]}},{"not":{"required":["flow_nm3h","mass_flow_lbs"]}},{"not":{"required":["flow_scfm","mass_flow_kgs"]}},{"not":{"required":["flow_scfm","mass_flow_lbs"]}}]},"quantity":{"description":"A number as the author stated it, or null meaning explicitly unknown.","type":["number","null"],"exclusiveMinimum":0},"signedQuantity":{"description":"A quantity that may be zero or negative, such as a temperature. Its lower bound is set on the field that uses it.","type":["number","null"]},"lineType":{"description":"Function of the line. ISO 1219 renders working lines (suction, pressure, working, return) continuous, pilot lines long-dashed and drain lines short-dashed. A mechanical line is a shaft between machines, drawn as a double line; it carries torque, not fluid, and joins only shaft ports. The fluid a line carries is never written here: it is resolved from the ports the line joins.","enum":["suction","pressure","working","return","drain","pilot","mechanical"]},"medium":{"description":"A fluid. Used where a component's configuration fixes what one of its sides carries; everywhere else the fluid is resolved from the ports a line joins, and defaults to oil.","enum":["oil","water","thermal_oil","air","nitrogen","steam","flue_gas"]},"connection":{"type":"object","additionalProperties":false,"required":["from","to","line"],"properties":{"id":{"$ref":"#/$defs/id"},"from":{"$ref":"#/$defs/portRef"},"to":{"$ref":"#/$defs/portRef"},"line":{"$ref":"#/$defs/lineType"},"label":{"type":"string","maxLength":60},"fromSide":{"$ref":"#/$defs/side"},"toSide":{"$ref":"#/$defs/side"},"via":{"description":"Explicit orthogonal waypoints. Only add one after a routing diagnostic asks for it.","type":"array","minItems":1,"maxItems":8,"items":{"$ref":"#/$defs/point"}},"arrow":{"description":"auto draws a flow arrow only where the direction cannot reverse. Never set forward on a line a directional valve can reverse.","enum":["auto","forward","none"]}}},"assumption":{"description":"An engineering choice hydraulify made because the description did not state it. Never hidden.","type":"object","additionalProperties":false,"required":["subject","statement"],"properties":{"id":{"$ref":"#/$defs/id"},"subject":{"description":"Component id, port reference, or a short scope such as the whole circuit.","type":"string","minLength":1,"maxLength":70},"statement":{"type":"string","minLength":1,"maxLength":240},"rationale":{"type":"string","maxLength":240}}}}};
+const schema32 = {"type":"object","additionalProperties":false,"required":["title"],"properties":{"title":{"type":"string","minLength":1,"maxLength":120},"subtitle":{"type":"string","maxLength":200},"output":{"type":"string","minLength":1},"units":{"description":"Unit system used when rendering. Model values are always stored as authored.","enum":["si","imperial"],"default":"si"},"viewBox":{"type":"array","prefixItems":[{"type":"number","minimum":200},{"type":"number","minimum":200}],"items":false,"minItems":2,"maxItems":2},"machine_style":{"description":"Drawing convention for the turbine. iso1219 draws it in the fluid-power form, as a pneumatic motor; iso10628 draws the process-plant trapezoid. Only the turbine changes, and the title block says so.","enum":["iso1219","iso10628"],"default":"iso1219"},"drawing_number":{"type":"string","maxLength":60},"revision":{"type":"string","maxLength":20}}};
 const func1 = function ucs2length(str) {
   const len = str.length;
   let length = 0;
@@ -17,7 +17,7 @@ const func1 = function ucs2length(str) {
   }
   return length;
 };
-const schema33 = {"type":"object","additionalProperties":false,"required":["id","type","pos"],"properties":{"id":{"$ref":"#/$defs/id"},"type":{"$ref":"#/$defs/componentType"},"label":{"type":"string","maxLength":80},"pos":{"$ref":"#/$defs/point"},"mirror":{"description":"Flip the symbol horizontally, so an in-line component can pass flow right to left. Rotation is deliberately not offered: see references/symbols.md.","type":"boolean"},"config":{"type":"object"},"params":{"$ref":"#/$defs/params"},"ports":{"description":"Per-port authoring overrides. A plugged port is never reported as unconnected.","type":"object","additionalProperties":{"type":"object","additionalProperties":false,"properties":{"plugged":{"type":"boolean"},"label":{"type":"string","maxLength":24}}}},"note":{"type":"string","maxLength":200}},"allOf":[{"$ref":"#/$defs/configByType/reservoir"},{"$ref":"#/$defs/configByType/pump"},{"$ref":"#/$defs/configByType/motor"},{"$ref":"#/$defs/configByType/cylinder"},{"$ref":"#/$defs/configByType/directional_control_valve"},{"$ref":"#/$defs/configByType/relief_valve"},{"$ref":"#/$defs/configByType/check_valve"},{"$ref":"#/$defs/configByType/pilot_operated_check_valve"},{"$ref":"#/$defs/configByType/counterbalance_valve"},{"$ref":"#/$defs/configByType/flow_control_valve"},{"$ref":"#/$defs/configByType/filter"},{"$ref":"#/$defs/configByType/pressure_gauge"},{"$ref":"#/$defs/configByType/accumulator"},{"$ref":"#/$defs/configByType/junction"}]};
+const schema33 = {"type":"object","additionalProperties":false,"required":["id","type","pos"],"properties":{"id":{"$ref":"#/$defs/id"},"type":{"$ref":"#/$defs/componentType"},"label":{"type":"string","maxLength":80},"pos":{"$ref":"#/$defs/point"},"mirror":{"description":"Flip the symbol horizontally, so an in-line component can pass flow right to left. Rotation is deliberately not offered: see references/symbols.md.","type":"boolean"},"config":{"type":"object"},"params":{"$ref":"#/$defs/params"},"ports":{"description":"Per-port authoring overrides. A plugged port is never reported as unconnected.","type":"object","additionalProperties":{"type":"object","additionalProperties":false,"properties":{"plugged":{"type":"boolean"},"label":{"type":"string","maxLength":24}}}},"note":{"type":"string","maxLength":200}},"allOf":[{"$ref":"#/$defs/configByType/reservoir"},{"$ref":"#/$defs/configByType/pump"},{"$ref":"#/$defs/configByType/motor"},{"$ref":"#/$defs/configByType/cylinder"},{"$ref":"#/$defs/configByType/directional_control_valve"},{"$ref":"#/$defs/configByType/relief_valve"},{"$ref":"#/$defs/configByType/check_valve"},{"$ref":"#/$defs/configByType/pilot_operated_check_valve"},{"$ref":"#/$defs/configByType/counterbalance_valve"},{"$ref":"#/$defs/configByType/flow_control_valve"},{"$ref":"#/$defs/configByType/filter"},{"$ref":"#/$defs/configByType/pressure_gauge"},{"$ref":"#/$defs/configByType/accumulator"},{"$ref":"#/$defs/configByType/junction"},{"$ref":"#/$defs/configByType/turbine"},{"$ref":"#/$defs/configByType/compressor"},{"$ref":"#/$defs/configByType/electrical_machine"},{"$ref":"#/$defs/configByType/heat_exchanger"},{"$ref":"#/$defs/configByType/air_receiver"},{"$ref":"#/$defs/configByType/pressure_regulator"},{"$ref":"#/$defs/configByType/shut_off_valve"},{"$ref":"#/$defs/configByType/silencer"},{"$ref":"#/$defs/configByType/boundary"}]};
 const schema36 = {"if":{"properties":{"type":{"const":"pump"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"pump_type":{"enum":["fixed_displacement","variable_displacement"]},"drive":{"enum":["electric_motor","combustion_engine","manual","none"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}};
 const schema37 = {"if":{"properties":{"type":{"const":"motor"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"motor_type":{"enum":["fixed_displacement","variable_displacement"]},"bidirectional":{"type":"boolean"},"has_case_drain":{"type":"boolean"}}}}}};
 const schema38 = {"if":{"properties":{"type":{"const":"cylinder"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"cylinder_type":{"enum":["single_acting","double_acting"]},"rod":{"enum":["single","double"]},"spring_return":{"type":"boolean"},"cushioned":{"type":"boolean"}}}}}};
@@ -30,9 +30,16 @@ const schema47 = {"if":{"properties":{"type":{"const":"filter"}},"required":["ty
 const schema48 = {"if":{"properties":{"type":{"const":"pressure_gauge"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"with_isolator":{"type":"boolean"}}}}}};
 const schema49 = {"if":{"properties":{"type":{"const":"accumulator"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"accumulator_type":{"description":"The separating element. none is direct contact: gas sits on the liquid with no separator.","enum":["bladder","piston","diaphragm","spring","weight","none"]},"gas_port":{"description":"Draw the gas side as a connection on top of the shell. Without it the gas is sealed behind a charging valve and not drawn.","type":"boolean"},"liquid":{"description":"What the liquid side holds. Unstated, it takes the liquid of the line it sits on.","enum":["oil","water"]},"gas":{"description":"What the gas side holds: air for a compressed-air store, nitrogen for an oil accumulator. Unstated, it takes the gas of the line on its gas port.","enum":["air","nitrogen"]}},"if":{"properties":{"accumulator_type":{"enum":["spring","weight"]}},"required":["accumulator_type"]},"then":{"description":"A spring- or weight-loaded accumulator contains no gas, so it has no gas side to connect.","properties":{"gas_port":{"const":false}}}}}}};
 const schema50 = {"if":{"properties":{"type":{"const":"junction"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"way":{"enum":[3,4]}}},"params":{"maxProperties":0}}}};
+const schema51 = {"if":{"properties":{"type":{"const":"turbine"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{}}}}};
+const schema52 = {"if":{"properties":{"type":{"const":"compressor"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{}}}}};
+const schema53 = {"if":{"properties":{"type":{"const":"electrical_machine"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"role":{"description":"generator (shaft in on the left), motor (shaft out on the right), or motor_generator (a shaft each side, for a shared compressor/turbine train).","enum":["generator","motor","motor_generator"]}}}}}};
+const schema56 = {"if":{"properties":{"type":{"const":"air_receiver"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"gas":{"description":"Air, or nitrogen for a back-up bottle on an oil accumulator. Unstated, it takes the gas of the lines it is connected to.","enum":["air","nitrogen"]},"single_port":{"description":"One connection, filled and emptied through the same line, instead of an inlet and an outlet.","type":"boolean"}}}}}};
+const schema57 = {"if":{"properties":{"type":{"const":"pressure_regulator"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{}}}}};
+const schema58 = {"if":{"properties":{"type":{"const":"shut_off_valve"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"normal_position":{"enum":["open","closed"]}}}}}};
+const schema59 = {"if":{"properties":{"type":{"const":"silencer"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{}}}}};
 const schema35 = {"type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*$","maxLength":32};
-const schema52 = {"enum":["reservoir","pump","motor","cylinder","directional_control_valve","relief_valve","check_valve","pilot_operated_check_valve","counterbalance_valve","flow_control_valve","filter","pressure_gauge","accumulator","junction"]};
-const schema53 = {"type":"array","prefixItems":[{"type":"number"},{"type":"number"}],"items":false,"minItems":2,"maxItems":2};
+const schema63 = {"enum":["reservoir","pump","motor","cylinder","directional_control_valve","relief_valve","check_valve","pilot_operated_check_valve","counterbalance_valve","flow_control_valve","filter","pressure_gauge","accumulator","junction","turbine","compressor","electrical_machine","heat_exchanger","air_receiver","pressure_regulator","shut_off_valve","silencer","boundary"]};
+const schema64 = {"type":"array","prefixItems":[{"type":"number"},{"type":"number"}],"items":false,"minItems":2,"maxItems":2};
 const schema34 = {"if":{"properties":{"type":{"const":"reservoir"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"vented":{"type":"boolean"},"same_reservoir_as":{"$ref":"#/$defs/id"},"liquid":{"description":"What the tank holds. Unstated, it takes the liquid of the circuit it serves.","enum":["oil","water"]}}}}}};
 const pattern4 = new RegExp("^[A-Za-z][A-Za-z0-9_-]*$", "u");
 
@@ -414,16 +421,364 @@ return errors === 0;
 }
 validate24.evaluated = {"dynamicProps":true,"dynamicItems":false};
 
-const schema54 = {"description":"Engineering parameters, stored exactly as authored. A null value means unknown and is never replaced by a guess. Each quantity has an SI and an imperial field name; a component may use one or the other, never both for the same quantity.","type":"object","additionalProperties":false,"properties":{"setting_bar":{"$ref":"#/$defs/quantity"},"setting_psi":{"$ref":"#/$defs/quantity"},"cracking_pressure_bar":{"$ref":"#/$defs/quantity"},"cracking_pressure_psi":{"$ref":"#/$defs/quantity"},"max_pressure_bar":{"$ref":"#/$defs/quantity"},"max_pressure_psi":{"$ref":"#/$defs/quantity"},"precharge_bar":{"$ref":"#/$defs/quantity"},"precharge_psi":{"$ref":"#/$defs/quantity"},"range_bar":{"$ref":"#/$defs/quantity"},"range_psi":{"$ref":"#/$defs/quantity"},"flow_lpm":{"$ref":"#/$defs/quantity"},"flow_gpm":{"$ref":"#/$defs/quantity"},"displacement_cm3_rev":{"$ref":"#/$defs/quantity"},"displacement_in3_rev":{"$ref":"#/$defs/quantity"},"volume_l":{"$ref":"#/$defs/quantity"},"volume_gal":{"$ref":"#/$defs/quantity"},"bore_mm":{"$ref":"#/$defs/quantity"},"bore_in":{"$ref":"#/$defs/quantity"},"rod_mm":{"$ref":"#/$defs/quantity"},"rod_in":{"$ref":"#/$defs/quantity"},"stroke_mm":{"$ref":"#/$defs/quantity"},"stroke_in":{"$ref":"#/$defs/quantity"},"rating_micron":{"$ref":"#/$defs/quantity"},"speed_rpm":{"$ref":"#/$defs/quantity"},"pilot_ratio":{"$ref":"#/$defs/quantity"},"temperature_c":{"$ref":"#/$defs/signedQuantity","minimum":-273.15},"temperature_f":{"$ref":"#/$defs/signedQuantity","minimum":-459.67},"power_kw":{"$ref":"#/$defs/quantity"},"power_hp":{"$ref":"#/$defs/quantity"},"flow_nm3h":{"description":"Normal volume flow of a gas: cubic metres per hour at 0 degC and 1.01325 bar (DIN 1343).","$ref":"#/$defs/quantity"},"flow_scfm":{"description":"Standard volume flow of a gas: cubic feet per minute at 60 degF and 14.696 psia. Not CAGI's 68 degF scfm.","$ref":"#/$defs/quantity"},"mass_flow_kgs":{"$ref":"#/$defs/quantity"},"mass_flow_lbs":{"$ref":"#/$defs/quantity"}},"allOf":[{"not":{"required":["setting_bar","setting_psi"]}},{"not":{"required":["cracking_pressure_bar","cracking_pressure_psi"]}},{"not":{"required":["max_pressure_bar","max_pressure_psi"]}},{"not":{"required":["precharge_bar","precharge_psi"]}},{"not":{"required":["range_bar","range_psi"]}},{"not":{"required":["flow_lpm","flow_gpm"]}},{"not":{"required":["displacement_cm3_rev","displacement_in3_rev"]}},{"not":{"required":["volume_l","volume_gal"]}},{"not":{"required":["bore_mm","bore_in"]}},{"not":{"required":["rod_mm","rod_in"]}},{"not":{"required":["stroke_mm","stroke_in"]}},{"not":{"required":["temperature_c","temperature_f"]}},{"not":{"required":["power_kw","power_hp"]}},{"not":{"required":["flow_nm3h","flow_scfm"]}},{"not":{"required":["mass_flow_kgs","mass_flow_lbs"]}},{"$ref":"#/$defs/airFlowExclusive"}]};
-const schema55 = {"description":"A gas flow is stated once, either as normal volume flow or as mass flow. Both on one component would be two statements of one fact that can disagree.","allOf":[{"not":{"required":["flow_nm3h","mass_flow_kgs"]}},{"not":{"required":["flow_nm3h","mass_flow_lbs"]}},{"not":{"required":["flow_scfm","mass_flow_kgs"]}},{"not":{"required":["flow_scfm","mass_flow_lbs"]}}]};
-const schema56 = {"description":"A number as the author stated it, or null meaning explicitly unknown.","type":["number","null"],"exclusiveMinimum":0};
-const schema81 = {"description":"A quantity that may be zero or negative, such as a temperature. Its lower bound is set on the field that uses it.","type":["number","null"]};
-const func8 = Object.prototype.hasOwnProperty;
+const schema54 = {"if":{"properties":{"type":{"const":"heat_exchanger"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"function":{"description":"heating draws the ISO heater (triangles pointing in), cooling the ISO cooler (triangles pointing out).","enum":["heating","cooling"]},"utility_medium":{"description":"What flows on the heating or cooling side. Unstated, it takes the fluid of the lines on the utility ports.","$ref":"#/$defs/medium"}}}}}};
+const schema55 = {"description":"A fluid. Used where a component's configuration fixes what one of its sides carries; everywhere else the fluid is resolved from the ports a line joins, and defaults to oil.","enum":["oil","water","thermal_oil","air","nitrogen","steam","flue_gas"]};
 
 function validate26(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
 const evaluated0 = validate26.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+const _errs0 = errors;
+let valid0 = true;
+const _errs1 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+let missing0;
+if((data.type === undefined) && (missing0 = "type")){
+const err0 = {};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+else {
+if(data.type !== undefined){
+if("heat_exchanger" !== data.type){
+const err1 = {};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+}
+}
+}
+var _valid0 = _errs1 === errors;
+errors = _errs0;
+if(vErrors !== null){
+if(_errs0){
+vErrors.length = _errs0;
+}
+else {
+vErrors = null;
+}
+}
+if(_valid0){
+const _errs3 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.config !== undefined){
+let data1 = data.config;
+if(data1 && typeof data1 == "object" && !Array.isArray(data1)){
+for(const key0 in data1){
+if(!((key0 === "function") || (key0 === "utility_medium"))){
+const err2 = {instancePath:instancePath+"/config",schemaPath:"#/then/properties/config/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+if(data1.function !== undefined){
+let data2 = data1.function;
+if(!((data2 === "heating") || (data2 === "cooling"))){
+const err3 = {instancePath:instancePath+"/config/function",schemaPath:"#/then/properties/config/properties/function/enum",keyword:"enum",params:{allowedValues: schema54.then.properties.config.properties.function.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data1.utility_medium !== undefined){
+let data3 = data1.utility_medium;
+if(!(((((((data3 === "oil") || (data3 === "water")) || (data3 === "thermal_oil")) || (data3 === "air")) || (data3 === "nitrogen")) || (data3 === "steam")) || (data3 === "flue_gas"))){
+const err4 = {instancePath:instancePath+"/config/utility_medium",schemaPath:"#/$defs/medium/enum",keyword:"enum",params:{allowedValues: schema55.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+}
+}
+else {
+const err5 = {instancePath:instancePath+"/config",schemaPath:"#/then/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+}
+var _valid0 = _errs3 === errors;
+valid0 = _valid0;
+if(valid0){
+var props0 = {};
+props0.config = true;
+props0.type = true;
+}
+}
+if(!valid0){
+const err6 = {instancePath,schemaPath:"#/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+validate26.errors = vErrors;
+evaluated0.props = props0;
+return errors === 0;
+}
+validate26.evaluated = {"dynamicProps":true,"dynamicItems":false};
+
+const schema60 = {"if":{"properties":{"type":{"const":"boundary"}},"required":["type"]},"then":{"properties":{"config":{"type":"object","additionalProperties":false,"properties":{"direction":{"description":"from: flow enters the drawing here. to: flow leaves it here.","enum":["from","to"]},"name":{"description":"Where the line comes from or goes to: \"TES\", \"stack\", \"cooling water supply\", \"sheet 2\".","type":"string","minLength":1,"maxLength":24},"medium":{"description":"What crosses the boundary. Unstated, it takes the fluid of the line.","$ref":"#/$defs/medium"}},"required":["direction","name"]},"params":{"maxProperties":0}},"required":["config"]}};
+
+function validate28(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate28.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+const _errs0 = errors;
+let valid0 = true;
+const _errs1 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+let missing0;
+if((data.type === undefined) && (missing0 = "type")){
+const err0 = {};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+else {
+if(data.type !== undefined){
+if("boundary" !== data.type){
+const err1 = {};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+}
+}
+}
+var _valid0 = _errs1 === errors;
+errors = _errs0;
+if(vErrors !== null){
+if(_errs0){
+vErrors.length = _errs0;
+}
+else {
+vErrors = null;
+}
+}
+if(_valid0){
+const _errs3 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.config === undefined){
+const err2 = {instancePath,schemaPath:"#/then/required",keyword:"required",params:{missingProperty: "config"},message:"must have required property '"+"config"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(data.config !== undefined){
+let data1 = data.config;
+if(data1 && typeof data1 == "object" && !Array.isArray(data1)){
+if(data1.direction === undefined){
+const err3 = {instancePath:instancePath+"/config",schemaPath:"#/then/properties/config/required",keyword:"required",params:{missingProperty: "direction"},message:"must have required property '"+"direction"+"'"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(data1.name === undefined){
+const err4 = {instancePath:instancePath+"/config",schemaPath:"#/then/properties/config/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+for(const key0 in data1){
+if(!(((key0 === "direction") || (key0 === "name")) || (key0 === "medium"))){
+const err5 = {instancePath:instancePath+"/config",schemaPath:"#/then/properties/config/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+if(data1.direction !== undefined){
+let data2 = data1.direction;
+if(!((data2 === "from") || (data2 === "to"))){
+const err6 = {instancePath:instancePath+"/config/direction",schemaPath:"#/then/properties/config/properties/direction/enum",keyword:"enum",params:{allowedValues: schema60.then.properties.config.properties.direction.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+if(data1.name !== undefined){
+let data3 = data1.name;
+if(typeof data3 === "string"){
+if(func1(data3) > 24){
+const err7 = {instancePath:instancePath+"/config/name",schemaPath:"#/then/properties/config/properties/name/maxLength",keyword:"maxLength",params:{limit: 24},message:"must NOT have more than 24 characters"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+if(func1(data3) < 1){
+const err8 = {instancePath:instancePath+"/config/name",schemaPath:"#/then/properties/config/properties/name/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+else {
+const err9 = {instancePath:instancePath+"/config/name",schemaPath:"#/then/properties/config/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data1.medium !== undefined){
+let data4 = data1.medium;
+if(!(((((((data4 === "oil") || (data4 === "water")) || (data4 === "thermal_oil")) || (data4 === "air")) || (data4 === "nitrogen")) || (data4 === "steam")) || (data4 === "flue_gas"))){
+const err10 = {instancePath:instancePath+"/config/medium",schemaPath:"#/$defs/medium/enum",keyword:"enum",params:{allowedValues: schema55.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+}
+else {
+const err11 = {instancePath:instancePath+"/config",schemaPath:"#/then/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+if(data.params !== undefined){
+let data5 = data.params;
+if(data5 && typeof data5 == "object" && !Array.isArray(data5)){
+if(Object.keys(data5).length > 0){
+const err12 = {instancePath:instancePath+"/params",schemaPath:"#/then/properties/params/maxProperties",keyword:"maxProperties",params:{limit: 0},message:"must NOT have more than 0 properties"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+}
+}
+var _valid0 = _errs3 === errors;
+valid0 = _valid0;
+if(valid0){
+var props0 = {};
+props0.config = true;
+props0.params = true;
+props0.type = true;
+}
+}
+if(!valid0){
+const err13 = {instancePath,schemaPath:"#/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+validate28.errors = vErrors;
+evaluated0.props = props0;
+return errors === 0;
+}
+validate28.evaluated = {"dynamicProps":true,"dynamicItems":false};
+
+const schema65 = {"description":"Engineering parameters, stored exactly as authored. A null value means unknown and is never replaced by a guess. Each quantity has an SI and an imperial field name; a component may use one or the other, never both for the same quantity.","type":"object","additionalProperties":false,"properties":{"setting_bar":{"$ref":"#/$defs/quantity"},"setting_psi":{"$ref":"#/$defs/quantity"},"cracking_pressure_bar":{"$ref":"#/$defs/quantity"},"cracking_pressure_psi":{"$ref":"#/$defs/quantity"},"max_pressure_bar":{"$ref":"#/$defs/quantity"},"max_pressure_psi":{"$ref":"#/$defs/quantity"},"precharge_bar":{"$ref":"#/$defs/quantity"},"precharge_psi":{"$ref":"#/$defs/quantity"},"range_bar":{"$ref":"#/$defs/quantity"},"range_psi":{"$ref":"#/$defs/quantity"},"flow_lpm":{"$ref":"#/$defs/quantity"},"flow_gpm":{"$ref":"#/$defs/quantity"},"displacement_cm3_rev":{"$ref":"#/$defs/quantity"},"displacement_in3_rev":{"$ref":"#/$defs/quantity"},"volume_l":{"$ref":"#/$defs/quantity"},"volume_gal":{"$ref":"#/$defs/quantity"},"bore_mm":{"$ref":"#/$defs/quantity"},"bore_in":{"$ref":"#/$defs/quantity"},"rod_mm":{"$ref":"#/$defs/quantity"},"rod_in":{"$ref":"#/$defs/quantity"},"stroke_mm":{"$ref":"#/$defs/quantity"},"stroke_in":{"$ref":"#/$defs/quantity"},"rating_micron":{"$ref":"#/$defs/quantity"},"speed_rpm":{"$ref":"#/$defs/quantity"},"pilot_ratio":{"$ref":"#/$defs/quantity"},"temperature_c":{"$ref":"#/$defs/signedQuantity","minimum":-273.15},"temperature_f":{"$ref":"#/$defs/signedQuantity","minimum":-459.67},"power_kw":{"$ref":"#/$defs/quantity"},"power_hp":{"$ref":"#/$defs/quantity"},"flow_nm3h":{"description":"Normal volume flow of a gas: cubic metres per hour at 0 degC and 1.01325 bar (DIN 1343).","$ref":"#/$defs/quantity"},"flow_scfm":{"description":"Standard volume flow of a gas: cubic feet per minute at 60 degF and 14.696 psia. Not CAGI's 68 degF scfm.","$ref":"#/$defs/quantity"},"mass_flow_kgs":{"$ref":"#/$defs/quantity"},"mass_flow_lbs":{"$ref":"#/$defs/quantity"}},"allOf":[{"not":{"required":["setting_bar","setting_psi"]}},{"not":{"required":["cracking_pressure_bar","cracking_pressure_psi"]}},{"not":{"required":["max_pressure_bar","max_pressure_psi"]}},{"not":{"required":["precharge_bar","precharge_psi"]}},{"not":{"required":["range_bar","range_psi"]}},{"not":{"required":["flow_lpm","flow_gpm"]}},{"not":{"required":["displacement_cm3_rev","displacement_in3_rev"]}},{"not":{"required":["volume_l","volume_gal"]}},{"not":{"required":["bore_mm","bore_in"]}},{"not":{"required":["rod_mm","rod_in"]}},{"not":{"required":["stroke_mm","stroke_in"]}},{"not":{"required":["temperature_c","temperature_f"]}},{"not":{"required":["power_kw","power_hp"]}},{"not":{"required":["flow_nm3h","flow_scfm"]}},{"not":{"required":["mass_flow_kgs","mass_flow_lbs"]}},{"$ref":"#/$defs/airFlowExclusive"}]};
+const schema66 = {"description":"A gas flow is stated once, either as normal volume flow or as mass flow. Both on one component would be two statements of one fact that can disagree.","allOf":[{"not":{"required":["flow_nm3h","mass_flow_kgs"]}},{"not":{"required":["flow_nm3h","mass_flow_lbs"]}},{"not":{"required":["flow_scfm","mass_flow_kgs"]}},{"not":{"required":["flow_scfm","mass_flow_lbs"]}}]};
+const schema67 = {"description":"A number as the author stated it, or null meaning explicitly unknown.","type":["number","null"],"exclusiveMinimum":0};
+const schema92 = {"description":"A quantity that may be zero or negative, such as a temperature. Its lower bound is set on the field that uses it.","type":["number","null"]};
+const func10 = Object.prototype.hasOwnProperty;
+
+function validate30(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate30.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -1135,7 +1490,7 @@ vErrors = null;
 }
 if(data && typeof data == "object" && !Array.isArray(data)){
 for(const key0 in data){
-if(!(func8.call(schema54.properties, key0))){
+if(!(func10.call(schema65.properties, key0))){
 const err38 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err38];
@@ -1149,7 +1504,7 @@ errors++;
 if(data.setting_bar !== undefined){
 let data0 = data.setting_bar;
 if((!(typeof data0 == "number")) && (data0 !== null)){
-const err39 = {instancePath:instancePath+"/setting_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err39 = {instancePath:instancePath+"/setting_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err39];
 }
@@ -1174,7 +1529,7 @@ errors++;
 if(data.setting_psi !== undefined){
 let data1 = data.setting_psi;
 if((!(typeof data1 == "number")) && (data1 !== null)){
-const err41 = {instancePath:instancePath+"/setting_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err41 = {instancePath:instancePath+"/setting_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err41];
 }
@@ -1199,7 +1554,7 @@ errors++;
 if(data.cracking_pressure_bar !== undefined){
 let data2 = data.cracking_pressure_bar;
 if((!(typeof data2 == "number")) && (data2 !== null)){
-const err43 = {instancePath:instancePath+"/cracking_pressure_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err43 = {instancePath:instancePath+"/cracking_pressure_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err43];
 }
@@ -1224,7 +1579,7 @@ errors++;
 if(data.cracking_pressure_psi !== undefined){
 let data3 = data.cracking_pressure_psi;
 if((!(typeof data3 == "number")) && (data3 !== null)){
-const err45 = {instancePath:instancePath+"/cracking_pressure_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err45 = {instancePath:instancePath+"/cracking_pressure_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err45];
 }
@@ -1249,7 +1604,7 @@ errors++;
 if(data.max_pressure_bar !== undefined){
 let data4 = data.max_pressure_bar;
 if((!(typeof data4 == "number")) && (data4 !== null)){
-const err47 = {instancePath:instancePath+"/max_pressure_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err47 = {instancePath:instancePath+"/max_pressure_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err47];
 }
@@ -1274,7 +1629,7 @@ errors++;
 if(data.max_pressure_psi !== undefined){
 let data5 = data.max_pressure_psi;
 if((!(typeof data5 == "number")) && (data5 !== null)){
-const err49 = {instancePath:instancePath+"/max_pressure_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err49 = {instancePath:instancePath+"/max_pressure_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err49];
 }
@@ -1299,7 +1654,7 @@ errors++;
 if(data.precharge_bar !== undefined){
 let data6 = data.precharge_bar;
 if((!(typeof data6 == "number")) && (data6 !== null)){
-const err51 = {instancePath:instancePath+"/precharge_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err51 = {instancePath:instancePath+"/precharge_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err51];
 }
@@ -1324,7 +1679,7 @@ errors++;
 if(data.precharge_psi !== undefined){
 let data7 = data.precharge_psi;
 if((!(typeof data7 == "number")) && (data7 !== null)){
-const err53 = {instancePath:instancePath+"/precharge_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err53 = {instancePath:instancePath+"/precharge_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err53];
 }
@@ -1349,7 +1704,7 @@ errors++;
 if(data.range_bar !== undefined){
 let data8 = data.range_bar;
 if((!(typeof data8 == "number")) && (data8 !== null)){
-const err55 = {instancePath:instancePath+"/range_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err55 = {instancePath:instancePath+"/range_bar",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err55];
 }
@@ -1374,7 +1729,7 @@ errors++;
 if(data.range_psi !== undefined){
 let data9 = data.range_psi;
 if((!(typeof data9 == "number")) && (data9 !== null)){
-const err57 = {instancePath:instancePath+"/range_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err57 = {instancePath:instancePath+"/range_psi",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err57];
 }
@@ -1399,7 +1754,7 @@ errors++;
 if(data.flow_lpm !== undefined){
 let data10 = data.flow_lpm;
 if((!(typeof data10 == "number")) && (data10 !== null)){
-const err59 = {instancePath:instancePath+"/flow_lpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err59 = {instancePath:instancePath+"/flow_lpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err59];
 }
@@ -1424,7 +1779,7 @@ errors++;
 if(data.flow_gpm !== undefined){
 let data11 = data.flow_gpm;
 if((!(typeof data11 == "number")) && (data11 !== null)){
-const err61 = {instancePath:instancePath+"/flow_gpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err61 = {instancePath:instancePath+"/flow_gpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err61];
 }
@@ -1449,7 +1804,7 @@ errors++;
 if(data.displacement_cm3_rev !== undefined){
 let data12 = data.displacement_cm3_rev;
 if((!(typeof data12 == "number")) && (data12 !== null)){
-const err63 = {instancePath:instancePath+"/displacement_cm3_rev",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err63 = {instancePath:instancePath+"/displacement_cm3_rev",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err63];
 }
@@ -1474,7 +1829,7 @@ errors++;
 if(data.displacement_in3_rev !== undefined){
 let data13 = data.displacement_in3_rev;
 if((!(typeof data13 == "number")) && (data13 !== null)){
-const err65 = {instancePath:instancePath+"/displacement_in3_rev",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err65 = {instancePath:instancePath+"/displacement_in3_rev",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err65];
 }
@@ -1499,7 +1854,7 @@ errors++;
 if(data.volume_l !== undefined){
 let data14 = data.volume_l;
 if((!(typeof data14 == "number")) && (data14 !== null)){
-const err67 = {instancePath:instancePath+"/volume_l",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err67 = {instancePath:instancePath+"/volume_l",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err67];
 }
@@ -1524,7 +1879,7 @@ errors++;
 if(data.volume_gal !== undefined){
 let data15 = data.volume_gal;
 if((!(typeof data15 == "number")) && (data15 !== null)){
-const err69 = {instancePath:instancePath+"/volume_gal",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err69 = {instancePath:instancePath+"/volume_gal",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err69];
 }
@@ -1549,7 +1904,7 @@ errors++;
 if(data.bore_mm !== undefined){
 let data16 = data.bore_mm;
 if((!(typeof data16 == "number")) && (data16 !== null)){
-const err71 = {instancePath:instancePath+"/bore_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err71 = {instancePath:instancePath+"/bore_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err71];
 }
@@ -1574,7 +1929,7 @@ errors++;
 if(data.bore_in !== undefined){
 let data17 = data.bore_in;
 if((!(typeof data17 == "number")) && (data17 !== null)){
-const err73 = {instancePath:instancePath+"/bore_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err73 = {instancePath:instancePath+"/bore_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err73];
 }
@@ -1599,7 +1954,7 @@ errors++;
 if(data.rod_mm !== undefined){
 let data18 = data.rod_mm;
 if((!(typeof data18 == "number")) && (data18 !== null)){
-const err75 = {instancePath:instancePath+"/rod_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err75 = {instancePath:instancePath+"/rod_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err75];
 }
@@ -1624,7 +1979,7 @@ errors++;
 if(data.rod_in !== undefined){
 let data19 = data.rod_in;
 if((!(typeof data19 == "number")) && (data19 !== null)){
-const err77 = {instancePath:instancePath+"/rod_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err77 = {instancePath:instancePath+"/rod_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err77];
 }
@@ -1649,7 +2004,7 @@ errors++;
 if(data.stroke_mm !== undefined){
 let data20 = data.stroke_mm;
 if((!(typeof data20 == "number")) && (data20 !== null)){
-const err79 = {instancePath:instancePath+"/stroke_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err79 = {instancePath:instancePath+"/stroke_mm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err79];
 }
@@ -1674,7 +2029,7 @@ errors++;
 if(data.stroke_in !== undefined){
 let data21 = data.stroke_in;
 if((!(typeof data21 == "number")) && (data21 !== null)){
-const err81 = {instancePath:instancePath+"/stroke_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err81 = {instancePath:instancePath+"/stroke_in",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err81];
 }
@@ -1699,7 +2054,7 @@ errors++;
 if(data.rating_micron !== undefined){
 let data22 = data.rating_micron;
 if((!(typeof data22 == "number")) && (data22 !== null)){
-const err83 = {instancePath:instancePath+"/rating_micron",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err83 = {instancePath:instancePath+"/rating_micron",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err83];
 }
@@ -1724,7 +2079,7 @@ errors++;
 if(data.speed_rpm !== undefined){
 let data23 = data.speed_rpm;
 if((!(typeof data23 == "number")) && (data23 !== null)){
-const err85 = {instancePath:instancePath+"/speed_rpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err85 = {instancePath:instancePath+"/speed_rpm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err85];
 }
@@ -1749,7 +2104,7 @@ errors++;
 if(data.pilot_ratio !== undefined){
 let data24 = data.pilot_ratio;
 if((!(typeof data24 == "number")) && (data24 !== null)){
-const err87 = {instancePath:instancePath+"/pilot_ratio",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err87 = {instancePath:instancePath+"/pilot_ratio",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err87];
 }
@@ -1774,7 +2129,7 @@ errors++;
 if(data.temperature_c !== undefined){
 let data25 = data.temperature_c;
 if((!(typeof data25 == "number")) && (data25 !== null)){
-const err89 = {instancePath:instancePath+"/temperature_c",schemaPath:"#/$defs/signedQuantity/type",keyword:"type",params:{type: schema81.type},message:"must be number,null"};
+const err89 = {instancePath:instancePath+"/temperature_c",schemaPath:"#/$defs/signedQuantity/type",keyword:"type",params:{type: schema92.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err89];
 }
@@ -1799,7 +2154,7 @@ errors++;
 if(data.temperature_f !== undefined){
 let data26 = data.temperature_f;
 if((!(typeof data26 == "number")) && (data26 !== null)){
-const err91 = {instancePath:instancePath+"/temperature_f",schemaPath:"#/$defs/signedQuantity/type",keyword:"type",params:{type: schema81.type},message:"must be number,null"};
+const err91 = {instancePath:instancePath+"/temperature_f",schemaPath:"#/$defs/signedQuantity/type",keyword:"type",params:{type: schema92.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err91];
 }
@@ -1824,7 +2179,7 @@ errors++;
 if(data.power_kw !== undefined){
 let data27 = data.power_kw;
 if((!(typeof data27 == "number")) && (data27 !== null)){
-const err93 = {instancePath:instancePath+"/power_kw",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err93 = {instancePath:instancePath+"/power_kw",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err93];
 }
@@ -1849,7 +2204,7 @@ errors++;
 if(data.power_hp !== undefined){
 let data28 = data.power_hp;
 if((!(typeof data28 == "number")) && (data28 !== null)){
-const err95 = {instancePath:instancePath+"/power_hp",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err95 = {instancePath:instancePath+"/power_hp",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err95];
 }
@@ -1874,7 +2229,7 @@ errors++;
 if(data.flow_nm3h !== undefined){
 let data29 = data.flow_nm3h;
 if((!(typeof data29 == "number")) && (data29 !== null)){
-const err97 = {instancePath:instancePath+"/flow_nm3h",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err97 = {instancePath:instancePath+"/flow_nm3h",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err97];
 }
@@ -1899,7 +2254,7 @@ errors++;
 if(data.flow_scfm !== undefined){
 let data30 = data.flow_scfm;
 if((!(typeof data30 == "number")) && (data30 !== null)){
-const err99 = {instancePath:instancePath+"/flow_scfm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err99 = {instancePath:instancePath+"/flow_scfm",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err99];
 }
@@ -1924,7 +2279,7 @@ errors++;
 if(data.mass_flow_kgs !== undefined){
 let data31 = data.mass_flow_kgs;
 if((!(typeof data31 == "number")) && (data31 !== null)){
-const err101 = {instancePath:instancePath+"/mass_flow_kgs",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err101 = {instancePath:instancePath+"/mass_flow_kgs",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err101];
 }
@@ -1949,7 +2304,7 @@ errors++;
 if(data.mass_flow_lbs !== undefined){
 let data32 = data.mass_flow_lbs;
 if((!(typeof data32 == "number")) && (data32 !== null)){
-const err103 = {instancePath:instancePath+"/mass_flow_lbs",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema56.type},message:"must be number,null"};
+const err103 = {instancePath:instancePath+"/mass_flow_lbs",schemaPath:"#/$defs/quantity/type",keyword:"type",params:{type: schema67.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err103];
 }
@@ -1982,10 +2337,10 @@ vErrors.push(err105);
 }
 errors++;
 }
-validate26.errors = vErrors;
+validate30.errors = vErrors;
 return errors === 0;
 }
-validate26.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate30.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 
 function validate21(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
@@ -3650,9 +4005,13 @@ props0 = props0 || {};
 Object.assign(props0, props14);
 }
 }
+const _errs163 = errors;
+let valid65 = true;
+const _errs164 = errors;
 if(data && typeof data == "object" && !Array.isArray(data)){
-if(data.id === undefined){
-const err94 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "id"},message:"must have required property '"+"id"+"'"};
+let missing13;
+if((data.type === undefined) && (missing13 = "type")){
+const err94 = {};
 if(vErrors === null){
 vErrors = [err94];
 }
@@ -3661,8 +4020,10 @@ vErrors.push(err94);
 }
 errors++;
 }
-if(data.type === undefined){
-const err95 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "type"},message:"must have required property '"+"type"+"'"};
+else {
+if(data.type !== undefined){
+if("turbine" !== data.type){
+const err95 = {};
 if(vErrors === null){
 vErrors = [err95];
 }
@@ -3671,8 +4032,27 @@ vErrors.push(err95);
 }
 errors++;
 }
-if(data.pos === undefined){
-const err96 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "pos"},message:"must have required property '"+"pos"+"'"};
+}
+}
+}
+var _valid13 = _errs164 === errors;
+errors = _errs163;
+if(vErrors !== null){
+if(_errs163){
+vErrors.length = _errs163;
+}
+else {
+vErrors = null;
+}
+}
+if(_valid13){
+const _errs166 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.config !== undefined){
+let data57 = data.config;
+if(data57 && typeof data57 == "object" && !Array.isArray(data57)){
+for(const key12 in data57){
+const err96 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/turbine/then/properties/config/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key12},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err96];
 }
@@ -3681,9 +4061,9 @@ vErrors.push(err96);
 }
 errors++;
 }
-for(const key12 in data){
-if(!(func8.call(schema33.properties, key12))){
-const err97 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key12},message:"must NOT have additional properties"};
+}
+else {
+const err97 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/turbine/then/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err97];
 }
@@ -3693,11 +4073,17 @@ vErrors.push(err97);
 errors++;
 }
 }
-if(data.id !== undefined){
-let data56 = data.id;
-if(typeof data56 === "string"){
-if(func1(data56) > 32){
-const err98 = {instancePath:instancePath+"/id",schemaPath:"#/$defs/id/maxLength",keyword:"maxLength",params:{limit: 32},message:"must NOT have more than 32 characters"};
+}
+var _valid13 = _errs166 === errors;
+valid65 = _valid13;
+if(valid65){
+var props15 = {};
+props15.config = true;
+props15.type = true;
+}
+}
+if(!valid65){
+const err98 = {instancePath,schemaPath:"#/$defs/configByType/turbine/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
 if(vErrors === null){
 vErrors = [err98];
 }
@@ -3706,8 +4092,22 @@ vErrors.push(err98);
 }
 errors++;
 }
-if(!pattern4.test(data56)){
-const err99 = {instancePath:instancePath+"/id",schemaPath:"#/$defs/id/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z][A-Za-z0-9_-]*$"},message:"must match pattern \""+"^[A-Za-z][A-Za-z0-9_-]*$"+"\""};
+if(props0 !== true && props15 !== undefined){
+if(props15 === true){
+props0 = true;
+}
+else {
+props0 = props0 || {};
+Object.assign(props0, props15);
+}
+}
+const _errs172 = errors;
+let valid69 = true;
+const _errs173 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+let missing14;
+if((data.type === undefined) && (missing14 = "type")){
+const err99 = {};
 if(vErrors === null){
 vErrors = [err99];
 }
@@ -3716,9 +4116,10 @@ vErrors.push(err99);
 }
 errors++;
 }
-}
 else {
-const err100 = {instancePath:instancePath+"/id",schemaPath:"#/$defs/id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data.type !== undefined){
+if("compressor" !== data.type){
+const err100 = {};
 if(vErrors === null){
 vErrors = [err100];
 }
@@ -3728,10 +4129,26 @@ vErrors.push(err100);
 errors++;
 }
 }
-if(data.type !== undefined){
-let data57 = data.type;
-if(!((((((((((((((data57 === "reservoir") || (data57 === "pump")) || (data57 === "motor")) || (data57 === "cylinder")) || (data57 === "directional_control_valve")) || (data57 === "relief_valve")) || (data57 === "check_valve")) || (data57 === "pilot_operated_check_valve")) || (data57 === "counterbalance_valve")) || (data57 === "flow_control_valve")) || (data57 === "filter")) || (data57 === "pressure_gauge")) || (data57 === "accumulator")) || (data57 === "junction"))){
-const err101 = {instancePath:instancePath+"/type",schemaPath:"#/$defs/componentType/enum",keyword:"enum",params:{allowedValues: schema52.enum},message:"must be equal to one of the allowed values"};
+}
+}
+var _valid14 = _errs173 === errors;
+errors = _errs172;
+if(vErrors !== null){
+if(_errs172){
+vErrors.length = _errs172;
+}
+else {
+vErrors = null;
+}
+}
+if(_valid14){
+const _errs175 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.config !== undefined){
+let data59 = data.config;
+if(data59 && typeof data59 == "object" && !Array.isArray(data59)){
+for(const key13 in data59){
+const err101 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/compressor/then/properties/config/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key13},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err101];
 }
@@ -3741,11 +4158,8 @@ vErrors.push(err101);
 errors++;
 }
 }
-if(data.label !== undefined){
-let data58 = data.label;
-if(typeof data58 === "string"){
-if(func1(data58) > 80){
-const err102 = {instancePath:instancePath+"/label",schemaPath:"#/properties/label/maxLength",keyword:"maxLength",params:{limit: 80},message:"must NOT have more than 80 characters"};
+else {
+const err102 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/compressor/then/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err102];
 }
@@ -3755,8 +4169,17 @@ vErrors.push(err102);
 errors++;
 }
 }
-else {
-const err103 = {instancePath:instancePath+"/label",schemaPath:"#/properties/label/type",keyword:"type",params:{type: "string"},message:"must be string"};
+}
+var _valid14 = _errs175 === errors;
+valid69 = _valid14;
+if(valid69){
+var props16 = {};
+props16.config = true;
+props16.type = true;
+}
+}
+if(!valid69){
+const err103 = {instancePath,schemaPath:"#/$defs/configByType/compressor/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
 if(vErrors === null){
 vErrors = [err103];
 }
@@ -3765,12 +4188,22 @@ vErrors.push(err103);
 }
 errors++;
 }
+if(props0 !== true && props16 !== undefined){
+if(props16 === true){
+props0 = true;
 }
-if(data.pos !== undefined){
-let data59 = data.pos;
-if(Array.isArray(data59)){
-if(data59.length > 2){
-const err104 = {instancePath:instancePath+"/pos",schemaPath:"#/$defs/point/maxItems",keyword:"maxItems",params:{limit: 2},message:"must NOT have more than 2 items"};
+else {
+props0 = props0 || {};
+Object.assign(props0, props16);
+}
+}
+const _errs181 = errors;
+let valid73 = true;
+const _errs182 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+let missing15;
+if((data.type === undefined) && (missing15 = "type")){
+const err104 = {};
 if(vErrors === null){
 vErrors = [err104];
 }
@@ -3779,8 +4212,10 @@ vErrors.push(err104);
 }
 errors++;
 }
-if(data59.length < 2){
-const err105 = {instancePath:instancePath+"/pos",schemaPath:"#/$defs/point/minItems",keyword:"minItems",params:{limit: 2},message:"must NOT have fewer than 2 items"};
+else {
+if(data.type !== undefined){
+if("electrical_machine" !== data.type){
+const err105 = {};
 if(vErrors === null){
 vErrors = [err105];
 }
@@ -3789,10 +4224,28 @@ vErrors.push(err105);
 }
 errors++;
 }
-const len0 = data59.length;
-if(len0 > 0){
-if(!(typeof data59[0] == "number")){
-const err106 = {instancePath:instancePath+"/pos/0",schemaPath:"#/$defs/point/prefixItems/0/type",keyword:"type",params:{type: "number"},message:"must be number"};
+}
+}
+}
+var _valid15 = _errs182 === errors;
+errors = _errs181;
+if(vErrors !== null){
+if(_errs181){
+vErrors.length = _errs181;
+}
+else {
+vErrors = null;
+}
+}
+if(_valid15){
+const _errs184 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.config !== undefined){
+let data61 = data.config;
+if(data61 && typeof data61 == "object" && !Array.isArray(data61)){
+for(const key14 in data61){
+if(!(key14 === "role")){
+const err106 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/electrical_machine/then/properties/config/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key14},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err106];
 }
@@ -3802,9 +4255,10 @@ vErrors.push(err106);
 errors++;
 }
 }
-if(len0 > 1){
-if(!(typeof data59[1] == "number")){
-const err107 = {instancePath:instancePath+"/pos/1",schemaPath:"#/$defs/point/prefixItems/1/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(data61.role !== undefined){
+let data62 = data61.role;
+if(!(((data62 === "generator") || (data62 === "motor")) || (data62 === "motor_generator"))){
+const err107 = {instancePath:instancePath+"/config/role",schemaPath:"#/$defs/configByType/electrical_machine/then/properties/config/properties/role/enum",keyword:"enum",params:{allowedValues: schema53.then.properties.config.properties.role.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err107];
 }
@@ -3814,9 +4268,9 @@ vErrors.push(err107);
 errors++;
 }
 }
-const len1 = data59.length;
-if(!(len1 <= 2)){
-const err108 = {instancePath:instancePath+"/pos",schemaPath:"#/$defs/point/items",keyword:"items",params:{limit: 2},message:"must NOT have more than 2 items"};
+}
+else {
+const err108 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/electrical_machine/then/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err108];
 }
@@ -3826,8 +4280,17 @@ vErrors.push(err108);
 errors++;
 }
 }
-else {
-const err109 = {instancePath:instancePath+"/pos",schemaPath:"#/$defs/point/type",keyword:"type",params:{type: "array"},message:"must be array"};
+}
+var _valid15 = _errs184 === errors;
+valid73 = _valid15;
+if(valid73){
+var props17 = {};
+props17.config = true;
+props17.type = true;
+}
+}
+if(!valid73){
+const err109 = {instancePath,schemaPath:"#/$defs/configByType/electrical_machine/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
 if(vErrors === null){
 vErrors = [err109];
 }
@@ -3836,10 +4299,38 @@ vErrors.push(err109);
 }
 errors++;
 }
+if(props0 !== true && props17 !== undefined){
+if(props17 === true){
+props0 = true;
 }
-if(data.mirror !== undefined){
-if(typeof data.mirror !== "boolean"){
-const err110 = {instancePath:instancePath+"/mirror",schemaPath:"#/properties/mirror/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+else {
+props0 = props0 || {};
+Object.assign(props0, props17);
+}
+}
+if(!(validate26(data, {instancePath,parentData,parentDataProperty,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate26.errors : vErrors.concat(validate26.errors);
+errors = vErrors.length;
+}
+else {
+var props18 = validate26.evaluated.props;
+}
+if(props0 !== true && props18 !== undefined){
+if(props18 === true){
+props0 = true;
+}
+else {
+props0 = props0 || {};
+Object.assign(props0, props18);
+}
+}
+const _errs192 = errors;
+let valid78 = true;
+const _errs193 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+let missing16;
+if((data.type === undefined) && (missing16 = "type")){
+const err110 = {};
 if(vErrors === null){
 vErrors = [err110];
 }
@@ -3848,11 +4339,10 @@ vErrors.push(err110);
 }
 errors++;
 }
-}
-if(data.config !== undefined){
-let data63 = data.config;
-if(!(data63 && typeof data63 == "object" && !Array.isArray(data63))){
-const err111 = {instancePath:instancePath+"/config",schemaPath:"#/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
+else {
+if(data.type !== undefined){
+if("air_receiver" !== data.type){
+const err111 = {};
 if(vErrors === null){
 vErrors = [err111];
 }
@@ -3862,21 +4352,27 @@ vErrors.push(err111);
 errors++;
 }
 }
-if(data.params !== undefined){
-if(!(validate26(data.params, {instancePath:instancePath+"/params",parentData:data,parentDataProperty:"params",rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate26.errors : vErrors.concat(validate26.errors);
-errors = vErrors.length;
 }
 }
-if(data.ports !== undefined){
-let data65 = data.ports;
-if(data65 && typeof data65 == "object" && !Array.isArray(data65)){
-for(const key13 in data65){
-let data66 = data65[key13];
-if(data66 && typeof data66 == "object" && !Array.isArray(data66)){
-for(const key14 in data66){
-if(!((key14 === "plugged") || (key14 === "label"))){
-const err112 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/ports/additionalProperties/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key14},message:"must NOT have additional properties"};
+var _valid16 = _errs193 === errors;
+errors = _errs192;
+if(vErrors !== null){
+if(_errs192){
+vErrors.length = _errs192;
+}
+else {
+vErrors = null;
+}
+}
+if(_valid16){
+const _errs195 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.config !== undefined){
+let data64 = data.config;
+if(data64 && typeof data64 == "object" && !Array.isArray(data64)){
+for(const key15 in data64){
+if(!((key15 === "gas") || (key15 === "single_port"))){
+const err112 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/air_receiver/then/properties/config/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key15},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err112];
 }
@@ -3886,9 +4382,10 @@ vErrors.push(err112);
 errors++;
 }
 }
-if(data66.plugged !== undefined){
-if(typeof data66.plugged !== "boolean"){
-const err113 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1")+"/plugged",schemaPath:"#/properties/ports/additionalProperties/properties/plugged/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(data64.gas !== undefined){
+let data65 = data64.gas;
+if(!((data65 === "air") || (data65 === "nitrogen"))){
+const err113 = {instancePath:instancePath+"/config/gas",schemaPath:"#/$defs/configByType/air_receiver/then/properties/config/properties/gas/enum",keyword:"enum",params:{allowedValues: schema56.then.properties.config.properties.gas.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err113];
 }
@@ -3898,11 +4395,9 @@ vErrors.push(err113);
 errors++;
 }
 }
-if(data66.label !== undefined){
-let data68 = data66.label;
-if(typeof data68 === "string"){
-if(func1(data68) > 24){
-const err114 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1")+"/label",schemaPath:"#/properties/ports/additionalProperties/properties/label/maxLength",keyword:"maxLength",params:{limit: 24},message:"must NOT have more than 24 characters"};
+if(data64.single_port !== undefined){
+if(typeof data64.single_port !== "boolean"){
+const err114 = {instancePath:instancePath+"/config/single_port",schemaPath:"#/$defs/configByType/air_receiver/then/properties/config/properties/single_port/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
 if(vErrors === null){
 vErrors = [err114];
 }
@@ -3912,8 +4407,9 @@ vErrors.push(err114);
 errors++;
 }
 }
+}
 else {
-const err115 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1")+"/label",schemaPath:"#/properties/ports/additionalProperties/properties/label/type",keyword:"type",params:{type: "string"},message:"must be string"};
+const err115 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/air_receiver/then/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err115];
 }
@@ -3924,8 +4420,16 @@ errors++;
 }
 }
 }
-else {
-const err116 = {instancePath:instancePath+"/ports/" + key13.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/ports/additionalProperties/type",keyword:"type",params:{type: "object"},message:"must be object"};
+var _valid16 = _errs195 === errors;
+valid78 = _valid16;
+if(valid78){
+var props19 = {};
+props19.config = true;
+props19.type = true;
+}
+}
+if(!valid78){
+const err116 = {instancePath,schemaPath:"#/$defs/configByType/air_receiver/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
 if(vErrors === null){
 vErrors = [err116];
 }
@@ -3934,10 +4438,22 @@ vErrors.push(err116);
 }
 errors++;
 }
-}
+if(props0 !== true && props19 !== undefined){
+if(props19 === true){
+props0 = true;
 }
 else {
-const err117 = {instancePath:instancePath+"/ports",schemaPath:"#/properties/ports/type",keyword:"type",params:{type: "object"},message:"must be object"};
+props0 = props0 || {};
+Object.assign(props0, props19);
+}
+}
+const _errs204 = errors;
+let valid83 = true;
+const _errs205 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+let missing17;
+if((data.type === undefined) && (missing17 = "type")){
+const err117 = {};
 if(vErrors === null){
 vErrors = [err117];
 }
@@ -3946,12 +4462,10 @@ vErrors.push(err117);
 }
 errors++;
 }
-}
-if(data.note !== undefined){
-let data69 = data.note;
-if(typeof data69 === "string"){
-if(func1(data69) > 200){
-const err118 = {instancePath:instancePath+"/note",schemaPath:"#/properties/note/maxLength",keyword:"maxLength",params:{limit: 200},message:"must NOT have more than 200 characters"};
+else {
+if(data.type !== undefined){
+if("pressure_regulator" !== data.type){
+const err118 = {};
 if(vErrors === null){
 vErrors = [err118];
 }
@@ -3961,8 +4475,26 @@ vErrors.push(err118);
 errors++;
 }
 }
+}
+}
+var _valid17 = _errs205 === errors;
+errors = _errs204;
+if(vErrors !== null){
+if(_errs204){
+vErrors.length = _errs204;
+}
 else {
-const err119 = {instancePath:instancePath+"/note",schemaPath:"#/properties/note/type",keyword:"type",params:{type: "string"},message:"must be string"};
+vErrors = null;
+}
+}
+if(_valid17){
+const _errs207 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.config !== undefined){
+let data68 = data.config;
+if(data68 && typeof data68 == "object" && !Array.isArray(data68)){
+for(const key16 in data68){
+const err119 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/pressure_regulator/then/properties/config/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key16},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err119];
 }
@@ -3972,9 +4504,8 @@ vErrors.push(err119);
 errors++;
 }
 }
-}
 else {
-const err120 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err120 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/pressure_regulator/then/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err120];
 }
@@ -3983,21 +4514,606 @@ vErrors.push(err120);
 }
 errors++;
 }
+}
+}
+var _valid17 = _errs207 === errors;
+valid83 = _valid17;
+if(valid83){
+var props20 = {};
+props20.config = true;
+props20.type = true;
+}
+}
+if(!valid83){
+const err121 = {instancePath,schemaPath:"#/$defs/configByType/pressure_regulator/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
+if(vErrors === null){
+vErrors = [err121];
+}
+else {
+vErrors.push(err121);
+}
+errors++;
+}
+if(props0 !== true && props20 !== undefined){
+if(props20 === true){
+props0 = true;
+}
+else {
+props0 = props0 || {};
+Object.assign(props0, props20);
+}
+}
+const _errs213 = errors;
+let valid87 = true;
+const _errs214 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+let missing18;
+if((data.type === undefined) && (missing18 = "type")){
+const err122 = {};
+if(vErrors === null){
+vErrors = [err122];
+}
+else {
+vErrors.push(err122);
+}
+errors++;
+}
+else {
+if(data.type !== undefined){
+if("shut_off_valve" !== data.type){
+const err123 = {};
+if(vErrors === null){
+vErrors = [err123];
+}
+else {
+vErrors.push(err123);
+}
+errors++;
+}
+}
+}
+}
+var _valid18 = _errs214 === errors;
+errors = _errs213;
+if(vErrors !== null){
+if(_errs213){
+vErrors.length = _errs213;
+}
+else {
+vErrors = null;
+}
+}
+if(_valid18){
+const _errs216 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.config !== undefined){
+let data70 = data.config;
+if(data70 && typeof data70 == "object" && !Array.isArray(data70)){
+for(const key17 in data70){
+if(!(key17 === "normal_position")){
+const err124 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/shut_off_valve/then/properties/config/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key17},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err124];
+}
+else {
+vErrors.push(err124);
+}
+errors++;
+}
+}
+if(data70.normal_position !== undefined){
+let data71 = data70.normal_position;
+if(!((data71 === "open") || (data71 === "closed"))){
+const err125 = {instancePath:instancePath+"/config/normal_position",schemaPath:"#/$defs/configByType/shut_off_valve/then/properties/config/properties/normal_position/enum",keyword:"enum",params:{allowedValues: schema58.then.properties.config.properties.normal_position.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err125];
+}
+else {
+vErrors.push(err125);
+}
+errors++;
+}
+}
+}
+else {
+const err126 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/shut_off_valve/then/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err126];
+}
+else {
+vErrors.push(err126);
+}
+errors++;
+}
+}
+}
+var _valid18 = _errs216 === errors;
+valid87 = _valid18;
+if(valid87){
+var props21 = {};
+props21.config = true;
+props21.type = true;
+}
+}
+if(!valid87){
+const err127 = {instancePath,schemaPath:"#/$defs/configByType/shut_off_valve/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
+if(vErrors === null){
+vErrors = [err127];
+}
+else {
+vErrors.push(err127);
+}
+errors++;
+}
+if(props0 !== true && props21 !== undefined){
+if(props21 === true){
+props0 = true;
+}
+else {
+props0 = props0 || {};
+Object.assign(props0, props21);
+}
+}
+const _errs223 = errors;
+let valid92 = true;
+const _errs224 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+let missing19;
+if((data.type === undefined) && (missing19 = "type")){
+const err128 = {};
+if(vErrors === null){
+vErrors = [err128];
+}
+else {
+vErrors.push(err128);
+}
+errors++;
+}
+else {
+if(data.type !== undefined){
+if("silencer" !== data.type){
+const err129 = {};
+if(vErrors === null){
+vErrors = [err129];
+}
+else {
+vErrors.push(err129);
+}
+errors++;
+}
+}
+}
+}
+var _valid19 = _errs224 === errors;
+errors = _errs223;
+if(vErrors !== null){
+if(_errs223){
+vErrors.length = _errs223;
+}
+else {
+vErrors = null;
+}
+}
+if(_valid19){
+const _errs226 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.config !== undefined){
+let data73 = data.config;
+if(data73 && typeof data73 == "object" && !Array.isArray(data73)){
+for(const key18 in data73){
+const err130 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/silencer/then/properties/config/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key18},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err130];
+}
+else {
+vErrors.push(err130);
+}
+errors++;
+}
+}
+else {
+const err131 = {instancePath:instancePath+"/config",schemaPath:"#/$defs/configByType/silencer/then/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err131];
+}
+else {
+vErrors.push(err131);
+}
+errors++;
+}
+}
+}
+var _valid19 = _errs226 === errors;
+valid92 = _valid19;
+if(valid92){
+var props22 = {};
+props22.config = true;
+props22.type = true;
+}
+}
+if(!valid92){
+const err132 = {instancePath,schemaPath:"#/$defs/configByType/silencer/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
+if(vErrors === null){
+vErrors = [err132];
+}
+else {
+vErrors.push(err132);
+}
+errors++;
+}
+if(props0 !== true && props22 !== undefined){
+if(props22 === true){
+props0 = true;
+}
+else {
+props0 = props0 || {};
+Object.assign(props0, props22);
+}
+}
+if(!(validate28(data, {instancePath,parentData,parentDataProperty,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate28.errors : vErrors.concat(validate28.errors);
+errors = vErrors.length;
+}
+else {
+var props23 = validate28.evaluated.props;
+}
+if(props0 !== true && props23 !== undefined){
+if(props23 === true){
+props0 = true;
+}
+else {
+props0 = props0 || {};
+Object.assign(props0, props23);
+}
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.id === undefined){
+const err133 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "id"},message:"must have required property '"+"id"+"'"};
+if(vErrors === null){
+vErrors = [err133];
+}
+else {
+vErrors.push(err133);
+}
+errors++;
+}
+if(data.type === undefined){
+const err134 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "type"},message:"must have required property '"+"type"+"'"};
+if(vErrors === null){
+vErrors = [err134];
+}
+else {
+vErrors.push(err134);
+}
+errors++;
+}
+if(data.pos === undefined){
+const err135 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "pos"},message:"must have required property '"+"pos"+"'"};
+if(vErrors === null){
+vErrors = [err135];
+}
+else {
+vErrors.push(err135);
+}
+errors++;
+}
+for(const key19 in data){
+if(!(func10.call(schema33.properties, key19))){
+const err136 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key19},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err136];
+}
+else {
+vErrors.push(err136);
+}
+errors++;
+}
+}
+if(data.id !== undefined){
+let data74 = data.id;
+if(typeof data74 === "string"){
+if(func1(data74) > 32){
+const err137 = {instancePath:instancePath+"/id",schemaPath:"#/$defs/id/maxLength",keyword:"maxLength",params:{limit: 32},message:"must NOT have more than 32 characters"};
+if(vErrors === null){
+vErrors = [err137];
+}
+else {
+vErrors.push(err137);
+}
+errors++;
+}
+if(!pattern4.test(data74)){
+const err138 = {instancePath:instancePath+"/id",schemaPath:"#/$defs/id/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z][A-Za-z0-9_-]*$"},message:"must match pattern \""+"^[A-Za-z][A-Za-z0-9_-]*$"+"\""};
+if(vErrors === null){
+vErrors = [err138];
+}
+else {
+vErrors.push(err138);
+}
+errors++;
+}
+}
+else {
+const err139 = {instancePath:instancePath+"/id",schemaPath:"#/$defs/id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err139];
+}
+else {
+vErrors.push(err139);
+}
+errors++;
+}
+}
+if(data.type !== undefined){
+let data75 = data.type;
+if(!(((((((((((((((((((((((data75 === "reservoir") || (data75 === "pump")) || (data75 === "motor")) || (data75 === "cylinder")) || (data75 === "directional_control_valve")) || (data75 === "relief_valve")) || (data75 === "check_valve")) || (data75 === "pilot_operated_check_valve")) || (data75 === "counterbalance_valve")) || (data75 === "flow_control_valve")) || (data75 === "filter")) || (data75 === "pressure_gauge")) || (data75 === "accumulator")) || (data75 === "junction")) || (data75 === "turbine")) || (data75 === "compressor")) || (data75 === "electrical_machine")) || (data75 === "heat_exchanger")) || (data75 === "air_receiver")) || (data75 === "pressure_regulator")) || (data75 === "shut_off_valve")) || (data75 === "silencer")) || (data75 === "boundary"))){
+const err140 = {instancePath:instancePath+"/type",schemaPath:"#/$defs/componentType/enum",keyword:"enum",params:{allowedValues: schema63.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err140];
+}
+else {
+vErrors.push(err140);
+}
+errors++;
+}
+}
+if(data.label !== undefined){
+let data76 = data.label;
+if(typeof data76 === "string"){
+if(func1(data76) > 80){
+const err141 = {instancePath:instancePath+"/label",schemaPath:"#/properties/label/maxLength",keyword:"maxLength",params:{limit: 80},message:"must NOT have more than 80 characters"};
+if(vErrors === null){
+vErrors = [err141];
+}
+else {
+vErrors.push(err141);
+}
+errors++;
+}
+}
+else {
+const err142 = {instancePath:instancePath+"/label",schemaPath:"#/properties/label/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err142];
+}
+else {
+vErrors.push(err142);
+}
+errors++;
+}
+}
+if(data.pos !== undefined){
+let data77 = data.pos;
+if(Array.isArray(data77)){
+if(data77.length > 2){
+const err143 = {instancePath:instancePath+"/pos",schemaPath:"#/$defs/point/maxItems",keyword:"maxItems",params:{limit: 2},message:"must NOT have more than 2 items"};
+if(vErrors === null){
+vErrors = [err143];
+}
+else {
+vErrors.push(err143);
+}
+errors++;
+}
+if(data77.length < 2){
+const err144 = {instancePath:instancePath+"/pos",schemaPath:"#/$defs/point/minItems",keyword:"minItems",params:{limit: 2},message:"must NOT have fewer than 2 items"};
+if(vErrors === null){
+vErrors = [err144];
+}
+else {
+vErrors.push(err144);
+}
+errors++;
+}
+const len0 = data77.length;
+if(len0 > 0){
+if(!(typeof data77[0] == "number")){
+const err145 = {instancePath:instancePath+"/pos/0",schemaPath:"#/$defs/point/prefixItems/0/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err145];
+}
+else {
+vErrors.push(err145);
+}
+errors++;
+}
+}
+if(len0 > 1){
+if(!(typeof data77[1] == "number")){
+const err146 = {instancePath:instancePath+"/pos/1",schemaPath:"#/$defs/point/prefixItems/1/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err146];
+}
+else {
+vErrors.push(err146);
+}
+errors++;
+}
+}
+const len1 = data77.length;
+if(!(len1 <= 2)){
+const err147 = {instancePath:instancePath+"/pos",schemaPath:"#/$defs/point/items",keyword:"items",params:{limit: 2},message:"must NOT have more than 2 items"};
+if(vErrors === null){
+vErrors = [err147];
+}
+else {
+vErrors.push(err147);
+}
+errors++;
+}
+}
+else {
+const err148 = {instancePath:instancePath+"/pos",schemaPath:"#/$defs/point/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err148];
+}
+else {
+vErrors.push(err148);
+}
+errors++;
+}
+}
+if(data.mirror !== undefined){
+if(typeof data.mirror !== "boolean"){
+const err149 = {instancePath:instancePath+"/mirror",schemaPath:"#/properties/mirror/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(vErrors === null){
+vErrors = [err149];
+}
+else {
+vErrors.push(err149);
+}
+errors++;
+}
+}
+if(data.config !== undefined){
+let data81 = data.config;
+if(!(data81 && typeof data81 == "object" && !Array.isArray(data81))){
+const err150 = {instancePath:instancePath+"/config",schemaPath:"#/properties/config/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err150];
+}
+else {
+vErrors.push(err150);
+}
+errors++;
+}
+}
+if(data.params !== undefined){
+if(!(validate30(data.params, {instancePath:instancePath+"/params",parentData:data,parentDataProperty:"params",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate30.errors : vErrors.concat(validate30.errors);
+errors = vErrors.length;
+}
+}
+if(data.ports !== undefined){
+let data83 = data.ports;
+if(data83 && typeof data83 == "object" && !Array.isArray(data83)){
+for(const key20 in data83){
+let data84 = data83[key20];
+if(data84 && typeof data84 == "object" && !Array.isArray(data84)){
+for(const key21 in data84){
+if(!((key21 === "plugged") || (key21 === "label"))){
+const err151 = {instancePath:instancePath+"/ports/" + key20.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/ports/additionalProperties/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key21},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err151];
+}
+else {
+vErrors.push(err151);
+}
+errors++;
+}
+}
+if(data84.plugged !== undefined){
+if(typeof data84.plugged !== "boolean"){
+const err152 = {instancePath:instancePath+"/ports/" + key20.replace(/~/g, "~0").replace(/\//g, "~1")+"/plugged",schemaPath:"#/properties/ports/additionalProperties/properties/plugged/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(vErrors === null){
+vErrors = [err152];
+}
+else {
+vErrors.push(err152);
+}
+errors++;
+}
+}
+if(data84.label !== undefined){
+let data86 = data84.label;
+if(typeof data86 === "string"){
+if(func1(data86) > 24){
+const err153 = {instancePath:instancePath+"/ports/" + key20.replace(/~/g, "~0").replace(/\//g, "~1")+"/label",schemaPath:"#/properties/ports/additionalProperties/properties/label/maxLength",keyword:"maxLength",params:{limit: 24},message:"must NOT have more than 24 characters"};
+if(vErrors === null){
+vErrors = [err153];
+}
+else {
+vErrors.push(err153);
+}
+errors++;
+}
+}
+else {
+const err154 = {instancePath:instancePath+"/ports/" + key20.replace(/~/g, "~0").replace(/\//g, "~1")+"/label",schemaPath:"#/properties/ports/additionalProperties/properties/label/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err154];
+}
+else {
+vErrors.push(err154);
+}
+errors++;
+}
+}
+}
+else {
+const err155 = {instancePath:instancePath+"/ports/" + key20.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/ports/additionalProperties/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err155];
+}
+else {
+vErrors.push(err155);
+}
+errors++;
+}
+}
+}
+else {
+const err156 = {instancePath:instancePath+"/ports",schemaPath:"#/properties/ports/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err156];
+}
+else {
+vErrors.push(err156);
+}
+errors++;
+}
+}
+if(data.note !== undefined){
+let data87 = data.note;
+if(typeof data87 === "string"){
+if(func1(data87) > 200){
+const err157 = {instancePath:instancePath+"/note",schemaPath:"#/properties/note/maxLength",keyword:"maxLength",params:{limit: 200},message:"must NOT have more than 200 characters"};
+if(vErrors === null){
+vErrors = [err157];
+}
+else {
+vErrors.push(err157);
+}
+errors++;
+}
+}
+else {
+const err158 = {instancePath:instancePath+"/note",schemaPath:"#/properties/note/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err158];
+}
+else {
+vErrors.push(err158);
+}
+errors++;
+}
+}
+}
+else {
+const err159 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err159];
+}
+else {
+vErrors.push(err159);
+}
+errors++;
+}
 validate21.errors = vErrors;
 return errors === 0;
 }
 validate21.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-const schema89 = {"type":"object","additionalProperties":false,"required":["from","to","line"],"properties":{"id":{"$ref":"#/$defs/id"},"from":{"$ref":"#/$defs/portRef"},"to":{"$ref":"#/$defs/portRef"},"line":{"$ref":"#/$defs/lineType"},"label":{"type":"string","maxLength":60},"fromSide":{"$ref":"#/$defs/side"},"toSide":{"$ref":"#/$defs/side"},"via":{"description":"Explicit orthogonal waypoints. Only add one after a routing diagnostic asks for it.","type":"array","minItems":1,"maxItems":8,"items":{"$ref":"#/$defs/point"}},"arrow":{"description":"auto draws a flow arrow only where the direction cannot reverse. Never set forward on a line a directional valve can reverse.","enum":["auto","forward","none"]}}};
-const schema91 = {"description":"Component and port, written exactly as the brief notates it: P1.outlet","type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*\\.[A-Za-z][A-Za-z0-9_]*$","maxLength":70};
-const schema93 = {"description":"Function of the line. ISO 1219 renders working lines (suction, pressure, working, return) continuous, pilot lines long-dashed and drain lines short-dashed. A mechanical line is a shaft between machines, drawn as a double line; it carries torque, not fluid, and joins only shaft ports. The fluid a line carries is never written here: it is resolved from the ports the line joins.","enum":["suction","pressure","working","return","drain","pilot","mechanical"]};
-const schema94 = {"enum":["left","right","top","bottom"]};
+const schema100 = {"type":"object","additionalProperties":false,"required":["from","to","line"],"properties":{"id":{"$ref":"#/$defs/id"},"from":{"$ref":"#/$defs/portRef"},"to":{"$ref":"#/$defs/portRef"},"line":{"$ref":"#/$defs/lineType"},"label":{"type":"string","maxLength":60},"fromSide":{"$ref":"#/$defs/side"},"toSide":{"$ref":"#/$defs/side"},"via":{"description":"Explicit orthogonal waypoints. Only add one after a routing diagnostic asks for it.","type":"array","minItems":1,"maxItems":8,"items":{"$ref":"#/$defs/point"}},"arrow":{"description":"auto draws a flow arrow only where the direction cannot reverse. Never set forward on a line a directional valve can reverse.","enum":["auto","forward","none"]}}};
+const schema102 = {"description":"Component and port, written exactly as the brief notates it: P1.outlet","type":"string","pattern":"^[A-Za-z][A-Za-z0-9_-]*\\.[A-Za-z][A-Za-z0-9_]*$","maxLength":70};
+const schema104 = {"description":"Function of the line. ISO 1219 renders working lines (suction, pressure, working, return) continuous, pilot lines long-dashed and drain lines short-dashed. A mechanical line is a shaft between machines, drawn as a double line; it carries torque, not fluid, and joins only shaft ports. The fluid a line carries is never written here: it is resolved from the ports the line joins.","enum":["suction","pressure","working","return","drain","pilot","mechanical"]};
+const schema105 = {"enum":["left","right","top","bottom"]};
 const pattern7 = new RegExp("^[A-Za-z][A-Za-z0-9_-]*\\.[A-Za-z][A-Za-z0-9_]*$", "u");
 
-function validate29(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate33(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate29.evaluated;
+const evaluated0 = validate33.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -4036,7 +5152,7 @@ vErrors.push(err2);
 errors++;
 }
 for(const key0 in data){
-if(!(func8.call(schema89.properties, key0))){
+if(!(func10.call(schema100.properties, key0))){
 const err3 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err3];
@@ -4155,7 +5271,7 @@ errors++;
 if(data.line !== undefined){
 let data3 = data.line;
 if(!(((((((data3 === "suction") || (data3 === "pressure")) || (data3 === "working")) || (data3 === "return")) || (data3 === "drain")) || (data3 === "pilot")) || (data3 === "mechanical"))){
-const err13 = {instancePath:instancePath+"/line",schemaPath:"#/$defs/lineType/enum",keyword:"enum",params:{allowedValues: schema93.enum},message:"must be equal to one of the allowed values"};
+const err13 = {instancePath:instancePath+"/line",schemaPath:"#/$defs/lineType/enum",keyword:"enum",params:{allowedValues: schema104.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err13];
 }
@@ -4193,7 +5309,7 @@ errors++;
 if(data.fromSide !== undefined){
 let data5 = data.fromSide;
 if(!((((data5 === "left") || (data5 === "right")) || (data5 === "top")) || (data5 === "bottom"))){
-const err16 = {instancePath:instancePath+"/fromSide",schemaPath:"#/$defs/side/enum",keyword:"enum",params:{allowedValues: schema94.enum},message:"must be equal to one of the allowed values"};
+const err16 = {instancePath:instancePath+"/fromSide",schemaPath:"#/$defs/side/enum",keyword:"enum",params:{allowedValues: schema105.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err16];
 }
@@ -4206,7 +5322,7 @@ errors++;
 if(data.toSide !== undefined){
 let data6 = data.toSide;
 if(!((((data6 === "left") || (data6 === "right")) || (data6 === "top")) || (data6 === "bottom"))){
-const err17 = {instancePath:instancePath+"/toSide",schemaPath:"#/$defs/side/enum",keyword:"enum",params:{allowedValues: schema94.enum},message:"must be equal to one of the allowed values"};
+const err17 = {instancePath:instancePath+"/toSide",schemaPath:"#/$defs/side/enum",keyword:"enum",params:{allowedValues: schema105.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err17];
 }
@@ -4326,7 +5442,7 @@ errors++;
 if(data.arrow !== undefined){
 let data11 = data.arrow;
 if(!(((data11 === "auto") || (data11 === "forward")) || (data11 === "none"))){
-const err27 = {instancePath:instancePath+"/arrow",schemaPath:"#/properties/arrow/enum",keyword:"enum",params:{allowedValues: schema89.properties.arrow.enum},message:"must be equal to one of the allowed values"};
+const err27 = {instancePath:instancePath+"/arrow",schemaPath:"#/properties/arrow/enum",keyword:"enum",params:{allowedValues: schema100.properties.arrow.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -4347,17 +5463,17 @@ vErrors.push(err28);
 }
 errors++;
 }
-validate29.errors = vErrors;
+validate33.errors = vErrors;
 return errors === 0;
 }
-validate29.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate33.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-const schema97 = {"description":"An engineering choice hydraulify made because the description did not state it. Never hidden.","type":"object","additionalProperties":false,"required":["subject","statement"],"properties":{"id":{"$ref":"#/$defs/id"},"subject":{"description":"Component id, port reference, or a short scope such as the whole circuit.","type":"string","minLength":1,"maxLength":70},"statement":{"type":"string","minLength":1,"maxLength":240},"rationale":{"type":"string","maxLength":240}}};
+const schema108 = {"description":"An engineering choice hydraulify made because the description did not state it. Never hidden.","type":"object","additionalProperties":false,"required":["subject","statement"],"properties":{"id":{"$ref":"#/$defs/id"},"subject":{"description":"Component id, port reference, or a short scope such as the whole circuit.","type":"string","minLength":1,"maxLength":70},"statement":{"type":"string","minLength":1,"maxLength":240},"rationale":{"type":"string","maxLength":240}}};
 
-function validate31(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate35(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate31.evaluated;
+const evaluated0 = validate35.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -4538,10 +5654,10 @@ vErrors.push(err14);
 }
 errors++;
 }
-validate31.errors = vErrors;
+validate35.errors = vErrors;
 return errors === 0;
 }
-validate31.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate35.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 
 function validate20(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
@@ -4656,7 +5772,7 @@ vErrors.push(err8);
 errors++;
 }
 for(const key1 in data2){
-if(!(((((((key1 === "title") || (key1 === "subtitle")) || (key1 === "output")) || (key1 === "units")) || (key1 === "viewBox")) || (key1 === "drawing_number")) || (key1 === "revision"))){
+if(!((((((((key1 === "title") || (key1 === "subtitle")) || (key1 === "output")) || (key1 === "units")) || (key1 === "viewBox")) || (key1 === "machine_style")) || (key1 === "drawing_number")) || (key1 === "revision"))){
 const err9 = {instancePath:instancePath+"/meta",schemaPath:"#/$defs/meta/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err9];
@@ -4862,11 +5978,10 @@ vErrors.push(err25);
 errors++;
 }
 }
-if(data2.drawing_number !== undefined){
-let data10 = data2.drawing_number;
-if(typeof data10 === "string"){
-if(func1(data10) > 60){
-const err26 = {instancePath:instancePath+"/meta/drawing_number",schemaPath:"#/$defs/meta/properties/drawing_number/maxLength",keyword:"maxLength",params:{limit: 60},message:"must NOT have more than 60 characters"};
+if(data2.machine_style !== undefined){
+let data10 = data2.machine_style;
+if(!((data10 === "iso1219") || (data10 === "iso10628"))){
+const err26 = {instancePath:instancePath+"/meta/machine_style",schemaPath:"#/$defs/meta/properties/machine_style/enum",keyword:"enum",params:{allowedValues: schema32.properties.machine_style.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err26];
 }
@@ -4876,8 +5991,11 @@ vErrors.push(err26);
 errors++;
 }
 }
-else {
-const err27 = {instancePath:instancePath+"/meta/drawing_number",schemaPath:"#/$defs/meta/properties/drawing_number/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data2.drawing_number !== undefined){
+let data11 = data2.drawing_number;
+if(typeof data11 === "string"){
+if(func1(data11) > 60){
+const err27 = {instancePath:instancePath+"/meta/drawing_number",schemaPath:"#/$defs/meta/properties/drawing_number/maxLength",keyword:"maxLength",params:{limit: 60},message:"must NOT have more than 60 characters"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -4887,11 +6005,8 @@ vErrors.push(err27);
 errors++;
 }
 }
-if(data2.revision !== undefined){
-let data11 = data2.revision;
-if(typeof data11 === "string"){
-if(func1(data11) > 20){
-const err28 = {instancePath:instancePath+"/meta/revision",schemaPath:"#/$defs/meta/properties/revision/maxLength",keyword:"maxLength",params:{limit: 20},message:"must NOT have more than 20 characters"};
+else {
+const err28 = {instancePath:instancePath+"/meta/drawing_number",schemaPath:"#/$defs/meta/properties/drawing_number/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err28];
 }
@@ -4901,8 +6016,11 @@ vErrors.push(err28);
 errors++;
 }
 }
-else {
-const err29 = {instancePath:instancePath+"/meta/revision",schemaPath:"#/$defs/meta/properties/revision/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data2.revision !== undefined){
+let data12 = data2.revision;
+if(typeof data12 === "string"){
+if(func1(data12) > 20){
+const err29 = {instancePath:instancePath+"/meta/revision",schemaPath:"#/$defs/meta/properties/revision/maxLength",keyword:"maxLength",params:{limit: 20},message:"must NOT have more than 20 characters"};
 if(vErrors === null){
 vErrors = [err29];
 }
@@ -4912,9 +6030,8 @@ vErrors.push(err29);
 errors++;
 }
 }
-}
 else {
-const err30 = {instancePath:instancePath+"/meta",schemaPath:"#/$defs/meta/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err30 = {instancePath:instancePath+"/meta/revision",schemaPath:"#/$defs/meta/properties/revision/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err30];
 }
@@ -4924,11 +6041,9 @@ vErrors.push(err30);
 errors++;
 }
 }
-if(data.components !== undefined){
-let data12 = data.components;
-if(Array.isArray(data12)){
-if(data12.length < 1){
-const err31 = {instancePath:instancePath+"/components",schemaPath:"#/properties/components/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+}
+else {
+const err31 = {instancePath:instancePath+"/meta",schemaPath:"#/$defs/meta/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -4937,16 +6052,12 @@ vErrors.push(err31);
 }
 errors++;
 }
-const len2 = data12.length;
-for(let i0=0; i0<len2; i0++){
-if(!(validate21(data12[i0], {instancePath:instancePath+"/components/" + i0,parentData:data12,parentDataProperty:i0,rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
-errors = vErrors.length;
 }
-}
-}
-else {
-const err32 = {instancePath:instancePath+"/components",schemaPath:"#/properties/components/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(data.components !== undefined){
+let data13 = data.components;
+if(Array.isArray(data13)){
+if(data13.length < 1){
+const err32 = {instancePath:instancePath+"/components",schemaPath:"#/properties/components/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
 if(vErrors === null){
 vErrors = [err32];
 }
@@ -4955,20 +6066,16 @@ vErrors.push(err32);
 }
 errors++;
 }
-}
-if(data.connections !== undefined){
-let data14 = data.connections;
-if(Array.isArray(data14)){
-const len3 = data14.length;
-for(let i1=0; i1<len3; i1++){
-if(!(validate29(data14[i1], {instancePath:instancePath+"/connections/" + i1,parentData:data14,parentDataProperty:i1,rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate29.errors : vErrors.concat(validate29.errors);
+const len2 = data13.length;
+for(let i0=0; i0<len2; i0++){
+if(!(validate21(data13[i0], {instancePath:instancePath+"/components/" + i0,parentData:data13,parentDataProperty:i0,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
 errors = vErrors.length;
 }
 }
 }
 else {
-const err33 = {instancePath:instancePath+"/connections",schemaPath:"#/properties/connections/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const err33 = {instancePath:instancePath+"/components",schemaPath:"#/properties/components/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err33];
 }
@@ -4978,19 +6085,19 @@ vErrors.push(err33);
 errors++;
 }
 }
-if(data.assumptions !== undefined){
-let data16 = data.assumptions;
-if(Array.isArray(data16)){
-const len4 = data16.length;
-for(let i2=0; i2<len4; i2++){
-if(!(validate31(data16[i2], {instancePath:instancePath+"/assumptions/" + i2,parentData:data16,parentDataProperty:i2,rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate31.errors : vErrors.concat(validate31.errors);
+if(data.connections !== undefined){
+let data15 = data.connections;
+if(Array.isArray(data15)){
+const len3 = data15.length;
+for(let i1=0; i1<len3; i1++){
+if(!(validate33(data15[i1], {instancePath:instancePath+"/connections/" + i1,parentData:data15,parentDataProperty:i1,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate33.errors : vErrors.concat(validate33.errors);
 errors = vErrors.length;
 }
 }
 }
 else {
-const err34 = {instancePath:instancePath+"/assumptions",schemaPath:"#/properties/assumptions/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const err34 = {instancePath:instancePath+"/connections",schemaPath:"#/properties/connections/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err34];
 }
@@ -5000,15 +6107,19 @@ vErrors.push(err34);
 errors++;
 }
 }
-if(data.notes !== undefined){
-let data18 = data.notes;
-if(Array.isArray(data18)){
-const len5 = data18.length;
-for(let i3=0; i3<len5; i3++){
-let data19 = data18[i3];
-if(typeof data19 === "string"){
-if(func1(data19) > 300){
-const err35 = {instancePath:instancePath+"/notes/" + i3,schemaPath:"#/properties/notes/items/maxLength",keyword:"maxLength",params:{limit: 300},message:"must NOT have more than 300 characters"};
+if(data.assumptions !== undefined){
+let data17 = data.assumptions;
+if(Array.isArray(data17)){
+const len4 = data17.length;
+for(let i2=0; i2<len4; i2++){
+if(!(validate35(data17[i2], {instancePath:instancePath+"/assumptions/" + i2,parentData:data17,parentDataProperty:i2,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate35.errors : vErrors.concat(validate35.errors);
+errors = vErrors.length;
+}
+}
+}
+else {
+const err35 = {instancePath:instancePath+"/assumptions",schemaPath:"#/properties/assumptions/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err35];
 }
@@ -5017,8 +6128,16 @@ vErrors.push(err35);
 }
 errors++;
 }
-if(func1(data19) < 1){
-const err36 = {instancePath:instancePath+"/notes/" + i3,schemaPath:"#/properties/notes/items/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+}
+if(data.notes !== undefined){
+let data19 = data.notes;
+if(Array.isArray(data19)){
+const len5 = data19.length;
+for(let i3=0; i3<len5; i3++){
+let data20 = data19[i3];
+if(typeof data20 === "string"){
+if(func1(data20) > 300){
+const err36 = {instancePath:instancePath+"/notes/" + i3,schemaPath:"#/properties/notes/items/maxLength",keyword:"maxLength",params:{limit: 300},message:"must NOT have more than 300 characters"};
 if(vErrors === null){
 vErrors = [err36];
 }
@@ -5027,9 +6146,8 @@ vErrors.push(err36);
 }
 errors++;
 }
-}
-else {
-const err37 = {instancePath:instancePath+"/notes/" + i3,schemaPath:"#/properties/notes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(func1(data20) < 1){
+const err37 = {instancePath:instancePath+"/notes/" + i3,schemaPath:"#/properties/notes/items/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
 if(vErrors === null){
 vErrors = [err37];
 }
@@ -5039,9 +6157,8 @@ vErrors.push(err37);
 errors++;
 }
 }
-}
 else {
-const err38 = {instancePath:instancePath+"/notes",schemaPath:"#/properties/notes/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const err38 = {instancePath:instancePath+"/notes/" + i3,schemaPath:"#/properties/notes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err38];
 }
@@ -5053,12 +6170,24 @@ errors++;
 }
 }
 else {
-const err39 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err39 = {instancePath:instancePath+"/notes",schemaPath:"#/properties/notes/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err39];
 }
 else {
 vErrors.push(err39);
+}
+errors++;
+}
+}
+}
+else {
+const err40 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err40];
+}
+else {
+vErrors.push(err40);
 }
 errors++;
 }

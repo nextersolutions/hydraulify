@@ -12,7 +12,9 @@
 //   defaults      config values applied when the author did not state them; every
 //                 applied default becomes a recorded assumption, never a silent one
 //   geometry(cfg) { width, height, ports, labelAnchor }
-//   draw(ctx)     SVG string in LOCAL coordinates (origin = frame top-left)
+//   draw(ctx)     SVG string in LOCAL coordinates (origin = frame top-left). ctx
+//                 carries config, geometry (with `mirrored`), component, and
+//                 style: drawing conventions chosen for the whole model
 //   describe(c)   human-readable BOM description
 //
 // Coordinates are local to the frame. The renderer translates the whole group to
@@ -127,6 +129,11 @@ export function labelBelow(width, height, gap = 14) {
 /** Standard label anchor: centred above the frame. */
 export function labelAbove(width, gap = 10) {
   return { x: width / 2, y: -gap, anchor: 'middle' };
+}
+
+/** Label to the left of the frame, for symbols whose right side is taken. */
+export function labelLeft(height, gap = 12) {
+  return { x: -gap, y: height / 2, anchor: 'end' };
 }
 
 /**

@@ -8,7 +8,8 @@
 // A prime mover is drawn only when the author states one; nothing is added to the
 // circuit that the description did not name.
 
-import { line, circle, polygon, text } from '../shared/svg.mjs';
+import { line, circle, polygon } from '../shared/svg.mjs';
+import { uprightText } from './glyphs.mjs';
 import { port, labelRight, CRITICALITY } from './contract.mjs';
 
 const BODY = 56;
@@ -62,7 +63,7 @@ export function geometry(config) {
   return { width, height: BODY, ports, labelAnchor: labelRight(width, BODY) };
 }
 
-function driveGlyph(config) {
+function driveGlyph(config, mirrored) {
   if (config.drive === 'none') return '';
   const centreY = BODY / 2;
   const driveRadius = 20;
@@ -71,10 +72,10 @@ function driveGlyph(config) {
   const shaft = line(driveCentreX + driveRadius, centreY, DRIVE_WIDTH + 6, centreY, { cls: 'sym' });
 
   if (config.drive === 'electric_motor') {
-    return body + shaft + text(driveCentreX, centreY + 5, 'M', { cls: 'glyph-text', size: 14 });
+    return body + shaft + uprightText(driveCentreX, centreY + 5, 'M', mirrored, { size: 14 });
   }
   if (config.drive === 'combustion_engine') {
-    return body + shaft + text(driveCentreX, centreY + 5, 'IC', { cls: 'glyph-text', size: 11 });
+    return body + shaft + uprightText(driveCentreX, centreY + 5, 'IC', mirrored, { size: 11 });
   }
   // Manual drive: a lever on the shaft rather than a prime mover symbol.
   return shaft
@@ -82,7 +83,7 @@ function driveGlyph(config) {
     + line(driveCentreX - 8, centreY - 18, driveCentreX + 8, centreY - 18, { cls: 'sym' });
 }
 
-export function draw({ config }) {
+export function draw({ config, geometry }) {
   const offsetX = bodyOffset(config);
   const centreX = offsetX + BODY / 2;
   const centreY = BODY / 2;
@@ -121,7 +122,7 @@ export function draw({ config }) {
     ? line(centreX + RADIUS, 16, offsetX + BODY, 16, { cls: 'sym' })
     : '';
 
-  return driveGlyph(config) + body + outletStub + inletStub + outTriangle + inTriangle + variable + caseDrain;
+  return driveGlyph(config, geometry?.mirrored) + body + outletStub + inletStub + outTriangle + inTriangle + variable + caseDrain;
 }
 
 export function describe({ config }) {

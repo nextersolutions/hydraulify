@@ -73,6 +73,11 @@
           "minItems": 2,
           "maxItems": 2
         },
+        "machine_style": {
+          "description": "Drawing convention for the turbine. iso1219 draws it in the fluid-power form, as a pneumatic motor; iso10628 draws the process-plant trapezoid. Only the turbine changes, and the title block says so.",
+          "enum": ["iso1219", "iso10628"],
+          "default": "iso1219"
+        },
         "drawing_number": { "type": "string", "maxLength": 60 },
         "revision": { "type": "string", "maxLength": 20 }
       }
@@ -93,7 +98,16 @@
         "filter",
         "pressure_gauge",
         "accumulator",
-        "junction"
+        "junction",
+        "turbine",
+        "compressor",
+        "electrical_machine",
+        "heat_exchanger",
+        "air_receiver",
+        "pressure_regulator",
+        "shut_off_valve",
+        "silencer",
+        "boundary"
       ]
     },
 
@@ -140,7 +154,16 @@
         { "$ref": "#/$defs/configByType/filter" },
         { "$ref": "#/$defs/configByType/pressure_gauge" },
         { "$ref": "#/$defs/configByType/accumulator" },
-        { "$ref": "#/$defs/configByType/junction" }
+        { "$ref": "#/$defs/configByType/junction" },
+        { "$ref": "#/$defs/configByType/turbine" },
+        { "$ref": "#/$defs/configByType/compressor" },
+        { "$ref": "#/$defs/configByType/electrical_machine" },
+        { "$ref": "#/$defs/configByType/heat_exchanger" },
+        { "$ref": "#/$defs/configByType/air_receiver" },
+        { "$ref": "#/$defs/configByType/pressure_regulator" },
+        { "$ref": "#/$defs/configByType/shut_off_valve" },
+        { "$ref": "#/$defs/configByType/silencer" },
+        { "$ref": "#/$defs/configByType/boundary" }
       ]
     },
 
@@ -395,6 +418,263 @@
             },
             "params": { "maxProperties": 0 }
           }
+        }
+      },
+      "turbine": {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "turbine"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {}
+            }
+          }
+        }
+      },
+      "compressor": {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "compressor"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {}
+            }
+          }
+        }
+      },
+      "electrical_machine": {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "electrical_machine"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "role": {
+                  "description": "generator (shaft in on the left), motor (shaft out on the right), or motor_generator (a shaft each side, for a shared compressor/turbine train).",
+                  "enum": [
+                    "generator",
+                    "motor",
+                    "motor_generator"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "heat_exchanger": {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "heat_exchanger"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "function": {
+                  "description": "heating draws the ISO heater (triangles pointing in), cooling the ISO cooler (triangles pointing out).",
+                  "enum": [
+                    "heating",
+                    "cooling"
+                  ]
+                },
+                "utility_medium": {
+                  "description": "What flows on the heating or cooling side. Unstated, it takes the fluid of the lines on the utility ports.",
+                  "$ref": "#/$defs/medium"
+                }
+              }
+            }
+          }
+        }
+      },
+      "air_receiver": {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "air_receiver"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "gas": {
+                  "description": "Air, or nitrogen for a back-up bottle on an oil accumulator. Unstated, it takes the gas of the lines it is connected to.",
+                  "enum": [
+                    "air",
+                    "nitrogen"
+                  ]
+                },
+                "single_port": {
+                  "description": "One connection, filled and emptied through the same line, instead of an inlet and an outlet.",
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "pressure_regulator": {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "pressure_regulator"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {}
+            }
+          }
+        }
+      },
+      "shut_off_valve": {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "shut_off_valve"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "normal_position": {
+                  "enum": [
+                    "open",
+                    "closed"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "silencer": {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "silencer"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {}
+            }
+          }
+        }
+      },
+      "boundary": {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "boundary"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "direction": {
+                  "description": "from: flow enters the drawing here. to: flow leaves it here.",
+                  "enum": [
+                    "from",
+                    "to"
+                  ]
+                },
+                "name": {
+                  "description": "Where the line comes from or goes to: \"TES\", \"stack\", \"cooling water supply\", \"sheet 2\".",
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 24
+                },
+                "medium": {
+                  "description": "What crosses the boundary. Unstated, it takes the fluid of the line.",
+                  "$ref": "#/$defs/medium"
+                }
+              },
+              "required": [
+                "direction",
+                "name"
+              ]
+            },
+            "params": {
+              "maxProperties": 0
+            }
+          },
+          "required": [
+            "config"
+          ]
         }
       }
     },

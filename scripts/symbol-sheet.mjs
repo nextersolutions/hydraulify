@@ -52,6 +52,22 @@ const CASES = [
   ['accumulator', { accumulator_type: 'none', gas_port: true, liquid: 'water' }, 'accumulator, direct contact + gas port'],
   ['accumulator', { accumulator_type: 'none' }, 'accumulator, direct contact'],
   ['junction', {}, 'junction'],
+  ['turbine', {}, 'air turbine, ISO 1219'],
+  ['turbine', {}, 'air turbine, ISO 10628', { machine: 'iso10628' }],
+  ['compressor', {}, 'air compressor'],
+  ['electrical_machine', { role: 'generator' }, 'generator'],
+  ['electrical_machine', { role: 'motor' }, 'electric motor'],
+  ['electrical_machine', { role: 'motor_generator' }, 'motor-generator'],
+  ['heat_exchanger', { function: 'heating', utility_medium: 'flue_gas' }, 'preheater'],
+  ['heat_exchanger', { function: 'cooling', utility_medium: 'water' }, 'cooler'],
+  ['air_receiver', {}, 'air receiver'],
+  ['air_receiver', { gas: 'nitrogen', single_port: true }, 'nitrogen bottle'],
+  ['pressure_regulator', {}, 'pressure regulator'],
+  ['shut_off_valve', {}, 'shut-off valve, open'],
+  ['shut_off_valve', { normal_position: 'closed' }, 'shut-off valve, closed'],
+  ['silencer', {}, 'silencer'],
+  ['boundary', { direction: 'from', name: 'TES', medium: 'thermal_oil' }, 'boundary, from'],
+  ['boundary', { direction: 'to', name: 'stack', medium: 'flue_gas' }, 'boundary, to'],
   ['directional_control_valve', { configuration: '2/2', normal_position: 'closed', actuation: { left: 'solenoid', right: 'none', spring: 'right_return' } }, '2/2 NC, solenoid/spring'],
   ['directional_control_valve', { configuration: '3/2', normal_position: 'closed', actuation: { left: 'solenoid', right: 'none', spring: 'right_return' } }, '3/2 NC, solenoid/spring'],
   ['directional_control_valve', { configuration: '3/2', normal_position: 'open', actuation: { left: 'push_button', right: 'none', spring: 'right_return' } }, '3/2 NO, button/spring'],
@@ -64,9 +80,11 @@ const CASES = [
 
 // A filter keeps a review pass focused: `node scripts/symbol-sheet.mjs out.svg dcv`
 // draws only the directional valves, large enough to read every internal path.
-const filter = process.argv[3];
-const selected = filter
-  ? CASES.filter(([type, , caption]) => type.includes(filter) || caption.includes(filter))
+// Several filters separated by commas select anything matching any of them:
+// `turbine,compressor,machine` for the machine train.
+const filters = (process.argv[3] ?? '').split(',').map((item) => item.trim()).filter(Boolean);
+const selected = filters.length
+  ? CASES.filter(([type, , caption]) => filters.some((filter) => type.includes(filter) || caption.includes(filter)))
   : CASES;
 
 const CELL_W = 430;
@@ -74,7 +92,7 @@ const CELL_H = 320;
 const COLUMNS = 2;
 const MAX_SCALE = 3;
 
-const cells = selected.map(([type, config, caption], index) => {
+const cells = selected.map(([type, config, caption, style = { machine: 'iso1219' }], index) => {
   const symbol = SYMBOLS.get(type);
   const component = { id: 'X1', type, pos: [0, 0], config };
   const resolvedComponent = resolveComponent(component);
@@ -97,7 +115,7 @@ const cells = selected.map(([type, config, caption], index) => {
   const offsetY = (CELL_H - 60 - geometry.height * scale) / 2;
 
   const drawing = group(
-    [symbol.draw({ config: resolvedComponent.config, geometry, component })],
+    [symbol.draw({ config: resolvedComponent.config, geometry, component, style })],
     { transform: `translate(${n(offsetX)} ${n(offsetY)}) scale(${n(scale)})` },
   );
 

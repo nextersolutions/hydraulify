@@ -33,6 +33,17 @@ const BAND = {
   filter: 4,
   pump: 4,
   reservoir: 5,
+  // Compressed-air plant: the machine train on the top band like any actuator,
+  // the air path through the middle, stores and exhausts toward the bottom.
+  turbine: 0,
+  compressor: 0,
+  electrical_machine: 0,
+  silencer: 1,
+  heat_exchanger: 2,
+  pressure_regulator: 2,
+  shut_off_valve: 3,
+  boundary: 3,
+  air_receiver: 5,
 };
 
 const BAND_GAP = 80;

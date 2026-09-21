@@ -49,6 +49,7 @@ export const STYLESHEET = `
   .port-label { font-size: 8.5px; fill: var(--faint); stroke-width: 2.5px; }
   .line-label { font-size: 9px; fill: var(--faint); }
   .glyph-text { fill: var(--ink); }
+  .boundary-text { font-size: 9.5px; fill: var(--ink); }
   .title { font-size: 17px; font-weight: 600; fill: var(--ink); }
   .subtitle, .meta-line { font-size: 10.5px; fill: var(--faint); }
   .note-heading { font-size: 10px; font-weight: 600; fill: var(--ink); }
@@ -141,6 +142,22 @@ function renderConnections(layout) {
 const PORT_LABEL_OFFSET = { left: [-7, 3], right: [7, 3], top: [0, -5], bottom: [0, 11] };
 const PORT_LABEL_ANCHOR = { left: 'end', right: 'start', top: 'middle', bottom: 'middle' };
 
+/** Model-wide drawing conventions, handed to every symbol's draw. */
+export function drawingStyle(model) {
+  return { machine: model.meta?.machine_style ?? 'iso1219' };
+}
+
+/**
+ * The standard line in the title block. A drawing that borrows a symbol from
+ * another standard says so, rather than claiming a convention it does not
+ * follow throughout.
+ */
+function conventionLine(model) {
+  const borrowsTurbine = drawingStyle(model).machine === 'iso10628'
+    && model.components.some((component) => component.type === 'turbine');
+  return borrowsTurbine ? 'ISO 1219-style schematic; turbine per ISO 10628' : 'ISO 1219-style schematic';
+}
+
 function renderComponent(entry, model) {
   const { component, config, geometry, ports, symbol } = entry;
   const [x, y] = component.pos;
@@ -148,9 +165,10 @@ function renderComponent(entry, model) {
   // A mirrored symbol is flipped about its own vertical centre line. The port
   // table was mirrored to match in resolveComponent, so the two stay together.
   // Captions are drawn outside this flip: mirrored text is unreadable.
+  const style = drawingStyle(model);
   const artwork = geometry.mirrored
-    ? `<g transform="translate(${n(geometry.width)} 0) scale(-1 1)">${symbol.draw({ config, geometry, component })}</g>`
-    : symbol.draw({ config, geometry, component });
+    ? `<g transform="translate(${n(geometry.width)} 0) scale(-1 1)">${symbol.draw({ config, geometry, component, style })}</g>`
+    : symbol.draw({ config, geometry, component, style });
   const children = [artwork];
 
   if (geometry.portLabels) {
@@ -226,7 +244,7 @@ function renderTitleBlock(model, viewBox, counts) {
     model.meta.drawing_number ? `Drawing ${model.meta.drawing_number}` : null,
     model.meta.revision ? `Rev ${model.meta.revision}` : null,
     `Units: ${(model.meta.units ?? 'si') === 'si' ? 'SI (bar, L/min, mm)' : 'imperial (psi, gpm, in)'}`,
-    'ISO 1219-style schematic',
+    conventionLine(model),
   ].filter(Boolean).join('  |  ');
 
   children.push(text(right, top + (model.meta.subtitle ? 32 : 18), identity, {

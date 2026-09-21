@@ -19,6 +19,15 @@ import * as filter from './filter.mjs';
 import * as pressureGauge from './pressure-gauge.mjs';
 import * as accumulator from './accumulator.mjs';
 import * as junction from './junction.mjs';
+import * as turbine from './turbine.mjs';
+import * as compressor from './compressor.mjs';
+import * as electricalMachine from './electrical-machine.mjs';
+import * as heatExchanger from './heat-exchanger.mjs';
+import * as airReceiver from './air-receiver.mjs';
+import * as pressureRegulator from './pressure-regulator.mjs';
+import * as shutOffValve from './shut-off-valve.mjs';
+import * as silencer from './silencer.mjs';
+import * as boundary from './boundary.mjs';
 
 import { withDefaults, defaultedKeys } from './contract.mjs';
 
@@ -37,6 +46,15 @@ const MODULES = [
   pressureGauge,
   accumulator,
   junction,
+  turbine,
+  compressor,
+  electricalMachine,
+  heatExchanger,
+  airReceiver,
+  pressureRegulator,
+  shutOffValve,
+  silencer,
+  boundary,
 ];
 
 export const SYMBOLS = new Map(MODULES.map((module) => [module.type, module]));

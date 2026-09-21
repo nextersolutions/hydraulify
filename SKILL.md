@@ -92,6 +92,10 @@ rather than describing a schematic that does not exist.
 `counterbalance_valve`, `flow_control_valve`, `filter`, `pressure_gauge`,
 `accumulator`, `junction`.
 
+Compressed-air plant: `turbine`, `compressor`, `electrical_machine`,
+`heat_exchanger`, `air_receiver`, `pressure_regulator`, `shut_off_valve`,
+`silencer`, `boundary`.
+
 Anything else is refused rather than drawn as a labelled box. If a description
 needs a component that is not here, say so and either model the function with
 what exists (recording that as an assumption) or state that it cannot be drawn.
@@ -109,7 +113,15 @@ by heart:
 | counterbalance | `inlet` (valve side), `outlet` (load side), `pilot` |
 | pilot-operated check | `inlet`, `outlet`, `pilot` |
 | flow control / filter / check | `inlet`, `outlet` |
-| gauge / accumulator | `inlet` |
+| gauge / accumulator | `inlet`; an accumulator with `gas_port` adds `gas` |
+| turbine | `inlet`, `exhaust`, `shaft` (right) |
+| compressor | `inlet`, `outlet`, `shaft` (left) |
+| electrical machine | `shaft`; a motor-generator has `shaft_a`, `shaft_b` |
+| heat exchanger | `in`, `out`, `utility_in`, `utility_out` |
+| air receiver | `inlet`, `outlet`; `single_port` has `port` |
+| regulator / shut-off valve | `inlet`, `outlet` |
+| silencer | `inlet` |
+| boundary | `port` |
 
 # Never invent engineering values
 
