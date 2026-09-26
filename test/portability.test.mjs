@@ -15,7 +15,7 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // Directories that ship as part of the skill. `scripts/` is development-time
 // tooling and may use ajv; `test/` is not shipped either.
-const SHIPPED = ['bin', 'renderers', 'validate', 'scaffold'];
+const SHIPPED = ['bin', 'renderers', 'validate', 'scaffold', 'editor'];
 
 function sourceFiles(directory) {
   const base = path.join(root, directory);
@@ -54,6 +54,13 @@ test('no shipped file imports a package: the skill runs with no node_modules', (
     }
   }
   assert.deepEqual(offenders, [], 'shipped code may import only relative paths and node: builtins');
+});
+
+test('the editor\'s shared modules run in a browser: no node: imports', () => {
+  const offenders = sourceFiles('editor')
+    .filter((file) => /^\s*(?:import|export)\s[^'"]*from\s*['"]node:/m.test(fs.readFileSync(file, 'utf8')))
+    .map((file) => path.relative(root, file));
+  assert.deepEqual(offenders, []);
 });
 
 test('the generated validator carries no runtime dependency', () => {

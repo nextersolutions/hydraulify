@@ -48,4 +48,4 @@ export function validateModel(model) {
   };
 }
 
-export { validateTopology, parsePortRef } from './topology.mjs';
+export { validateTopology, parsePortRef, lineExpectation } from './topology.mjs';

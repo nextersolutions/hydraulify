@@ -335,23 +335,29 @@ function connectedGroups(adjacency) {
  * control line rendered as a working line tells the reader the circuit does
  * something it does not do.
  */
+/**
+ * The line type a port expects, or null when any will do. `required` is a hard
+ * rule, `preferred` a strong convention. Exported so the editor proposes a new
+ * line's type from the same rules the validator then checks it against.
+ */
+export function lineExpectation(componentType, portId, farType) {
+  if (portId === 'pilot') return { required: ['pilot'], why: 'a pilot port carries a control line' };
+  if (portId === 'case_drain') return { preferred: ['drain'], why: 'a case drain carries leakage back to tank' };
+  // A compensation basin feeds a water-compensated store by head, not through
+  // a pump, so its outlet line is not a suction line.
+  if (componentType === 'reservoir' && portId === 'outlet' && farType !== 'accumulator') return { preferred: ['suction'], why: 'a pump draws from the reservoir through a suction line' };
+  if (componentType === 'reservoir' && portId === 'return') return { preferred: ['return', 'drain'], why: 'lines entering the reservoir are return or drain lines' };
+  if (componentType === 'pump' && portId === 'inlet') return { preferred: ['suction'], why: 'a pump inlet is fed by a suction line' };
+  if (componentType === 'pump' && portId === 'outlet') return { preferred: ['pressure'], why: 'a pump delivers into a pressure line' };
+  if (componentType === 'directional_control_valve' && portId === 'P') return { preferred: ['pressure'], why: 'the P port is fed from the pressure line' };
+  if (componentType === 'directional_control_valve' && portId === 'T') return { preferred: ['return'], why: 'the T port returns to tank' };
+  if (componentType === 'cylinder' && (portId === 'cap' || portId === 'rod')) return { preferred: ['working'], why: 'an actuator line reverses with the spool, so it is a working line' };
+  return null;
+}
+
 function checkLineSemantics(connections, resolved) {
   const diagnostics = [];
-
-  const expectation = (componentType, portId, farType) => {
-    if (portId === 'pilot') return { required: ['pilot'], why: 'a pilot port carries a control line' };
-    if (portId === 'case_drain') return { preferred: ['drain'], why: 'a case drain carries leakage back to tank' };
-    // A compensation basin feeds a water-compensated store by head, not through
-    // a pump, so its outlet line is not a suction line.
-    if (componentType === 'reservoir' && portId === 'outlet' && farType !== 'accumulator') return { preferred: ['suction'], why: 'a pump draws from the reservoir through a suction line' };
-    if (componentType === 'reservoir' && portId === 'return') return { preferred: ['return', 'drain'], why: 'lines entering the reservoir are return or drain lines' };
-    if (componentType === 'pump' && portId === 'inlet') return { preferred: ['suction'], why: 'a pump inlet is fed by a suction line' };
-    if (componentType === 'pump' && portId === 'outlet') return { preferred: ['pressure'], why: 'a pump delivers into a pressure line' };
-    if (componentType === 'directional_control_valve' && portId === 'P') return { preferred: ['pressure'], why: 'the P port is fed from the pressure line' };
-    if (componentType === 'directional_control_valve' && portId === 'T') return { preferred: ['return'], why: 'the T port returns to tank' };
-    if (componentType === 'cylinder' && (portId === 'cap' || portId === 'rod')) return { preferred: ['working'], why: 'an actuator line reverses with the spool, so it is a working line' };
-    return null;
-  };
+  const expectation = lineExpectation;
 
   for (const connection of connections) {
     for (const end of ['from', 'to']) {
@@ -712,7 +718,10 @@ function checkAssumptions(model, resolved) {
 
   for (const [id, entry] of resolved) {
     const loadBearing = LOAD_BEARING_CONFIG[entry.component.type] ?? [];
-    const defaulted = entry.defaulted.filter((keyName) => loadBearing.includes(keyName));
+    // Only a three-position valve has a centre, so a two-position valve that
+    // leaves it unstated has not left anything open.
+    const applies = (keyName) => keyName !== 'center_condition' || entry.config.configuration === '4/3';
+    const defaulted = entry.defaulted.filter((keyName) => loadBearing.includes(keyName) && applies(keyName));
     if (!defaulted.length) continue;
 
     const covered = assumptions.some((assumption) => assumption.subject === id
