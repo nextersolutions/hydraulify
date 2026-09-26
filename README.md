@@ -24,7 +24,8 @@ That second command draws this:
 ## Installation
 
 There is nothing to build and nothing to fetch. The schema validator is
-committed, the viewer template is vendored, and the runtime needs no packages.
+committed, the editor page is built from plain files, and the runtime needs no
+packages.
 Installing means getting the directory onto your disk and putting it where your
 agent looks for skills.
 
@@ -98,7 +99,8 @@ node bin/hydraulify.mjs doctor
 ```
 
 Eight checks: the Node version, the committed validator and its freedom from
-runtime dependencies, the viewer template and that it is readable, the
+runtime dependencies, the editor stylesheet and that the editor's modules load
+with browser-safe imports only, the
 `visual-check` paint probe, the examples, and whether a local Chrome exists.
 Chrome is the only optional one -- everything except `visual-check` works
 without it.
@@ -167,6 +169,32 @@ Two rules carry most of the weight. Connections are **port to port** --
 `P1.outlet` to `V1.P`, never "pump to valve" -- and a port takes exactly one
 line, so every branch is an explicit `junction` component.
 
+### In the browser: view and edit
+
+The `.html` that `deliver --html` writes is a viewer and an editor, in one
+file that works offline from disk. It opens read-only: pan, zoom, find a
+component, click one to light up what it is joined to, and export PNG, JPEG,
+WebP, SVG, a copy to the clipboard, a 1200x630 share card, or a six-second
+WebM of flow on the lines whose direction is certain.
+
+Press **Edit** and it edits the circuit model:
+
+- drag parts in from the palette -- a valve, cylinder, electrical machine,
+  heat exchanger or boundary first asks the choices that change how the
+  circuit behaves, with a preview;
+- drag from a port to a port to draw a line; drop on a port that already has
+  one, or onto a line, and a junction is inserted;
+- drag parts around on a 4px grid, drag a run of a selected line to pin its
+  route, and change ids, config, parameters, assumptions and the title block
+  in the inspector;
+- undo and redo everything.
+
+The page runs the same validator, layout and renderer as the CLI on every
+edit, so it cannot draw something `render` would not. Errors stay drawn and
+are marked where they are. **Save** (`Ctrl+S`) writes `model.json` -- back to
+the file in Chrome and Edge, as a download elsewhere. Run `deliver` on it to
+regenerate the SVG, report and bill of materials.
+
 ### Imperial output
 
 The model keeps whatever was authored. Conversion happens at render time only,
@@ -194,7 +222,7 @@ anchor moved 3px", where an SVG diff shows only changed path data.
 ## What it does
 
 ```
-description -> circuit model (JSON) -> validation -> layout -> SVG + HTML
+description -> circuit model (JSON) -> validation -> layout -> SVG + HTML editor
 ```
 
 The model is the source of truth; the drawing is a representation of it. A
@@ -263,11 +291,11 @@ node scripts/symbol-sheet.mjs tmp/sheet.svg
 | --- | --- |
 | `scaffold` | fill in missing positions with provisional hydraulic bands |
 | `validate` | validate and report; writes nothing |
-| `render` | write the SVG, optionally the HTML |
+| `render` | write the SVG, optionally the HTML viewer and editor |
 | `deliver` | write every artifact with a SHA-256 receipt |
 | `bom` | bill of materials as Markdown and JSON |
 | `inspect` | layout report: port anchors, sides, routes |
-| `preview` | render the HTML and open it |
+| `preview` | render the HTML viewer and editor and open it |
 | `check` | structural checks on a produced artifact |
 | `visual-check` | load an artifact in local Chrome and report what happened |
 | `examples` / `demo` | list the worked examples, or render them all |
@@ -378,6 +406,8 @@ node bin/hydraulify.mjs deliver examples/04-load-holding.json tmp/load-holding.s
 ```
 schemas/       the model schema; the committed validator is generated from it
 renderers/     symbols, layout, SVG and HTML renderers, vendored geometry
+editor/        the viewer and editor: edit operations, draft analysis and the
+               palette catalog (shared with Node), and the page script and styles
 validate/      topology and hydraulic rules, validation report, BOM
 scaffold/      provisional band placement
 examples/      seven worked circuits
@@ -389,7 +419,7 @@ test/          the test suite, fixtures and goldens
 
 Read `references/schema.md` to write a model, `references/symbols.md` for what
 each symbol expects, `references/validation.md` for what a diagnostic means,
-and `references/authoring.md` for placement and routing.
+and `references/authoring.md` for placement, routing and the editor.
 
 ## Development
 
@@ -411,6 +441,12 @@ validator and the shared instruction block are: `npm test` re-renders each
 example and fails if `docs/examples/` no longer matches, so the pictures cannot
 quietly stop being true.
 
+Where a local Chrome exists, the suite also drives the editor with real mouse
+and keyboard input over Chrome's DevTools pipe (`test/editor-e2e.test.mjs`) and
+counts the pixels of every export (`test/export.test.mjs`); without Chrome those
+are skipped. The edit operations themselves are tested in Node against the real
+validator (`test/editor-ops.test.mjs`).
+
 Goldens are regenerated deliberately, not reflexively:
 
 ```bash
@@ -423,8 +459,9 @@ checked protects nothing.
 ## Credit and limitations
 
 Built on the conventions of [archify](https://github.com/tt-a1i/archify) by
-tt-a1i (MIT): its routing geometry and its viewer template are vendored here,
-with the adaptations noted in `docs/archify-architecture.md`.
+tt-a1i (MIT): its routing geometry is vendored here, with the adaptations noted
+in `docs/archify-architecture.md`. The HTML viewer and editor is hydraulify's
+own.
 
 Known limitations:
 
@@ -448,6 +485,11 @@ Known limitations:
   against your house standard.
 - **One shaft end per compressor.** A second compressor stage cannot share
   a shaft with the first; it gets its own driver.
+- **The editor saves in place only in Chromium.** Chrome and Edge write back
+  to `model.json`; Firefox and Safari download a copy. Either way the SVG,
+  report and BOM are regenerated by `deliver`, not by the page.
+- **The editor is light only**, and edits one circuit at a time: no multiple
+  selection or copy and paste yet.
 - **Codex support is by construction**, not by observation: the skill is plain
   Node with no host-specific APIs and ships an `AGENTS.md`, but it has not been
   run under Codex.

@@ -145,8 +145,8 @@ failed delivery leaves any previous artifact untouched.
 
 - **`.svg`** is the deliverable: monochrome, ISO line styles, semantic classes,
   byte-identical for a given model. It renders anywhere.
-- **`.html`** wraps the same drawing in a viewer with pan, zoom, light/dark,
-  search, focus and export. Controls with no hydraulic meaning are hidden.
+- **`.html`** is the same drawing in a viewer and editor: pan, zoom, search,
+  focus, exports, and an Edit mode that changes the model. See below.
 - **`validation.md`** carries the verdict, every finding with its fixes, the
   computed topology checklist, the unspecified parameters and the assumptions.
 - **`bom.md`** / **`bom.json`** aggregate by type plus full configuration plus
@@ -159,9 +159,10 @@ node bin/hydraulify.mjs check out.svg          # structure, balance, no inline c
 node bin/hydraulify.mjs visual-check out.html --png shot.png
 ```
 
-`check` is structural. `visual-check` loads the artifact in local Chrome and
-reports that the viewer initialised and the schematic survived into the rendered
-DOM, and it measures what was actually painted: every element meant to be solid
+`check` is structural; on an HTML artifact it also confirms the page carries a
+readable model and the editor's modules. `visual-check` loads the artifact in
+local Chrome and reports that the editor started and the schematic survived into
+the rendered DOM, and it measures what was actually painted: every element meant to be solid
 must render filled, and nothing may end up with neither fill nor stroke. That
 second check exists because the source can say one thing while the stylesheet
 paints another -- solid triangles once rendered hollow, and arrowheads not at
@@ -169,6 +170,51 @@ all, with every source-level test passing. With `--png` it also captures a
 screenshot. Neither is a review of whether
 the drawing is correct. Keep the three claims apart when you report:
 deterministic checks, browser evidence, and perceptual review by a human.
+
+## The HTML viewer and editor
+
+The `.html` artifact opens read-only: pan with a drag, zoom with the wheel, find
+a component by id, label or type, and click one to light it and what it is
+joined to. The export menu writes PNG, JPEG, WebP, the SVG exactly as `render`
+writes it, a copy to the clipboard, a 1200x630 share card, and a six-second
+WebM of flow on the lines whose direction is certain. Nothing is exported while
+the circuit has errors.
+
+**Edit** (or `E`) turns it into an editor of the model -- never of the picture.
+The page runs the same validator, layout and renderer as the CLI on every edit,
+so it cannot draw something `render` would draw differently.
+
+- Drag a component from the palette, or click it and click where it goes.
+  Valves, cylinders, electrical machines, heat exchangers and boundaries ask
+  their behaviour-changing choices first, with a preview; the answers are
+  written into `config`, so nothing is left defaulted.
+- Drag from a port to a port to draw a line. Its type is proposed from the same
+  rules the validator checks (a pump outlet gets `pressure`, a valve A/B port
+  `working`), and the new line is selected so the type can be changed.
+- Drop on a port that already has a line, or on a line, and a junction is
+  inserted there. Delete a branch and a junction left joining two lines of one
+  type goes with it.
+- Drag a component to move it, on a 4px grid; a port that comes within 6px of
+  the port it is joined to snaps into line. Arrows nudge, Shift+arrows by 20.
+- Select a line and drag one of its runs sideways to pin the route; this writes
+  `via`. **Route automatically** in the inspector clears it.
+- The inspector edits ids (references follow), labels, config from the schema,
+  parameters (blank means not stated, `?` means explicitly unknown), plugged
+  ports, notes, the title block and the assumptions. A defaulted load-bearing
+  choice is badged, and the validation panel can record it as an assumption.
+- Undo/redo: `Ctrl+Z`, `Ctrl+Shift+Z`. Delete: `Delete`. Mirror: `M`. Fit: `F`.
+
+The drawing is kept even with errors: they are listed in the validation panel
+and marked on the drawing, and clicking one selects what it is about.
+
+**Saving** writes the model as JSON, formatted the way the examples are. In
+Chrome and Edge, `Ctrl+S` writes back to the file picked the first time; other
+browsers download it. The SVG, report and BOM on disk are not touched: run
+`deliver` on the saved model to regenerate them. A model with errors can be
+saved (after a warning); `deliver` still refuses it.
+
+When someone says they edited the drawing, read the saved `model.json` again
+before doing anything else: it, not the HTML, is what changed.
 
 ## Units
 

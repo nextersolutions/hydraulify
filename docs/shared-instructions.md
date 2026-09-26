@@ -207,6 +207,15 @@ Common ones: `topology/port-overloaded` means a branch needs a junction;
 `layout/route-crosses-symbol` means a component sits in the corridor between two
 ports and something has to move, or the route needs explicit `via` waypoints.
 
+# When the drawing has been edited
+
+The `.html` artifact is also an editor: people move parts, draw lines and
+change parameters there, and save `model.json`. Once they have, that file is
+the source again. Read it, validate it, and `deliver` it to regenerate the
+SVG, report and bill of materials -- the page never updates those itself.
+Never edit the HTML, and never rebuild the model from the original
+description after someone has edited it: their work would be lost.
+
 # What to claim
 
 The output is an "ISO 1219-style hydraulic schematic". It is never certified and
@@ -217,5 +226,5 @@ air store, hot surfaces on a preheater -- and leave out the ones it does not.
 
 Report the artifact paths, the validation status, the counts, and anything left
 unspecified. Do not claim a visual review that was not performed: `check` proves
-structure and `visual-check` proves the viewer loaded, but whether a spool arrow
+structure and `visual-check` proves the editor started, but whether a spool arrow
 points the right way needs a human or an image-capable reviewer.

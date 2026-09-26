@@ -19,7 +19,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 import { analyse, renderSvg, report } from '../renderers/pipeline.mjs';
-import { renderHtmlDocument, loadViewerTemplate } from '../renderers/render-html.mjs';
+import { renderHtmlDocument, collectModules } from '../renderers/render-html.mjs';
 import { renderValidationReport } from '../validate/report.mjs';
 import { buildBom, renderBomMarkdown, renderBomJson } from '../validate/bom.mjs';
 import { scaffoldModel } from '../scaffold/index.mjs';
@@ -167,7 +167,7 @@ function cmdRender(argv) {
 
   const output = outputArg ?? model.meta.output ?? file.replace(/\.json$/, '.svg');
   const entries = [[output, renderSvg(model, analysis)]];
-  if (flags.html) entries.push([flags.html, renderHtmlDocument(model, analysis)]);
+  if (flags.html) entries.push([flags.html, renderHtmlDocument(model, analysis, { sourceName: path.basename(file) })]);
 
   for (const written of writeAll(entries)) process.stdout.write(`${written}\n`);
   if (analysis.counts.warning || analysis.counts.info) printDiagnostics(analysis);
@@ -191,7 +191,7 @@ function cmdDeliver(argv) {
   const svg = renderSvg(model, analysis);
   const entries = [[outputArg, svg]];
 
-  const html = flags.html ? renderHtmlDocument(model, analysis) : null;
+  const html = flags.html ? renderHtmlDocument(model, analysis, { sourceName: path.basename(file) }) : null;
   if (html) entries.push([flags.html, html]);
 
   const validation = renderValidationReport(model, analysis);
@@ -304,20 +304,29 @@ function cmdCheck(argv) {
   const isHtml = /\.html?$/i.test(file);
 
   // Numeric checks apply to the drawing, not to the document around it: the
-  // vendored viewer is 774KB of JavaScript that legitimately contains the words
-  // NaN and undefined, and scanning it would report a failure on every artifact.
+  // editor's embedded modules legitimately contain the words NaN and undefined,
+  // and scanning them would report a failure on every artifact.
   const drawing = isHtml
     ? (content.match(/<svg[\s\S]*?<\/svg>/) ?? [''])[0]
     : content;
   if (/NaN|undefined|Infinity/.test(drawing)) problems.push('the drawing contains a non-finite or undefined value');
 
   if (isHtml) {
-    if (!content.includes('<svg')) problems.push('no SVG was injected into the viewer');
-    if (!/class="[^"]*component-/.test(drawing)) problems.push('the injected SVG has no component groups');
-    if (/\{\{i18n:/.test(content)) problems.push('unreplaced viewer text placeholders remain');
-    if (/\[PROJECT NAME\]|\[VISUAL PRESET\]|\[Subtitle description\]/.test(content)) {
-      problems.push('unreplaced template placeholders remain');
-    }
+    if (!content.includes('<svg')) problems.push('the page carries no drawing');
+    if (!/class="[^"]*component-/.test(drawing)) problems.push('the drawing has no component groups');
+    const embedded = (id) => {
+      const match = content.match(new RegExp(`<script type="application/json" id="${id}">([\\s\\S]*?)</script>`));
+      if (!match) return null;
+      try {
+        return JSON.parse(match[1]);
+      } catch {
+        return null;
+      }
+    };
+    const model = embedded('hy-model');
+    if (!model || !Array.isArray(model.components)) problems.push('the page does not carry a readable circuit model');
+    const modules = embedded('hy-modules');
+    if (!modules?.entry || !modules.sources?.[modules.entry]) problems.push('the editor modules are missing');
     if (/<script[^>]+src=|<link[^>]+href="http/i.test(content)) problems.push('the artifact is not self-contained');
   } else {
     if (!content.startsWith('<?xml')) problems.push('missing the XML declaration');
@@ -388,11 +397,16 @@ function cmdVisualCheck(argv) {
 
   const dom = result.stdout ?? '';
   const findings = [];
-  // The viewer wires listeners at init with unguarded lookups, so a JS failure
-  // leaves the post-script DOM missing the pieces it would have produced.
+  // The page shows the drawing it was delivered with even if its script fails,
+  // so a drawing in the DOM proves little on its own: the editor marks the
+  // body once it has started, and writes into #boot-error if it could not.
   if (!dom.includes('<svg')) findings.push('the schematic is not in the rendered DOM');
   if (!/class="[^"]*component-/.test(dom)) findings.push('no component groups survived rendering');
-  if (/\{\{i18n:/.test(dom)) findings.push('viewer text placeholders were not replaced');
+  if (!/\.svg$/i.test(file)) {
+    if (!/<body[^>]*data-ready="true"/.test(dom)) findings.push('the editor did not start');
+    const bootError = dom.match(/<div id="boot-error"[^>]*>([^<]*)<\/div>/);
+    if (bootError && bootError[1].trim()) findings.push(`the editor reported: ${bootError[1].trim()}`);
+  }
 
   const paint = readPaintProbe(dom);
   if (!paint) {
@@ -413,7 +427,7 @@ function cmdVisualCheck(argv) {
     screenshot: flags.png ? path.resolve(flags.png) : null,
     paint,
     findings,
-    claim: 'The viewer loaded and the schematic is present after scripts ran. '
+    claim: 'The page loaded, the editor started, and the schematic is present after scripts ran. '
       + 'This is not a review of whether the drawing is correct.',
   };
 
@@ -493,7 +507,7 @@ function cmdDemo(argv) {
     }
     writeAll([
       [path.join(outDir, `${base}.svg`), renderSvg(model, analysis)],
-      [path.join(outDir, `${base}.html`), renderHtmlDocument(model, analysis)],
+      [path.join(outDir, `${base}.html`), renderHtmlDocument(model, analysis, { sourceName: name })],
       [path.join(outDir, `${base}.validation.md`), renderValidationReport(model, analysis)],
     ]);
     process.stdout.write(`${path.join(outDir, `${base}.svg`)}\n`);
@@ -513,13 +527,13 @@ function cmdDoctor() {
     checks.push([!source.includes('require('), 'validator has no runtime dependency']);
   }
 
-  checks.push([fs.existsSync(path.join(skillRoot, 'assets', 'viewer-template.html')), 'viewer template present']);
+  checks.push([fs.existsSync(path.join(skillRoot, 'editor', 'editor.css')), 'editor stylesheet present']);
   checks.push([fs.existsSync(path.join(skillRoot, 'assets', 'paint-probe.js')), 'visual-check paint probe present']);
   try {
-    loadViewerTemplate();
-    checks.push([true, 'viewer template readable']);
+    const modules = collectModules();
+    checks.push([true, `editor modules load (${modules.order.length} modules, browser-safe imports only)`]);
   } catch (error) {
-    checks.push([false, `viewer template unreadable: ${error.message}`]);
+    checks.push([false, `editor modules do not load: ${error.message}`]);
   }
 
   checks.push([exampleFiles().length > 0, `${exampleFiles().length} examples installed`]);
@@ -546,7 +560,7 @@ function cmdPreview(argv) {
     process.exit(1);
   }
   const output = outputArg ?? file.replace(/\.json$/, '.html');
-  writeAll([[output, renderHtmlDocument(model, analysis)]]);
+  writeAll([[output, renderHtmlDocument(model, analysis, { sourceName: path.basename(file) })]]);
   process.stdout.write(`${output}\n`);
 
   const resolved = path.resolve(output);

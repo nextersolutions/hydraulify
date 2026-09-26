@@ -116,6 +116,18 @@ test('a two-position valve is not asked for a centre condition', () => {
   assert.ok(!codes(model).includes('assumptions/undeclared'));
 });
 
+test('a valve made two-position loses its centring spring, and one made 4/3 gets it back', () => {
+  const two = configFromChoices('directional_control_valve', {
+    configuration: '4/2', center_condition: 'closed', actuation: { left: 'solenoid', right: 'solenoid', spring: 'centred' },
+  });
+  assert.equal(two.actuation.spring, 'right_return');
+  const three = configFromChoices('directional_control_valve', {
+    configuration: '4/3', center_condition: 'open', actuation: { left: 'lever', right: 'none', spring: 'left_return' },
+  });
+  assert.equal(three.actuation.spring, 'centred');
+  assert.equal(three.center_condition, 'open');
+});
+
 test('ids are numbered per type and never reused while taken', () => {
   let model = emptyModel();
   model = addComponent(model, { type: 'pump', pos: [0, 0] }).model;

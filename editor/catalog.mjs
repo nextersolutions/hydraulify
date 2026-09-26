@@ -91,7 +91,9 @@ const ACTUATORS = [
   ['none', 'None'],
 ];
 
-const option = (value, label, hint) => ({ value, label, hint });
+const option = (value, label, hint, when) => ({ value, label, hint, when });
+const threePosition = (config) => config.configuration === '4/3';
+const twoPosition = (config) => config.configuration !== '4/3';
 
 /**
  * The choices that change how a circuit behaves, asked when a component is
@@ -142,9 +144,9 @@ export const PLACEMENT_CHOICES = {
       key: ['actuation', 'spring'],
       label: 'Springs',
       options: [
-        option('centred', 'Spring centred', 'Returns to the middle position (three-position valves)'),
-        option('left_return', 'Spring return, left', 'The left spring pushes the spool back'),
-        option('right_return', 'Spring return, right', 'The right spring pushes the spool back'),
+        option('centred', 'Spring centred', 'Returns to the middle position', threePosition),
+        option('right_return', 'Spring return, right', 'A spring on the right pushes the spool back', twoPosition),
+        option('left_return', 'Spring return, left', 'A spring on the left pushes the spool back', twoPosition),
         option('none', 'No spring (detented)', 'Stays where it was last shifted'),
       ],
       initial: 'centred',
@@ -215,12 +217,38 @@ export function needsPlacementChoice(type) {
   return Boolean(PLACEMENT_CHOICES[type]);
 }
 
-/** The config a set of placement answers produces, with inapplicable ones dropped. */
-export function configFromChoices(type, answers) {
+/** The options of a question that apply to the answers so far. */
+export function applicableOptions(question, config) {
+  return (question.options ?? []).filter((item) => !item.when || item.when(config));
+}
+
+/**
+ * Bring answers back into agreement after one changed: a valve made
+ * two-position cannot keep a centring spring, so it takes the first spring
+ * that applies. Returns new answers; the ones given are not changed.
+ */
+export function reconcileAnswers(type, answers) {
+  const out = JSON.parse(JSON.stringify(answers));
   const config = {};
   for (const question of PLACEMENT_CHOICES[type] ?? []) {
     if (question.when && !question.when(config)) continue;
-    const value = getPath(answers, question.key);
+    if (!question.text) {
+      const options = applicableOptions(question, config);
+      if (!options.some((item) => item.value === getPath(out, question.key))) setPath(out, question.key, options[0]?.value);
+    }
+    const value = getPath(out, question.key);
+    if (value !== undefined && value !== '') setPath(config, question.key, value);
+  }
+  return out;
+}
+
+/** The config a set of placement answers produces, with inapplicable ones dropped. */
+export function configFromChoices(type, answers) {
+  const reconciled = reconcileAnswers(type, answers);
+  const config = {};
+  for (const question of PLACEMENT_CHOICES[type] ?? []) {
+    if (question.when && !question.when(config)) continue;
+    const value = getPath(reconciled, question.key);
     if (value === undefined || value === '') continue;
     setPath(config, question.key, value);
   }

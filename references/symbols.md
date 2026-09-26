@@ -166,7 +166,7 @@ from several elements.
    the edge it names, or lines will visibly detach from the symbol.
 3. Draw using the primitives in `renderers/shared/svg.mjs` and the sub-glyphs in
    `renderers/symbols/glyphs.mjs`. Use semantic classes only -- never an inline
-   colour, or the symbol will not invert in the viewer's dark theme.
+   colour, or the symbol will not invert when the standalone SVG follows a dark system theme.
 4. Register the module in `renderers/symbols/index.mjs`.
 5. Add the type to the `componentType` enum in the schema, add a `configByType`
    entry for its configuration, and run `npm run generate:validators`.

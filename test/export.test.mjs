@@ -1,10 +1,10 @@
-// What the viewer's export buttons actually produce, measured in pixels.
+// What the page's export menu actually produces, measured in pixels.
 //
 // Exports serialize the drawing on its own, away from the page's stylesheet.
 // When the schematic's rules were only in the page head, every PNG, JPEG and
 // SVG came out as black-filled, unstroked shapes on a navy slab -- while every
-// test that read the source stayed green. So this runs the viewer's own export
-// in Chrome, decodes the image it hands to the download, and counts pixels.
+// test that read the source stayed green. So this runs the page's own export
+// in Chrome, decodes the image it produces, and counts pixels.
 //
 // WebP is not covered: headless Chrome's virtual time never lets a WebP encode
 // above a few hundred pixels finish. It shares every step with PNG except the
@@ -37,24 +37,23 @@ function findChrome() {
 const chrome = findChrome();
 const FORMATS = ['png', 'jpeg', 'svg'];
 
-// Runs in the page. Downloads are intercepted at URL.createObjectURL, which is
-// where the viewer hands over the finished blob, and the anchor click that would
-// start a real download is suppressed.
+// Runs in the page, once the editor has started, through the same function
+// the export menu calls.
 const PROBE = `<script>
 window.addEventListener('load', async () => {
   const out = document.createElement('pre');
   out.id = 'export-probe';
   document.body.appendChild(out);
-  const blobs = [];
-  const create = URL.createObjectURL;
-  URL.createObjectURL = (blob) => { blobs.push(blob); return create.call(URL, blob); };
-  HTMLAnchorElement.prototype.click = function () {};
+  for (let tries = 0; tries < 200 && document.body.dataset.ready !== 'true'; tries += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  if (!window.hydraulify) { out.textContent = JSON.stringify({ error: 'the editor did not start' }); return; }
 
   const decode = (blob) => new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('the exported ' + blob.type + ' does not decode'));
-    img.src = create.call(URL, blob);
+    img.src = URL.createObjectURL(blob);
   });
 
   const measure = (img) => {
@@ -81,12 +80,9 @@ window.addEventListener('load', async () => {
 
   const results = {};
   for (const format of ${JSON.stringify(FORMATS)}) {
-    blobs.length = 0;
     try {
-      await Archify.exportMenu.run(format);
-      const error = document.documentElement.getAttribute('data-last-export-error');
-      const blob = blobs.find((item) => item.type.startsWith(format === 'svg' ? 'image/svg' : 'image/' + format));
-      results[format] = blob ? { type: blob.type, ...measure(await decode(blob)) } : { error: error || 'no ' + format + ' blob was handed to the download' };
+      const blob = await window.hydraulify.exportBlob(format);
+      results[format] = { type: blob.type, ...measure(await decode(blob)) };
     } catch (error) {
       results[format] = { error: String(error && error.message || error) };
     }
@@ -102,8 +98,12 @@ function exportInChrome(exampleName) {
   const file = path.join(dir, 'viewer.html');
   fs.writeFileSync(file, html, 'utf8');
   try {
+    // Light scheme: the SVG export is the CLI's self-theming SVG, which inverts
+    // on a dark system by design. Rasters are always light; they are measured
+    // the same way either way.
     const result = spawnSync(chrome, [
       '--headless=new', '--disable-gpu', '--hide-scrollbars', '--virtual-time-budget=30000',
+      '--blink-settings=preferredColorScheme=1',
       '--dump-dom', `file:///${file.replace(/\\/g, '/')}`,
     ], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 120000 });
     const match = (result.stdout ?? '').match(/<pre id="export-probe">([^<]*)<\/pre>/);

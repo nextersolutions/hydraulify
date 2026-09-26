@@ -49,7 +49,9 @@ for (const name of names) {
     assert.ok(svg.includes('<svg'));
     assert.ok(!/NaN|undefined|Infinity/.test(svg));
     assert.ok(html.includes('<svg'));
-    assert.ok(!/\{\{i18n:|\[PROJECT NAME\]/.test(html), 'no unreplaced viewer placeholder');
+    assert.equal(html, renderHtmlDocument(JSON.parse(JSON.stringify(model)), analysis), 'the page is deterministic too');
+    const embedded = JSON.parse(html.match(/<script type="application\/json" id="hy-model">([\s\S]*?)<\/script>/)[1]);
+    assert.deepEqual(embedded, model, 'the page carries the model it was rendered from, for the editor to save');
     assert.match(report, /STATUS: (PASS|PASS WITH WARNINGS)/);
     assert.ok(renderBomMarkdown(model, bom).includes('# Bill of materials'));
     JSON.parse(renderBomJson(model, bom));

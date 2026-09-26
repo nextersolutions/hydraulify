@@ -9,8 +9,6 @@ Vendored here:
 
 | File | Origin | Change |
 | --- | --- | --- |
-| `assets/viewer-template.html` | `assets/template.html` | verbatim |
-| `renderers/shared/viewer-i18n.mjs` | `renderers/shared/i18n.mjs` | verbatim, with a header noting its origin |
 | `renderers/shared/geometry.mjs` | `renderers/shared/geometry.mjs` and the routing helpers in `renderers/architecture/render-architecture.mjs` | reduced to what hydraulify needs, and adapted so route anchors come from symbol port definitions rather than rectangle-side midpoints; candidate generation widened |
 | `scripts/generate-validators.mjs` | `scripts/generate-validators.mjs` | the technique (precompile with ajv, inline the ucs2length helper, fail if any `require` survives) reimplemented for hydraulify's single schema |
 
@@ -19,9 +17,10 @@ split, the diagnostics shape (`code`, `subject`, `evidence`, `supportedFixes`),
 the deliver-and-receipt discipline, and the separation of deterministic artifact
 checks from browser evidence from perceptual review.
 
-The viewer template is used unmodified. Controls with no hydraulic meaning are
-hidden with injected CSS rather than removed, because the template's
-initialisation uses unguarded element lookups and a missing element would throw.
+Earlier versions also vendored archify's viewer template
+(`assets/template.html`) and its i18n catalog verbatim. Both were removed when
+hydraulify got its own viewer and editor; nothing of them remains in the HTML
+artifact.
 
 ### MIT License (archify)
 

@@ -92,9 +92,13 @@ theme, visual presets, motion, export, node finder, overview map, focus panel,
 upstream/downstream reach, route probe, semantic lens, presentation, diagram guide,
 guided story chapters.
 
-hydraulify vendors this template and strips the controls with no hydraulic meaning
-(visual presets, motion, brand marks, repository evidence). See
-[decisions.md](decisions.md) §Viewer.
+hydraulify first vendored this template and hid the controls with no hydraulic
+meaning (visual presets, motion, brand marks, repository evidence). It no longer
+does: the template draws a static SVG and indexes it once at load, and its
+exports keep only CSS rules with archify's selector prefixes, which silently
+dropped every schematic style from every export. It was replaced by a native
+viewer and editor that runs hydraulify's own modules in the page. See
+[decisions.md](decisions.md) §Editor.
 
 ## 7. Delivery discipline
 

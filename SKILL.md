@@ -1,10 +1,10 @@
 ---
 name: hydraulify
-description: Turn a natural-language description of a hydraulic system or compressed-air energy storage plant into a validated, port-aware circuit model and an ISO 1219-style schematic, rendered as a deterministic SVG plus an explorable standalone HTML viewer, with a validation report and a bill of materials. Use when the user asks for a hydraulic circuit, schematic or power-unit diagram, a compressed-air storage (CAES) or turbine/compressor plant diagram, wants a model validated or its topology checked, or asks for a BOM. Covers reservoirs, pumps, motors, cylinders, directional valves (2/2 to 4/3, all four centres), relief, check, pilot-operated check, counterbalance and flow control valves, filters, gauges, accumulators (incl. air/water and nitrogen-bottle), turbines, compressors, motor-generators on clutched shafts, heaters and coolers, air receivers, regulators, shut-off valves, silencers and boundary terminals, on oil, water, thermal oil, air, nitrogen, steam and flue gas lines.
+description: Turn a natural-language description of a hydraulic system or compressed-air energy storage plant into a validated, port-aware circuit model and an ISO 1219-style schematic, rendered as a deterministic SVG plus a standalone HTML viewer and editor, with a validation report and a bill of materials. Use when the user asks for a hydraulic circuit, schematic or power-unit diagram (or to edit one), a compressed-air storage (CAES) or turbine/compressor plant diagram, wants a model validated or its topology checked, or asks for a BOM. Covers reservoirs, pumps, motors, cylinders, directional valves (2/2 to 4/3, all four centres), relief, check, pilot-operated check, counterbalance and flow control valves, filters, gauges, accumulators (incl. air/water and nitrogen-bottle), turbines, compressors, motor-generators on clutched shafts, heaters and coolers, air receivers, regulators, shut-off valves, silencers and boundary terminals, on oil, water, thermal oil, air, nitrogen, steam and flue gas lines.
 license: MIT
 metadata:
   version: "0.1"
-  based_on: archify by tt-a1i (MIT) - routing geometry and viewer template
+  based_on: archify by tt-a1i (MIT) - routing geometry
 ---
 
 # hydraulify
@@ -238,6 +238,15 @@ Common ones: `topology/port-overloaded` means a branch needs a junction;
 `layout/route-crosses-symbol` means a component sits in the corridor between two
 ports and something has to move, or the route needs explicit `via` waypoints.
 
+# When the drawing has been edited
+
+The `.html` artifact is also an editor: people move parts, draw lines and
+change parameters there, and save `model.json`. Once they have, that file is
+the source again. Read it, validate it, and `deliver` it to regenerate the
+SVG, report and bill of materials -- the page never updates those itself.
+Never edit the HTML, and never rebuild the model from the original
+description after someone has edited it: their work would be lost.
+
 # What to claim
 
 The output is an "ISO 1219-style hydraulic schematic". It is never certified and
@@ -248,7 +257,7 @@ air store, hot surfaces on a preheater -- and leave out the ones it does not.
 
 Report the artifact paths, the validation status, the counts, and anything left
 unspecified. Do not claim a visual review that was not performed: `check` proves
-structure and `visual-check` proves the viewer loaded, but whether a spool arrow
+structure and `visual-check` proves the editor started, but whether a spool arrow
 points the right way needs a human or an image-capable reviewer.
 
 <!-- END SHARED -->
@@ -262,4 +271,4 @@ Read these only when you need them:
   plus how to add a new one
 - `references/validation.md` - every rule, its severity and why it is graded that way
 - `references/authoring.md` - placement, routing, `via` waypoints, reading a
-  layout report, and working with the HTML viewer
+  layout report, and the HTML viewer and editor
