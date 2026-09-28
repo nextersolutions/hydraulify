@@ -1,7 +1,6 @@
 # hydraulify
 
-Turn a description of a hydraulic system, or of a compressed-air energy storage
-plant, into a validated, port-aware circuit model and an ISO 1219-style
+Turn a description of a hydraulic system into a validated, port-aware circuit model and an ISO 1219-style
 schematic.
 
 An agent skill, usable from Claude Code (`SKILL.md`) and Codex (`AGENTS.md`),
