@@ -48,6 +48,12 @@ test('editing a circuit with the mouse and keyboard', { skip: !chrome && 'Chrome
   await page.click(await page.centreOf('#btn-edit'));
   await page.waitFor('document.body.dataset.mode === "edit"');
   assert.ok(await page.evaluate('document.querySelectorAll(".port").length') > 10, 'port handles appear for editing');
+  // The palette narrows the stage; the fitted view has to follow it.
+  await page.waitFor(`(() => {
+    const canvas = document.getElementById('canvas').getBoundingClientRect();
+    const drawing = document.getElementById('paper').getBoundingClientRect();
+    return drawing.left >= canvas.left && drawing.right <= canvas.right && drawing.top >= canvas.top && drawing.bottom <= canvas.bottom;
+  })()`, { timeout: 2000 });
 
   await t.test('a component dragged from the palette lands where it is dropped', async () => {
     const item = await page.centreOf('.palette-item[data-type="pressure_gauge"]');

@@ -40,6 +40,8 @@ const state = {
   mode: 'view',
   selection: null, // { kind: 'component', id } | { kind: 'connection', index }
   camera: { x: 0, y: 0, k: 1 },
+  fitted: false, // the camera shows the whole drawing, and nobody has panned or zoomed since
+  stage: null, // the stage size the camera was last placed for
   gesture: null,
   wiring: null, // click-to-connect: { from, point }
   placing: null, // palette tool: { type }
@@ -106,7 +108,7 @@ export async function start() {
   window.addEventListener('beforeunload', (event) => {
     if (isDirty()) { event.preventDefault(); event.returnValue = ''; }
   });
-  new ResizeObserver(() => applyCamera()).observe($('stage'));
+  new ResizeObserver(() => onStageResize()).observe($('stage'));
 
   renderAll();
   fit();
@@ -136,6 +138,7 @@ function toWorld(event) {
 
 function fitRect(rect, { max = 2 } = {}) {
   const { width, height } = stageSize();
+  state.fitted = false;
   const k = Math.max(MIN_ZOOM, Math.min(max, Math.min(width / rect.width, height / rect.height) * 0.94));
   state.camera = {
     k,
@@ -146,7 +149,27 @@ function fitRect(rect, { max = 2 } = {}) {
 }
 
 function fit() {
-  if (state.draft?.layout) fitRect(state.draft.layout.viewBox);
+  if (!state.draft?.layout) return;
+  fitRect(state.draft.layout.viewBox);
+  state.fitted = true;
+}
+
+/**
+ * The stage changes size when the palette opens or closes with Edit, and when
+ * the window does. A fitted view is fitted again, so the palette never hides
+ * part of the drawing; a view someone panned or zoomed keeps the same point
+ * in the middle of the stage.
+ */
+function onStageResize() {
+  const { width, height } = stageSize();
+  const last = state.stage;
+  state.stage = { width, height };
+  if (state.fitted) { fit(); return; }
+  if (last) {
+    const { x, y, k } = state.camera;
+    state.camera = { k, x: x + (width - last.width) / 2, y: y + (height - last.height) / 2 };
+  }
+  applyCamera();
 }
 
 function zoomBy(factor, around) {
@@ -155,6 +178,7 @@ function zoomBy(factor, around) {
   const { x, y, k } = state.camera;
   const next = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, k * factor));
   state.camera = { k: next, x: cx - (cx - x) * (next / k), y: cy - (cy - y) * (next / k) };
+  state.fitted = false;
   applyCamera();
 }
 
@@ -708,6 +732,7 @@ function onPointerMove(event) {
     case 'pan': {
       if (!moved(gesture, event, 2)) return;
       state.camera = { ...gesture.camera, x: gesture.camera.x + event.clientX - gesture.startX, y: gesture.camera.y + event.clientY - gesture.startY };
+      state.fitted = false;
       applyCamera();
       return;
     }

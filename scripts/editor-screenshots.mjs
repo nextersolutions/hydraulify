@@ -46,8 +46,6 @@ async function shoot(page, name) {
 async function startEditing(page) {
   await page.click(await page.centreOf('#btn-edit'));
   await page.waitFor('document.body.dataset.mode === "edit"');
-  // The palette takes a column from the stage; fit the drawing to what is left.
-  await page.key('f');
 }
 
 fs.mkdirSync(output, { recursive: true });
