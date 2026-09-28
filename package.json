@@ -17,6 +17,7 @@
     "generate:docs": "node scripts/generate-shared-instructions.mjs",
     "generate:examples": "node scripts/generate-example-svgs.mjs",
     "check:examples": "node scripts/generate-example-svgs.mjs --check",
+    "screenshots": "node scripts/editor-screenshots.mjs",
     "check:docs": "node scripts/generate-shared-instructions.mjs --check",
     "test": "npm run check:validators && npm run check:docs && npm run check:examples && node --test test/"
   },

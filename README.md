@@ -177,6 +177,11 @@ component, click one to light up what it is joined to, and export PNG, JPEG,
 WebP, SVG, a copy to the clipboard, a 1200x630 share card, or a six-second
 WebM of flow on the lines whose direction is certain.
 
+<p align="center">
+  <img src="docs/screenshots/editor-view.png" width="820"
+       alt="The viewer: a filtered power unit with the pump selected. Everything it is joined to stays lit, the rest is dimmed, and the inspector on the right shows the pump's configuration, parameters and ports.">
+</p>
+
 Press **Edit** and it edits the circuit model:
 
 - drag parts in from the palette -- a valve, cylinder, electrical machine,
@@ -188,6 +193,24 @@ Press **Edit** and it edits the circuit model:
   route, and change ids, config, parameters, assumptions and the title block
   in the inspector;
 - undo and redo everything.
+
+<p align="center">
+  <img src="docs/screenshots/editor-edit.png" width="820"
+       alt="Edit mode: the palette of symbols on the left, port handles on every component, and a pressure gauge just teed onto the pressure rail. The new line is selected in the inspector, and a notice says junction J3 was inserted.">
+</p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/editor-chooser.png"
+      alt="Placing a directional valve: a dialog asks for the configuration, centre condition, actuators and springs, with a preview of the symbol."></td>
+    <td width="50%"><img src="docs/screenshots/editor-errors.png"
+      alt="A gauge dropped but not yet connected: the status reads INVALID, the gauge is outlined in red, and the validation panel lists the two errors."></td>
+  </tr>
+  <tr>
+    <td>Placing a valve asks what changes its behaviour first.</td>
+    <td>A draft with errors is still drawn, and the errors say where.</td>
+  </tr>
+</table>
 
 The page runs the same validator, layout and renderer as the CLI on every
 edit, so it cannot draw something `render` would not. Errors stay drawn and
@@ -413,7 +436,7 @@ scaffold/      provisional band placement
 examples/      seven worked circuits
 references/    deep-dive docs, gated so an agent loads them only when needed
 docs/          architecture record, decisions, shared instruction source,
-               and the example drawings this README shows
+               and the example drawings and editor screenshots this README shows
 test/          the test suite, fixtures and goldens
 ```
 
@@ -428,6 +451,7 @@ npm install                  # ajv, for regenerating the validator only
 npm run generate:validators  # after changing the schema
 npm run generate:docs        # after changing docs/shared-instructions.md
 npm run generate:examples    # after any change that moves a line on a drawing
+npm run screenshots          # after a visible change to the editor (needs Chrome)
 npm test                     # everything, including all three drift checks
 ```
 
@@ -439,7 +463,10 @@ skill free of `node_modules`.
 The README's drawings are generated artifacts, checked the same way the
 validator and the shared instruction block are: `npm test` re-renders each
 example and fails if `docs/examples/` no longer matches, so the pictures cannot
-quietly stop being true.
+quietly stop being true. The editor screenshots are captured the same way the
+end-to-end tests drive the page, by `scripts/editor-screenshots.mjs`, but they
+are not checked: pixels differ between Chrome versions and fonts, so retake
+them when the editor changes.
 
 Where a local Chrome exists, the suite also drives the editor with real mouse
 and keyboard input over Chrome's DevTools pipe (`test/editor-e2e.test.mjs`) and

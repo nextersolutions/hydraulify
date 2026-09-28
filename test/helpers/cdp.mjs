@@ -131,6 +131,11 @@ export async function launch({ width = 1400, height = 900 } = {}) {
       await call('Input.dispatchKeyEvent', { type: 'keyDown', key, code, modifiers, windowsVirtualKeyCode });
       await call('Input.dispatchKeyEvent', { type: 'keyUp', key, code, modifiers, windowsVirtualKeyCode });
     },
+    /** The viewport as PNG bytes. */
+    async screenshot() {
+      const { data } = await call('Page.captureScreenshot', { format: 'png' });
+      return Buffer.from(data, 'base64');
+    },
     /** Centre of the first element matching a selector, in page pixels. */
     async centreOf(selector) {
       return page.evaluate(`(() => {
